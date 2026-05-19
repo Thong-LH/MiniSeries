@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniSeries - T??ng Lai C?a Gi?o D?c</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-blobs"></div>
+
+    <nav>
+        <div class="logo">Edu<span>Gen</span>AI</div>
+        <div class="nav-links">
+            <a href="#" class="active">Trang ch?</a>
+            <a href="#">Th? vi?n</a>
+            <a href="#">B?ng gi?</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <h1>Bi?n b?i h?c th?nh <span>Tr?i nghi?m</span></h1>
+            <p>T? ??ng t?o Manga ho?c Video t? n?i dung b?i h?c c?a b?n ch? trong v?i gi?y.</p>
+        </section>
+
+        <section class="input-container glass">
+            <div class="input-group">
+                <label for="title">Ti?u ?? b?i h?c</label>
+                <input type="text" id="title" placeholder="V? d?: V?ng ??i c?a m?t con b??m">
+            </div>
+
+            <div class="input-group">
+                <label for="content">N?i dung b?i h?c</label>
+                <textarea id="content" rows="6" placeholder="Nh?p n?i dung chi ti?t t?i ??y..."></textarea>
+            </div>
+
+            <div class="options">
+                <div class="toggle-group">
+                    <span>Manga (C? b?n)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="generateVideo">
+                        <span class="slider round"></span>
+                    </label>
+                    <span>Video (Cao c?p)</span>
+                </div>
+                <button id="generateBtn" class="btn-primary">B?t ??u t?o <span class="sparkle">?</span></button>
+            </div>
+        </section>
+
+        <section id="resultContainer" class="result-container hidden">
+            <div class="loading-state">
+                <div class="loader"></div>
+                <p id="statusText">?ang ph?n t?ch n?i dung...</p>
+            </div>
+
+            <div id="lessonOutput" class="lesson-output hidden">
+                <div class="character-anchor">
+                    <h2>Nh?n v?t ch? ??o (Anchor)</h2>
+                    <div class="anchor-image-wrapper glass">
+                        <img id="anchorImage" src="" alt="Anchor Character">
+                    </div>
+                </div>
+
+                <div class="chapters-grid">
+                    <h2>C?c ch??ng</h2>
+                    <div id="chaptersList" class="chapters-list"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 MiniSeries. Powered by Pollinations API.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
