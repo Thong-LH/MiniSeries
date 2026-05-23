@@ -51,10 +51,7 @@ POST /api/lessons/drafts
 POST /api/lessons/{lessonId}/review
 POST /api/lessons/{lessonId}/approve
 GET  /api/lessons/{lessonId}
-POST /api/lessons/generate
 ```
-
-`POST /api/lessons/generate` is the legacy one-shot endpoint.
 
 ## Configuration
 

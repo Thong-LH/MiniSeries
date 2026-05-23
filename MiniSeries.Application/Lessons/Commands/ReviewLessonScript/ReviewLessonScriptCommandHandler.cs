@@ -1,4 +1,5 @@
 using MiniSeries.Application.Common.Interfaces;
+using MiniSeries.Application.Lessons.Dtos;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Domain.Enums;
 using MediatR;
@@ -7,12 +8,12 @@ namespace MiniSeries.Application.Lessons.Commands.ReviewLessonScript;
 
 public sealed class ReviewLessonScriptCommandHandler(
     ILLMService llmService,
-    ILessonStore lessonStore)
-    : IRequestHandler<ReviewLessonScriptCommand, Lesson>
+    ILessonRepository lessonRepository)
+    : IRequestHandler<ReviewLessonScriptCommand, LessonDto>
 {
-    public async Task<Lesson> Handle(ReviewLessonScriptCommand request, CancellationToken cancellationToken)
+    public async Task<LessonDto> Handle(ReviewLessonScriptCommand request, CancellationToken cancellationToken)
     {
-        var lesson = await lessonStore.GetByIdAsync(request.LessonId)
+        var lesson = await lessonRepository.GetByIdAsync(request.LessonId)
                      ?? throw new InvalidOperationException("Không tìm thấy lesson cần review.");
 
         if (lesson.ScriptStatus == ScriptStatus.Approved)
@@ -48,13 +49,13 @@ public sealed class ReviewLessonScriptCommandHandler(
             });
 
             CompleteJob(job, "Kịch bản đã được revise và chờ review lại.");
-            await lessonStore.SaveAsync(lesson);
-            return lesson;
+            await lessonRepository.SaveAsync(lesson);
+            return LessonDto.FromEntity(lesson);
         }
         catch (Exception ex)
         {
             FailJob(job, ex);
-            await lessonStore.SaveAsync(lesson);
+            await lessonRepository.SaveAsync(lesson);
             throw;
         }
     }

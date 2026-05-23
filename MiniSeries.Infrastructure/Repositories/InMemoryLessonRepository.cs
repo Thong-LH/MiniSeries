@@ -2,9 +2,9 @@ using System.Collections.Concurrent;
 using MiniSeries.Application.Common.Interfaces;
 using MiniSeries.Domain.Entities;
 
-namespace MiniSeries.Infrastructure.Persistence;
+namespace MiniSeries.Infrastructure.Repositories;
 
-public sealed class InMemoryLessonStore : ILessonStore
+public sealed class InMemoryLessonRepository : ILessonRepository
 {
     private readonly ConcurrentDictionary<Guid, Lesson> _lessons = new();
 

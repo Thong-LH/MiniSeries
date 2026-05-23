@@ -1,4 +1,5 @@
 using MiniSeries.Application.Common.Interfaces;
+using MiniSeries.Application.Lessons.Dtos;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Domain.Enums;
 using MediatR;
@@ -7,10 +8,10 @@ namespace MiniSeries.Application.Lessons.Commands.CreateLessonDraft;
 
 public sealed class CreateLessonDraftCommandHandler(
     ILLMService llmService,
-    ILessonStore lessonStore)
-    : IRequestHandler<CreateLessonDraftCommand, Lesson>
+    ILessonRepository lessonRepository)
+    : IRequestHandler<CreateLessonDraftCommand, LessonDto>
 {
-    public async Task<Lesson> Handle(CreateLessonDraftCommand request, CancellationToken cancellationToken)
+    public async Task<LessonDto> Handle(CreateLessonDraftCommand request, CancellationToken cancellationToken)
     {
         var lesson = new Lesson
         {
@@ -42,13 +43,13 @@ public sealed class CreateLessonDraftCommandHandler(
             });
 
             CompleteJob(job, "Kịch bản tổng thể đã sẵn sàng để review.");
-            await lessonStore.SaveAsync(lesson);
-            return lesson;
+            await lessonRepository.SaveAsync(lesson);
+            return LessonDto.FromEntity(lesson);
         }
         catch (Exception ex)
         {
             FailJob(job, ex);
-            await lessonStore.SaveAsync(lesson);
+            await lessonRepository.SaveAsync(lesson);
             throw;
         }
     }

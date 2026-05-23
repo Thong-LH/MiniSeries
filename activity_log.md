@@ -66,7 +66,7 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
    - tạo `overallScript` + `characterProfile`,
    - revise script theo feedback của user,
    - sau khi duyệt mới sinh danh sách `Chapter` chi tiết để render media.
-2. Thêm `ILessonStore` và `InMemoryLessonStore` để flow nhiều bước chạy được trước khi gắn database thật.
+2. Thêm `ILessonRepository` và `InMemoryLessonRepository` để flow nhiều bước chạy được trước khi gắn database thật.
 3. Thêm các command mới:
    - `CreateLessonDraftCommand`
    - `ReviewLessonScriptCommand`
@@ -88,7 +88,7 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 ### Đã hoàn thành:
 1. Thêm EF Core + Npgsql để dùng Supabase như Postgres database.
 2. Thêm `MiniSeriesDbContext`, map các bảng cho `Lesson`, `Chapter`, `LlmJson`, `GenerationJob`, `GenerationLog`.
-3. Thêm `EfLessonStore` để thay thế `InMemoryLessonStore` khi có `ConnectionStrings:MiniSeries`.
+3. Thêm `LessonRepository` để thay thế `InMemoryLessonRepository` khi có `ConnectionStrings:MiniSeries`.
 4. Tạo migration đầu tiên `InitialPersistence` và xuất file `supabase_initial_persistence.sql` để có thể chạy trực tiếp trong Supabase SQL Editor.
 5. Thêm Cloudinary SDK và `CloudinaryStorageService`; khi đủ Cloudinary config, media sẽ upload lên Cloudinary thay vì chỉ giữ Pollinations URL.
 6. Thêm tài liệu `SETUP_SUPABASE_CLOUDINARY.md` hướng dẫn cấu hình Supabase, Cloudinary, migration và user-secrets.
@@ -107,3 +107,13 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 
 ### Bước tiếp theo:
 - Lấy **Session Pooler** connection string từ Supabase Connect popup rồi chạy lại migration.
+
+## [2026-05-23] - Lam mong controller va chuyen response DTO ve Application
+
+### Da hoan thanh:
+1. Chuyen cac DTO tra ve lesson tu `MiniSeries.WebAPI/Contracts/Lessons` sang `MiniSeries.Application/Lessons/Dtos` va doi ten theo dang `LessonDto`, `ChapterDto`, `GenerationJobDto`, `GenerationLogDto`, `LlmJsonDto`.
+2. Doi cac command handler `CreateLessonDraft`, `ReviewLessonScript`, `ApproveLessonScript` de tra ve `LessonDto` thay vi tra truc tiep domain entity `Lesson`.
+3. Doi `CreateDraft` de controller nhan truc tiep `CreateLessonDraftCommand` tu body, khong con tu map `CreateLessonDraftRequest` sang command.
+4. Them `GetLessonByIdQuery` va `GetLessonByIdQueryHandler` de controller khong goi `ILessonRepository` truc tiep nua.
+5. Cap nhat `LessonsController` theo huong chi dieu huong qua MediatR va tra `Ok(result)`, khong map entity sang DTO trong controller.
+6. Xoa cac WebAPI response contract cu va build solution thanh cong (`0 warning`, `0 error`).

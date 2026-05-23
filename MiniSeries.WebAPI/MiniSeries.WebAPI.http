@@ -1,6 +1,19 @@
 @MiniSeries.WebAPI_HostAddress = http://localhost:5137
 
-GET {{MiniSeries.WebAPI_HostAddress}}/weatherforecast/
+POST {{MiniSeries.WebAPI_HostAddress}}/api/lessons/drafts
+Content-Type: application/json
+
+{
+  "rawContent": "Explain photosynthesis in simple language.",
+  "title": "Photosynthesis",
+  "generateVideo": false,
+  "creativeMode": 0,
+  "creativeBrief": null
+}
+
+###
+
+GET {{MiniSeries.WebAPI_HostAddress}}/api/lessons/00000000-0000-0000-0000-000000000000
 Accept: application/json
 
 ###

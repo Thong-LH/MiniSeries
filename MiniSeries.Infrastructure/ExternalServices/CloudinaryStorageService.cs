@@ -26,7 +26,7 @@ public sealed class CloudinaryStorageService : IStorageService
     {
         EnsureConfigured();
 
-        var publicId = $"{_options.Folder}/{SanitizePublicId(fileName)}";
+        var publicId = SanitizePublicId(fileName);
         var isVideo = fileName.Contains("vid", StringComparison.OrdinalIgnoreCase)
                       || sourceUrl.Contains("/video/", StringComparison.OrdinalIgnoreCase)
                       || sourceUrl.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase);
@@ -37,6 +37,8 @@ public sealed class CloudinaryStorageService : IStorageService
             {
                 File = new FileDescription(fileName, sourceUrl),
                 PublicId = publicId,
+                AssetFolder = _options.Folder,
+                UseAssetFolderAsPublicIdPrefix = true,
                 Overwrite = true
             };
 
@@ -50,6 +52,8 @@ public sealed class CloudinaryStorageService : IStorageService
         {
             File = new FileDescription(fileName, sourceUrl),
             PublicId = publicId,
+            AssetFolder = _options.Folder,
+            UseAssetFolderAsPublicIdPrefix = true,
             Overwrite = true
         };
 

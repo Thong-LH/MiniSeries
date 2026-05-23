@@ -1,4 +1,5 @@
 using MiniSeries.Application.Common.Interfaces;
+using MiniSeries.Application.Lessons.Dtos;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Domain.Enums;
 using MediatR;
@@ -11,12 +12,12 @@ public sealed class ApproveLessonScriptCommandHandler(
     IMangaService mangaService,
     IVideoService videoService,
     IStorageService storageService,
-    ILessonStore lessonStore)
-    : IRequestHandler<ApproveLessonScriptCommand, Lesson>
+    ILessonRepository lessonRepository)
+    : IRequestHandler<ApproveLessonScriptCommand, LessonDto>
 {
-    public async Task<Lesson> Handle(ApproveLessonScriptCommand request, CancellationToken cancellationToken)
+    public async Task<LessonDto> Handle(ApproveLessonScriptCommand request, CancellationToken cancellationToken)
     {
-        var lesson = await lessonStore.GetByIdAsync(request.LessonId)
+        var lesson = await lessonRepository.GetByIdAsync(request.LessonId)
                      ?? throw new InvalidOperationException("Không tìm thấy lesson cần duyệt.");
 
         if (lesson.ScriptStatus != ScriptStatus.AwaitingReview)
@@ -82,13 +83,13 @@ public sealed class ApproveLessonScriptCommandHandler(
             }
 
             CompleteJob(job, "Đã sinh xong toàn bộ media cho lesson.");
-            await lessonStore.SaveAsync(lesson);
-            return lesson;
+            await lessonRepository.SaveAsync(lesson);
+            return LessonDto.FromEntity(lesson);
         }
         catch (Exception ex)
         {
             FailJob(job, ex);
-            await lessonStore.SaveAsync(lesson);
+            await lessonRepository.SaveAsync(lesson);
             throw;
         }
     }
