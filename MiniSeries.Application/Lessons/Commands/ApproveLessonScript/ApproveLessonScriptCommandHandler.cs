@@ -1,8 +1,9 @@
+using MediatR;
+using MiniSeries.Application.Common.Exceptions;
 using MiniSeries.Application.Common.Interfaces;
 using MiniSeries.Application.Lessons.Dtos;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Domain.Enums;
-using MediatR;
 
 namespace MiniSeries.Application.Lessons.Commands.ApproveLessonScript;
 
@@ -17,12 +18,17 @@ public sealed class ApproveLessonScriptCommandHandler(
 {
     public async Task<LessonDto> Handle(ApproveLessonScriptCommand request, CancellationToken cancellationToken)
     {
+        if (request.LessonId == Guid.Empty)
+        {
+            throw new AppValidationException("LessonId is required.");
+        }
+
         var lesson = await lessonRepository.GetByIdAsync(request.LessonId)
-                     ?? throw new InvalidOperationException("Không tìm thấy lesson cần duyệt.");
+                     ?? throw new NotFoundException("Lesson was not found.");
 
         if (lesson.ScriptStatus != ScriptStatus.AwaitingReview)
         {
-            throw new InvalidOperationException("Lesson chỉ có thể được duyệt khi đang chờ review.");
+            throw new BusinessRuleException("Lesson can only be approved when it is awaiting review.");
         }
 
         lesson.ScriptStatus = ScriptStatus.Approved;
@@ -32,7 +38,7 @@ public sealed class ApproveLessonScriptCommandHandler(
         var job = StartJob(lesson, GenerationJobType.MediaGeneration, "CreateChapters");
         try
         {
-            AddLog(job, "CreateChapters", "Bắt đầu tạo chapter chi tiết từ kịch bản đã duyệt.");
+            AddLog(job, "CreateChapters", "Started creating chapters from approved script.");
             var chapterDraft = await llmService.CreateChaptersAsync(
                 lesson.RawContent,
                 lesson.OverallScript,
@@ -57,7 +63,7 @@ public sealed class ApproveLessonScriptCommandHandler(
             }).ToList();
 
             job.CurrentStep = "GenerateAnchorImage";
-            AddLog(job, "GenerateAnchorImage", "Bắt đầu tạo anchor image.");
+            AddLog(job, "GenerateAnchorImage", "Started generating anchor image.");
             var anchorLocalUrl = await imageGenerationService.GenerateAnchorImageAsync(lesson.CharacterProfile);
             lesson.AnchorImageUrl = await storageService.UploadAsync(anchorLocalUrl, $"anchor_{lesson.Id}");
 
@@ -79,10 +85,10 @@ public sealed class ApproveLessonScriptCommandHandler(
                 }
 
                 chapter.Status = ChapterStatus.Generated;
-                AddLog(job, job.CurrentStep, $"Đã sinh xong chapter {chapter.Order}.");
+                AddLog(job, job.CurrentStep, $"Generated chapter {chapter.Order}.");
             }
 
-            CompleteJob(job, "Đã sinh xong toàn bộ media cho lesson.");
+            CompleteJob(job, "Generated all media for lesson.");
             await lessonRepository.SaveAsync(lesson);
             return LessonDto.FromEntity(lesson);
         }

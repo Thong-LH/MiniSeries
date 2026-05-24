@@ -117,3 +117,21 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 4. Them `GetLessonByIdQuery` va `GetLessonByIdQueryHandler` de controller khong goi `ILessonRepository` truc tiep nua.
 5. Cap nhat `LessonsController` theo huong chi dieu huong qua MediatR va tra `Ok(result)`, khong map entity sang DTO trong controller.
 6. Xoa cac WebAPI response contract cu va build solution thanh cong (`0 warning`, `0 error`).
+
+## [2026-05-24] - Them tai lieu concept va database diagram
+
+### Da hoan thanh:
+1. Them `docs/AI_GENERATION_CONCEPT.md` de mo ta concept core AI generation flow, API flow va pham vi tich hop auth/role sau nay.
+2. Them `docs/DATABASE_DIAGRAM.md` gom Mermaid ERD, relationship summary va state overview de co the copy vao draw.io.
+3. Them `docs/APP_ROLE_CONCEPT.md` de ve concept tong the theo role Guest/Customer/Staff/Admin tu yeu cau cua team.
+4. Them `docs/FULL_APP_DATABASE_CONCEPT.md` de phac thao database concept toan app, gom user/auth/role/payment/feedback/ticket/report va AI generation.
+
+## [2026-05-24] - Them validation va global error handling cho lesson API
+
+### Da hoan thanh:
+1. Them cac exception dung chung trong Application: `AppValidationException`, `NotFoundException`, `BusinessRuleException`.
+2. Them validation cho `CreateLessonDraftCommand`: bat buoc title/raw content, gioi han do dai input va yeu cau creative brief khi dung guided mode.
+3. Them validation cho review/approve/get lesson: bat buoc lesson id hop le, feedback khong rong va gioi han do dai feedback.
+4. Doi loi not found va sai trang thai review/approve sang exception ro nghia thay vi `InvalidOperationException`.
+5. Them `ExceptionHandlingMiddleware` o WebAPI de tra ve `application/problem+json` voi status `400`, `404`, hoac `500` phu hop.
+6. Build solution thanh cong (`0 warning`, `0 error`).

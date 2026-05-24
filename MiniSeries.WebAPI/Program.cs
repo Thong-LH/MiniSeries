@@ -4,6 +4,7 @@ using MiniSeries.Infrastructure.ExternalServices;
 using MiniSeries.Infrastructure.Options;
 using MiniSeries.Infrastructure.Persistence;
 using MiniSeries.Infrastructure.Repositories;
+using MiniSeries.WebAPI.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,6 +59,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();

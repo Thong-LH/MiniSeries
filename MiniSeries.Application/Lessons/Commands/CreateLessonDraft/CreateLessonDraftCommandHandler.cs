@@ -1,4 +1,5 @@
 using MiniSeries.Application.Common.Interfaces;
+using MiniSeries.Application.Common.Exceptions;
 using MiniSeries.Application.Lessons.Dtos;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Domain.Enums;
@@ -13,6 +14,8 @@ public sealed class CreateLessonDraftCommandHandler(
 {
     public async Task<LessonDto> Handle(CreateLessonDraftCommand request, CancellationToken cancellationToken)
     {
+        Validate(request);
+
         var lesson = new Lesson
         {
             Title = request.Title,
@@ -51,6 +54,44 @@ public sealed class CreateLessonDraftCommandHandler(
             FailJob(job, ex);
             await lessonRepository.SaveAsync(lesson);
             throw;
+        }
+    }
+
+    private static void Validate(CreateLessonDraftCommand request)
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            errors.Add("Title is required.");
+        }
+        else if (request.Title.Length > 200)
+        {
+            errors.Add("Title cannot exceed 200 characters.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.RawContent))
+        {
+            errors.Add("RawContent is required.");
+        }
+        else if (request.RawContent.Length > 20000)
+        {
+            errors.Add("RawContent cannot exceed 20000 characters.");
+        }
+
+        if (request.CreativeBrief?.Length > 2000)
+        {
+            errors.Add("CreativeBrief cannot exceed 2000 characters.");
+        }
+
+        if (request.CreativeMode == CreativeMode.Guided && string.IsNullOrWhiteSpace(request.CreativeBrief))
+        {
+            errors.Add("CreativeBrief is required when CreativeMode is Guided.");
+        }
+
+        if (errors.Count > 0)
+        {
+            throw new AppValidationException(errors.ToArray());
         }
     }
 

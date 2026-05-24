@@ -1,8 +1,9 @@
+using MediatR;
+using MiniSeries.Application.Common.Exceptions;
 using MiniSeries.Application.Common.Interfaces;
 using MiniSeries.Application.Lessons.Dtos;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Domain.Enums;
-using MediatR;
 
 namespace MiniSeries.Application.Lessons.Commands.ReviewLessonScript;
 
@@ -13,12 +14,14 @@ public sealed class ReviewLessonScriptCommandHandler(
 {
     public async Task<LessonDto> Handle(ReviewLessonScriptCommand request, CancellationToken cancellationToken)
     {
+        Validate(request);
+
         var lesson = await lessonRepository.GetByIdAsync(request.LessonId)
-                     ?? throw new InvalidOperationException("Không tìm thấy lesson cần review.");
+                     ?? throw new NotFoundException("Lesson was not found.");
 
         if (lesson.ScriptStatus == ScriptStatus.Approved)
         {
-            throw new InvalidOperationException("Lesson đã được duyệt, không thể revise script nữa.");
+            throw new BusinessRuleException("Approved lesson cannot be reviewed again.");
         }
 
         lesson.ScriptStatus = ScriptStatus.RevisionRequested;
@@ -27,7 +30,7 @@ public sealed class ReviewLessonScriptCommandHandler(
         var job = StartJob(lesson, GenerationJobType.ScriptRevision, "ReviseScriptDraft");
         try
         {
-            AddLog(job, "ReviseScriptDraft", "Nhận feedback và bắt đầu revise kịch bản.");
+            AddLog(job, "ReviseScriptDraft", "Received feedback and started revising script.");
             var revised = await llmService.ReviseScriptDraftAsync(
                 lesson.RawContent,
                 lesson.OverallScript,
@@ -48,7 +51,7 @@ public sealed class ReviewLessonScriptCommandHandler(
                 Feedback = request.Feedback
             });
 
-            CompleteJob(job, "Kịch bản đã được revise và chờ review lại.");
+            CompleteJob(job, "Script was revised and is ready for review again.");
             await lessonRepository.SaveAsync(lesson);
             return LessonDto.FromEntity(lesson);
         }
@@ -57,6 +60,30 @@ public sealed class ReviewLessonScriptCommandHandler(
             FailJob(job, ex);
             await lessonRepository.SaveAsync(lesson);
             throw;
+        }
+    }
+
+    private static void Validate(ReviewLessonScriptCommand request)
+    {
+        var errors = new List<string>();
+
+        if (request.LessonId == Guid.Empty)
+        {
+            errors.Add("LessonId is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Feedback))
+        {
+            errors.Add("Feedback is required.");
+        }
+        else if (request.Feedback.Length > 3000)
+        {
+            errors.Add("Feedback cannot exceed 3000 characters.");
+        }
+
+        if (errors.Count > 0)
+        {
+            throw new AppValidationException(errors.ToArray());
         }
     }
 
