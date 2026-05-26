@@ -3,78 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiniSeries - T??ng Lai C?a Gi?o D?c</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>EduGenAI - Đăng nhập</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0b0f19; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
 </head>
-<body>
-    <div class="background-blobs"></div>
+<body class="flex items-center justify-center min-h-screen text-slate-200 relative overflow-hidden">
+    
+    <script>
+        const checkUserId = localStorage.getItem('userId');
+        if (checkUserId) {
+            // Nếu đã đăng nhập đàng hoàng trước đó, đẩy thẳng vào home.html để sài Gen AI luôn
+            const currentUrl = window.location.href;
+            if (currentUrl.includes('index.html')) {
+                window.location.href = currentUrl.replace('index.html', 'home.html');
+            } else {
+                window.location.href = 'home.html';
+            }
+        }
+    </script>
+    
+    <div class="absolute w-96 h-96 bg-purple-600/10 rounded-full blur-3xl -top-20 -left-20"></div>
+    <div class="absolute w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -bottom-20 -right-20"></div>
 
-    <nav>
-        <div class="logo">Edu<span>Gen</span>AI</div>
-        <div class="nav-links">
-            <a href="#" class="active">Trang ch?</a>
-            <a href="#">Th? vi?n</a>
-            <a href="#">B?ng gi?</a>
+    <div class="w-full max-w-md p-8 rounded-2xl glass z-10 shadow-2xl mx-4">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold tracking-wider text-white">Edu<span class="text-purple-500">Gen</span>AI</h1>
+            <p class="text-sm text-slate-400 mt-2" id="formSubtitle">Đăng nhập để bắt đầu chuyển đổi bài học</p>
         </div>
-    </nav>
 
-    <main>
-        <section class="hero">
-            <h1>Bi?n b?i h?c th?nh <span>Tr?i nghi?m</span></h1>
-            <p>T? ??ng t?o Manga ho?c Video t? n?i dung b?i h?c c?a b?n ch? trong v?i gi?y.</p>
-        </section>
-
-        <section class="input-container glass">
-            <div class="input-group">
-                <label for="title">Ti?u ?? b?i h?c</label>
-                <input type="text" id="title" placeholder="V? d?: V?ng ??i c?a m?t con b??m">
-            </div>
-
-            <div class="input-group">
-                <label for="content">N?i dung b?i h?c</label>
-                <textarea id="content" rows="6" placeholder="Nh?p n?i dung chi ti?t t?i ??y..."></textarea>
-            </div>
-
-            <div class="options">
-                <div class="toggle-group">
-                    <span>Manga (C? b?n)</span>
-                    <label class="switch">
-                        <input type="checkbox" id="generateVideo">
-                        <span class="slider round"></span>
-                    </label>
-                    <span>Video (Cao c?p)</span>
+        <div id="loginFormSection">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email</label>
+                    <input type="email" id="loginEmail" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="name@example.com">
                 </div>
-                <button id="generateBtn" class="btn-primary">B?t ??u t?o <span class="sparkle">?</span></button>
-            </div>
-        </section>
-
-        <section id="resultContainer" class="result-container hidden">
-            <div class="loading-state">
-                <div class="loader"></div>
-                <p id="statusText">?ang ph?n t?ch n?i dung...</p>
-            </div>
-
-            <div id="lessonOutput" class="lesson-output hidden">
-                <div class="character-anchor">
-                    <h2>Nh?n v?t ch? ??o (Anchor)</h2>
-                    <div class="anchor-image-wrapper glass">
-                        <img id="anchorImage" src="" alt="Anchor Character">
-                    </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Mật khẩu</label>
+                    <input type="password" id="loginPassword" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="••••••••">
                 </div>
-
-                <div class="chapters-grid">
-                    <h2>C?c ch??ng</h2>
-                    <div id="chaptersList" class="chapters-list"></div>
-                </div>
+                <button id="loginBtn" class="w-full py-3 mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold rounded-xl transition shadow-lg shadow-purple-600/20 flex justify-center items-center">
+                    Đăng nhập
+                </button>
             </div>
-        </section>
-    </main>
+            <p class="text-center text-sm text-slate-400 mt-6">
+                Chưa có tài khoản? <a href="#" id="toRegisterLink" class="text-purple-400 hover:underline">Đăng ký ngay</a>
+            </p>
+        </div>
 
-    <footer>
-        <p>&copy; 2026 MiniSeries. Powered by Pollinations API.</p>
-    </footer>
+        <div id="registerFormSection" class="hidden">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Họ và tên</label>
+                    <input type="text" id="regName" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="Nguyễn Văn A">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email</label>
+                    <input type="email" id="regEmail" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="name@example.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Mật khẩu</label>
+                    <input type="password" id="regPassword" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="Tối thiểu 6 ký tự">
+                </div>
+                <button id="registerBtn" class="w-full py-3 mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl transition shadow-lg flex justify-center items-center">
+                    Đăng ký tài khoản
+                </button>
+            </div>
+            <p class="text-center text-sm text-slate-400 mt-6">
+                Đã có tài khoản? <a href="#" id="toLoginLink" class="text-blue-400 hover:underline">Quay lại đăng nhập</a>
+            </p>
+        </div>
+    </div>
 
-    <script src="app.js"></script>
+    <script src="auth.js"></script>
 </body>
 </html>

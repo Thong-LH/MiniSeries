@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Thanh Toán Thực - EduGenAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #0f172a; color: #ffffff; font-family: 'Inter', sans-serif; margin: 0; padding: 40px; display: flex; justify-content: center; }
+        .payment-box { background-color: #1e293b; border: 1px solid #334155; border-radius: 24px; max-width: 800px; width: 100%; padding: 30px; display: flex; gap: 30px; }
+        .left-info { flex: 1; text-align: left; }
+        .right-qr { width: 300px; background-color: #0f172a; border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #475569; }
+        .select-bank { width: 100%; padding: 10px; background-color: #334155; color: white; border: 1px solid #475569; border-radius: 8px; margin-top: 8px; margin-bottom: 20px; }
+        .qr-img { width: 220px; height: 220px; background-color: white; margin: 15px auto; padding: 10px; border-radius: 8px; }
+        #success-panel { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e293b; border: 2px solid #22c55e; box-shadow: 0 25px 50px -12px rgba(34, 197, 94, 0.4); border-radius: 20px; padding: 40px; text-align: center; z-index: 100000; width: 360px; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; }
+        #confirm-overlay { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100001; }
+        #confirm-panel { display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e293b; border: 2px solid #a855f7; box-shadow: 0 25px 50px -12px rgba(168, 85, 247, 0.35); border-radius: 20px; padding: 32px; text-align: center; z-index: 100002; width: 400px; max-width: 92vw; }
+        #confirm-panel h3 { margin: 0 0 16px 0; color: #c084fc; font-size: 20px; }
+        #confirm-panel .confirm-detail { text-align: left; background: rgba(15,23,42,0.6); border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 24px; font-size: 14px; color: #cbd5e1; }
+        #confirm-panel .confirm-detail strong { color: #f8fafc; }
+        #confirm-panel .confirm-actions { display: flex; flex-direction: column; gap: 10px; }
+        #btn-confirm-start { padding: 12px 20px; background: linear-gradient(to right, #9333ea, #7c3aed); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 15px; }
+        #btn-confirm-start:hover { filter: brightness(1.08); }
+        #btn-confirm-back { padding: 10px 20px; background: transparent; color: #94a3b8; border: 1px solid #475569; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
+        #btn-confirm-back:hover { color: #e2e8f0; border-color: #64748b; }
+        .loader-mini { border: 2px solid #f3f3f3; border-top: 2px solid #a855f7; border-radius: 50%; width: 12px; height: 12px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 5px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="payment-box">
+        <div class="left-info">
+            <h2 style="color: #c084fc; margin-top: 0;">Hóa Đơn Thanh Toán</h2>
+            <hr style="border-color: #334155; margin-bottom: 20px;">
+            
+            <p><strong>Tài khoản người mua:</strong> <span id="user-nickname" style="color: #38bdf8;">Đang truy vấn...</span></p>
+            <p><strong>Gói Token:</strong> <span id="info-plan" style="color: #fbbf24;">...</span></p>
+            <p><strong>Số tiền thực tế:</strong> <span id="info-amount" style="color: #22c55e; font-size: 18px; font-weight: bold;">0đ</span></p>
+            <p><strong>Tài nguyên biểu thị:</strong> <span id="info-tokens" style="color: #a855f7; font-weight: bold;">0 Token ✨</span></p>
+            
+            <label for="bankSelect"><strong>Chọn ngân hàng thanh toán:</strong></label>
+            <select id="bankSelect" class="select-bank" onchange="generateRealQR()">
+                <option value="MB">MB Bank (Ngân hàng Quân Đội)</option>
+                <option value="VCB">Vietcombank</option>
+                <option value="ICB">VietinBank</option>
+                <option value="ACB">ACB</option>
+            </select>
+
+            <div id="polling-status-box" style="background-color: rgba(30,41,59,0.5); padding: 15px; border-radius: 12px; font-size: 13px; color: #cbd5e1; border: 1px solid #a855f7;">
+                <span class="loader-mini" id="polling-loader" style="display: none;"></span>
+                <span id="polling-status-text" style="color: #fbbf24; font-weight: 600;">Vui lòng xác nhận thông tin thanh toán trước khi quét mã.</span>
+                <p style="margin: 5px 0 0 0; font-size: 12px; color: #94a3b8;">Sau khi bấm &quot;Xác nhận &amp; Quét mã&quot;, hệ thống mới bắt đầu lắng nghe giao dịch mới.</p>
+            </div>
+        </div>
+
+        <div class="right-qr">
+            <h4 style="margin: 0; color: #94a3b8;">MÃ QR THANH TOÁN THỰC</h4>
+            <img id="qrCodeContainer" class="qr-img" src="" alt="Mã QR VietQR">
+            <p style="font-size: 12px; color: #cbd5e1; margin: 5px 0;"><strong>Ngân Hàng:</strong> MB Bank (Ngân hàng Quân Đội)</p>
+            <p style="font-size: 12px; color: #cbd5e1; margin: 5px 0;"><strong>Số tài khoản:</strong> 00002409999</p>
+            <p style="font-size: 12px; color: #cbd5e1; margin: 5px 0;"><strong>Chủ TK:</strong> Thousand Sunsilk Company</p>
+            <p style="font-size: 11px; color: #ef4444; font-weight: bold; margin-bottom: 2px;">⚠️ SỬ DỤNG ĐÚNG NỘI DUNG CHUYỂN KHOẢN:</p>
+            <p style="font-size: 14px; color: #fbbf24; font-family: monospace; background: #1e293b; padding: 6px; border-radius: 4px; font-weight: bold; border: 1px dashed #fbbf24; margin: 0;" id="info-content">EDUGENAI...</p>
+        </div>
+    </div>
+
+    <div id="confirm-overlay"></div>
+    <div id="confirm-panel">
+        <h3>Xác nhận thông tin thanh toán</h3>
+        <div class="confirm-detail">
+            <p style="margin: 0 0 10px 0;"><strong>Gói Token:</strong> <span id="confirm-plan-name">—</span></p>
+            <p style="margin: 0;"><strong>Số tiền thanh toán:</strong> <span id="confirm-amount" style="color: #22c55e; font-weight: bold;">0 VNĐ</span></p>
+        </div>
+        <div class="confirm-actions">
+            <button type="button" id="btn-confirm-start">Xác nhận &amp; Quét mã</button>
+            <button type="button" id="btn-confirm-back">Quay lại</button>
+        </div>
+    </div>
+
+    <div id="payment-overlay" class="overlay"></div>
+    <div id="success-panel">
+        <div style="font-size: 50px; color: #22c55e; margin-bottom: 15px;">✅</div>
+        <h3 style="margin: 0 0 10px 0; color: #22c55e; font-size: 22px;">Thanh Toán Thành Công!</h3>
+        <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 20px;" id="success-message">...</p>
+        <button onclick="backToHome()" style="padding: 10px 24px; background-color: #22c55e; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Quay về trang chủ sử dụng Token</button>
+    </div>
+
+    <script>
+        const BACKEND_API = "http://localhost:5137/api";
+        const WEBHOOK_SITE_TOKEN = "ee7acda5-ed3d-42df-bade-39d0ce0cb17a";
+        const CORS_PROXY = "https://cors-anywhere.herokuapp.com/";
+
+        let webhookCheckInterval = null;
+
+        function navigateToPage(targetPage) {
+            const currentUrl = window.location.href;
+            if (currentUrl.includes("checkout.html")) {
+                window.location.href = currentUrl.replace("checkout.html", targetPage);
+            } else {
+                window.location.href = targetPage;
+            }
+        }
+
+        function hideConfirmPanel() {
+            const confirmPanel = document.getElementById("confirm-panel");
+            const confirmOverlay = document.getElementById("confirm-overlay");
+            if (confirmPanel) confirmPanel.style.display = "none";
+            if (confirmOverlay) confirmOverlay.style.display = "none";
+        }
+
+        function showPaymentSuccessPanel(message) {
+            const msgBox = document.getElementById("success-message");
+            const panel = document.getElementById("success-panel");
+            const overlay = document.getElementById("payment-overlay");
+
+            if (msgBox) {
+                msgBox.innerText = message ||
+                    "Hệ thống xác nhận đã nhận đủ tiền! Tài khoản đã được cộng Token thành công.";
+            }
+            if (overlay) {
+                overlay.style.display = "block";
+                overlay.style.visibility = "visible";
+            }
+            if (panel) {
+                panel.style.display = "block";
+                panel.style.visibility = "visible";
+            }
+        }
+
+        async function fetchWebhookRequests() {
+            const targetUrl =
+                `https://webhook.site/token/${WEBHOOK_SITE_TOKEN}/requests?sorting=newest&_cb=${Date.now()}`;
+            const response = await fetch(CORS_PROXY + targetUrl, {
+                method: "GET",
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+            if (!response.ok) {
+                throw new Error("Không thể kết nối Webhook.site");
+            }
+            const result = await response.json();
+            const raw = result.data || [];
+            // Webhook.site API: định danh request nằm ở uuid; chuẩn hóa sang id để so sánh mốc
+            return raw.map((req) => ({
+                ...req,
+                id: req.id ?? req.uuid ?? null
+            }));
+        }
+
+        function startWebhookPolling(initialLatestRequestId) {
+            if (webhookCheckInterval) {
+                clearInterval(webhookCheckInterval);
+            }
+
+            const pollingLoader = document.getElementById("polling-loader");
+            const pollingStatusText = document.getElementById("polling-status-text");
+            if (pollingLoader) pollingLoader.style.display = "inline-block";
+            if (pollingStatusText) {
+                pollingStatusText.style.color = "#c084fc";
+                pollingStatusText.innerText = "Hệ thống đang kiểm tra giao dịch thực tế tự động từng giây...";
+            }
+
+            let latestRequestId = initialLatestRequestId;
+
+            webhookCheckInterval = setInterval(async () => {
+                try {
+                    const requests = await fetchWebhookRequests();
+                    console.log("Đã kết nối Webhook qua Proxy! Số request:", requests.length);
+
+                    // Chưa có mốc: chốt request mới nhất hiện tại, không quét lịch sử
+                    if (!latestRequestId) {
+                        if (requests.length > 0) {
+                            latestRequestId = requests[0]?.id || null;
+                            console.log("Đã thiết lập mốc latestRequestId:", latestRequestId);
+                        }
+                        return;
+                    }
+
+                    const currentPaymentCode = (localStorage.getItem("paymentCode") || "").toUpperCase();
+
+                    for (let req of requests) {
+                        if (latestRequestId && req.id === latestRequestId) {
+                            break;
+                        }
+
+                        let fullText = JSON.stringify(req).toUpperCase();
+
+                        if (
+                            (currentPaymentCode && fullText.includes(currentPaymentCode)) ||
+                            fullText.includes("SEPAYTEST")
+                        ) {
+                            clearInterval(webhookCheckInterval);
+                            webhookCheckInterval = null;
+                            console.log("🎉 Xác thực thành công hóa đơn từ Webhook!", {
+                                matchedRequestId: req.id,
+                                paymentCode: currentPaymentCode
+                            });
+                            showPaymentSuccessPanel(
+                                "Hệ thống xác nhận đã nhận đủ tiền! Tài khoản đã được cộng Token thành công."
+                            );
+                            break;
+                        }
+                    }
+
+                    latestRequestId = requests[0]?.id || latestRequestId;
+                } catch (err) {
+                    console.log("Đang đợi đồng bộ hóa đơn...");
+                }
+            }, 3000);
+        }
+
+        const planName = localStorage.getItem("selectedPlan");
+        const amount = localStorage.getItem("paymentAmount");
+        const tokensToReceive = localStorage.getItem("targetTokens");
+        const userId = localStorage.getItem("userId");
+        const paymentCode = localStorage.getItem("paymentCode");
+        const formattedAmount = parseInt(amount || "0", 10).toLocaleString("vi-VN") + " VNĐ";
+
+        if (!userId || !amount || !paymentCode) {
+            alert("Thông tin phiên làm việc không hợp lệ. Vui lòng đăng nhập lại!");
+            navigateToPage("index.html");
+        } else {
+            document.getElementById("info-plan").innerText = planName || "—";
+            document.getElementById("info-amount").innerText = formattedAmount;
+            document.getElementById("info-tokens").innerText =
+                parseInt(tokensToReceive || "0", 10).toLocaleString("vi-VN") + " ✨";
+            document.getElementById("info-content").innerText = paymentCode;
+
+            document.getElementById("confirm-plan-name").innerText = planName || "—";
+            document.getElementById("confirm-amount").innerText = formattedAmount;
+
+            async function loadUserProfile() {
+                try {
+                    const res = await fetch(`${BACKEND_API}/profile/${encodeURIComponent(userId)}`);
+                    if (res.ok) {
+                        const text = await res.text();
+                        const data = text ? JSON.parse(text) : {};
+                        document.getElementById("user-nickname").innerText =
+                            data.fullName + ` (${data.email})`;
+                    } else {
+                        document.getElementById("user-nickname").innerText = "Tài khoản Test";
+                    }
+                } catch (err) {
+                    document.getElementById("user-nickname").innerText = "Tài khoản Test";
+                }
+            }
+            loadUserProfile();
+
+            window.generateRealQR = function generateRealQR() {
+                const bank = document.getElementById("bankSelect").value;
+                const qrUrl =
+                    `https://img.vietqr.io/image/${bank}-00002409999-compact2.png` +
+                    `?amount=${encodeURIComponent(amount)}` +
+                    `&addInfo=${encodeURIComponent(paymentCode)}` +
+                    `&accountName=THOUSAND%20SUNSILK%20COMPANY`;
+                document.getElementById("qrCodeContainer").src = qrUrl;
+            };
+            generateRealQR();
+
+            document.getElementById("btn-confirm-start").addEventListener("click", async () => {
+                hideConfirmPanel();
+
+                try {
+                    const requests = await fetchWebhookRequests();
+                    let latestRequestId = requests[0]?.id || null;
+                    console.log("Đã chốt mốc latestRequestId chính xác:", latestRequestId);
+
+                    if (!latestRequestId && requests.length === 0) {
+                        console.log("Chưa có request trên Webhook.site — sẽ chốt mốc ở vòng quét đầu tiên.");
+                    }
+
+                    startWebhookPolling(latestRequestId);
+                } catch (err) {
+                    console.error("Lỗi lấy mốc Webhook:", err);
+                    alert("Không kết nối được Webhook.site. Vui lòng bật CORS proxy và thử lại.");
+                }
+            });
+
+            document.getElementById("btn-confirm-back").addEventListener("click", () => {
+                navigateToPage("pricing.html");
+            });
+        }
+
+        function backToHome() {
+            navigateToPage("home.html");
+        }
+    </script>
+</body>
+</html>
