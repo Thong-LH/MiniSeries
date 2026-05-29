@@ -13,6 +13,7 @@ obj/
 .env.*
 *.local.json
 appsettings.*.local.json
+MiniSeries.WebAPI/appsettings.Development.local.json
 
 TestResults/
 coverage/

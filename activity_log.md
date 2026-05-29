@@ -145,3 +145,18 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 5. Cap nhat `ChapterDto`/`ChapterQuizDto` de FE nhan quiz trong response cua tung chapter.
 6. Cap nhat EF mapping, repository include va migration `AddChapterQuizzes`.
 7. Da apply migration `AddChapterQuizzes` len database hien tai va build solution thanh cong (`0 warning`, `0 error`).
+
+## [2026-05-29] - Luu cau hinh Pexels API
+
+### Da hoan thanh:
+1. Them section `Pexels` vao `MiniSeries.WebAPI/appsettings.json` gom `ApiKey` va `BaseUrl`.
+2. Muc dich: chuan bi tich hop `PexelsVideoService` de mock video chapter bang stock video mien phi.
+
+## [2026-05-30] - Tach secret khoi file cau hinh tracked
+
+### Da hoan thanh:
+1. Luu cac gia tri Supabase, Cloudinary, Pollinations, Groq va Pexels hien tai vao .NET user-secrets local cua `MiniSeries.WebAPI`.
+2. Doi `MiniSeries.WebAPI/appsettings.json` sang placeholder rong cho connection string va API key de tranh GitHub Push Protection.
+3. Them `MiniSeries.WebAPI/appsettings.Development.example.json` lam mau cau hinh cho thanh vien khac tu dien secret rieng.
+4. Cap nhat `.gitignore` de tranh commit file cau hinh local co secret.
+5. Quet nhanh secret pattern trong tracked files va build solution thanh cong (`0 warning`, `0 error`).
