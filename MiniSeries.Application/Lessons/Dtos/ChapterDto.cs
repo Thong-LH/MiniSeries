@@ -11,7 +11,8 @@ public sealed record ChapterDto(
     string FullPrompt,
     string? VideoUrl,
     string? MangaUrl,
-    ChapterStatus Status)
+    ChapterStatus Status,
+    ChapterQuizDto? Quiz)
 {
     public static ChapterDto FromEntity(Chapter chapter)
     {
@@ -23,6 +24,7 @@ public sealed record ChapterDto(
             chapter.FullPrompt,
             chapter.VideoUrl,
             chapter.MangaUrl,
-            chapter.Status);
+            chapter.Status,
+            chapter.Quiz is null ? null : ChapterQuizDto.FromEntity(chapter.Quiz));
     }
 }

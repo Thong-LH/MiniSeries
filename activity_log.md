@@ -135,3 +135,13 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 4. Doi loi not found va sai trang thai review/approve sang exception ro nghia thay vi `InvalidOperationException`.
 5. Them `ExceptionHandlingMiddleware` o WebAPI de tra ve `application/problem+json` voi status `400`, `404`, hoac `500` phu hop.
 6. Build solution thanh cong (`0 warning`, `0 error`).
+## [2026-05-29] - Them quiz tuong tac cho tung chapter
+
+### Da hoan thanh:
+1. Them entity `ChapterQuiz` va quan he one-to-one voi `Chapter`.
+2. Cap nhat `ChapterDraftResult` de moi chapter co quiz gom question, 4 options, correct option va explanation.
+3. Cap nhat Groq/Gemini prompt va parser de sinh quiz cung luc voi chapter sau khi approve script.
+4. Cap nhat `ApproveLessonScriptCommandHandler` de tao `ChapterQuiz` cho tung chapter.
+5. Cap nhat `ChapterDto`/`ChapterQuizDto` de FE nhan quiz trong response cua tung chapter.
+6. Cap nhat EF mapping, repository include va migration `AddChapterQuizzes`.
+7. Da apply migration `AddChapterQuizzes` len database hien tai va build solution thanh cong (`0 warning`, `0 error`).

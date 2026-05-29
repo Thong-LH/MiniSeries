@@ -45,6 +45,19 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
             }
         }
 
+        foreach (var entry in dbContext.ChangeTracker.Entries<ChapterQuiz>()
+                     .Where(x => x.State == EntityState.Modified))
+        {
+            var exists = await dbContext.ChapterQuizzes
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == entry.Entity.Id);
+
+            if (!exists)
+            {
+                entry.State = EntityState.Added;
+            }
+        }
+
         foreach (var entry in dbContext.ChangeTracker.Entries<GenerationJob>()
                      .Where(x => x.State == EntityState.Modified))
         {
@@ -89,6 +102,7 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
     {
         return dbContext.Lessons
             .Include(x => x.Chapters.OrderBy(ch => ch.Order))
+                .ThenInclude(x => x.Quiz)
             .Include(x => x.LlmJsons.OrderBy(json => json.CreatedAt))
             .Include(x => x.GenerationJobs.OrderBy(job => job.CreatedAt))
                 .ThenInclude(x => x.Logs.OrderBy(log => log.CreatedAt))

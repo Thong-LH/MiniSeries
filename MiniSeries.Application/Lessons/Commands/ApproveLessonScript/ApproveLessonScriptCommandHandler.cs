@@ -59,7 +59,17 @@ public sealed class ApproveLessonScriptCommandHandler(
                 Order = ch.Order,
                 Summary = ch.Summary,
                 FullPrompt = ch.FullPrompt,
-                Status = ChapterStatus.ReadyForGeneration
+                Status = ChapterStatus.ReadyForGeneration,
+                Quiz = new ChapterQuiz
+                {
+                    Question = ch.Quiz.Question,
+                    OptionA = ch.Quiz.OptionA,
+                    OptionB = ch.Quiz.OptionB,
+                    OptionC = ch.Quiz.OptionC,
+                    OptionD = ch.Quiz.OptionD,
+                    CorrectOption = ch.Quiz.CorrectOption,
+                    Explanation = ch.Quiz.Explanation
+                }
             }).ToList();
 
             job.CurrentStep = "GenerateAnchorImage";

@@ -102,13 +102,24 @@ public class GroqService : ILLMService
         Using the approved overall script below, break the lesson into 3 to 4 manga chapters/pages.
         Each chapter is ONE final generated page image.
         For each chapter, produce a detailed full-page prompt that already describes the internal panels and speech bubbles.
+        Also create ONE short interactive quiz question at the end of each chapter to check learner understanding.
+        The quiz must have exactly 4 options: A, B, C, D.
         Return ONLY valid JSON with this exact shape:
         {{
             ""chapters"": [
                 {{
                     ""chapterNumber"": 1,
                     ""summary"": ""Brief summary of the chapter."",
-                    ""fullPrompt"": ""A detailed prompt for one manga page, including multiple panels and dialogue.""
+                    ""fullPrompt"": ""A detailed prompt for one manga page, including multiple panels and dialogue."",
+                    ""quiz"": {{
+                        ""question"": ""A short question about the chapter content."",
+                        ""optionA"": ""First answer option."",
+                        ""optionB"": ""Second answer option."",
+                        ""optionC"": ""Third answer option."",
+                        ""optionD"": ""Fourth answer option."",
+                        ""correctOption"": ""A"",
+                        ""explanation"": ""Short explanation of why the correct answer is right.""
+                    }}
                 }}
             ]
         }}
@@ -135,7 +146,8 @@ public class GroqService : ILLMService
                 {
                     Order = chapter["chapterNumber"]?.Value<int>() ?? 0,
                     Summary = chapter["summary"]?.ToString() ?? string.Empty,
-                    FullPrompt = chapter["fullPrompt"]?.ToString() ?? string.Empty
+                    FullPrompt = chapter["fullPrompt"]?.ToString() ?? string.Empty,
+                    Quiz = ParseQuiz(chapter["quiz"])
                 });
             }
         }
@@ -144,6 +156,26 @@ public class GroqService : ILLMService
         {
             RawJson = rawJson,
             Chapters = chapters
+        };
+    }
+
+    private static ChapterQuizDraftItem ParseQuiz(JToken? quiz)
+    {
+        var correctOption = quiz?["correctOption"]?.ToString().Trim().ToUpperInvariant();
+        if (correctOption is not ("A" or "B" or "C" or "D"))
+        {
+            correctOption = "A";
+        }
+
+        return new ChapterQuizDraftItem
+        {
+            Question = quiz?["question"]?.ToString() ?? string.Empty,
+            OptionA = quiz?["optionA"]?.ToString() ?? string.Empty,
+            OptionB = quiz?["optionB"]?.ToString() ?? string.Empty,
+            OptionC = quiz?["optionC"]?.ToString() ?? string.Empty,
+            OptionD = quiz?["optionD"]?.ToString() ?? string.Empty,
+            CorrectOption = correctOption,
+            Explanation = quiz?["explanation"]?.ToString() ?? string.Empty
         };
     }
 

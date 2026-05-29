@@ -7,6 +7,7 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
 {
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<Chapter> Chapters => Set<Chapter>();
+    public DbSet<ChapterQuiz> ChapterQuizzes => Set<ChapterQuiz>();
     public DbSet<LlmJson> LlmJsons => Set<LlmJson>();
     public DbSet<GenerationJob> GenerationJobs => Set<GenerationJob>();
     public DbSet<GenerationLog> GenerationLogs => Set<GenerationLog>();
@@ -51,6 +52,24 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.VideoUrl).HasColumnType("text");
             entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(32);
             entity.HasIndex(x => new { x.LessonId, x.Order }).IsUnique();
+
+            entity.HasOne(x => x.Quiz)
+                .WithOne()
+                .HasForeignKey<ChapterQuiz>(x => x.ChapterId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ChapterQuiz>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Question).HasColumnType("text");
+            entity.Property(x => x.OptionA).HasMaxLength(500);
+            entity.Property(x => x.OptionB).HasMaxLength(500);
+            entity.Property(x => x.OptionC).HasMaxLength(500);
+            entity.Property(x => x.OptionD).HasMaxLength(500);
+            entity.Property(x => x.CorrectOption).HasMaxLength(1);
+            entity.Property(x => x.Explanation).HasColumnType("text");
+            entity.HasIndex(x => x.ChapterId).IsUnique();
         });
 
         modelBuilder.Entity<LlmJson>(entity =>

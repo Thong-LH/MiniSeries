@@ -12,4 +12,5 @@ public class Chapter
     public string? VideoUrl { get; set; }
     public string? MangaUrl { get; set; }
     public ChapterStatus Status { get; set; } = ChapterStatus.Draft;
+    public ChapterQuiz? Quiz { get; set; }
 }
