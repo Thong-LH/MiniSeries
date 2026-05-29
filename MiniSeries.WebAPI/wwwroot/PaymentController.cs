@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MiniSeries.Domain.Entities;
 using System;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace MiniSeries.WebApi.Controllers
 {
@@ -17,18 +18,17 @@ namespace MiniSeries.WebApi.Controllers
             _context = context;
         }
 
-        // 1. API ĐĂNG KÝ HÓA ĐƠN (Gọi từ Trang Bảng Giá trước khi nhảy sang trang Checkout)
+        // 1. API ĐĂNG KÝ HÓA ĐƠN
         [HttpPost("create-invoice")]
-        public async Task<IActionResult> CreateInvoice([FromBody] InvoiceRequest req)
+        public async Task<IActionResult> CreateInvoice([FromBody] CreateInvoiceInput req)
         {
             if (req == null || string.IsNullOrEmpty(req.UserId) || req.UserId.Length < 4)
-    {
-        return BadRequest(new { message = "Dữ liệu người dùng (UserId) không hợp lệ hoặc trống!" });
-    }
-            // Tạo mã code gửi tiền duy nhất bằng 4 ký tự cuối ID người dùng
+            {
+                return BadRequest(new { message = "Dữ liệu người dùng (UserId) không hợp lệ hoặc trống!" });
+            }
+            
             string safeCode = $"MGX{req.UserId.Substring(req.UserId.Length - 4).ToUpper()}";
 
-            // Xóa các hóa đơn cũ chưa thanh toán của User này để tránh xung đột dữ liệu
             var oldOrders = _context.PaymentOrders.Where(o => o.UserId == req.UserId && !o.IsCompleted);
             _context.PaymentOrders.RemoveRange(oldOrders);
 
@@ -46,31 +46,24 @@ namespace MiniSeries.WebApi.Controllers
             return Ok(new { paymentCode = safeCode });
         }
 
-        // 2. API WEBHOOK - ĐÂY LÀ ĐẦU NỐI ĐỂ NHẬN DỮ LIỆU TỪ PAYOS / CASSO / SEPAY KHI CÓ TIỀN THẬT VÀO NGÂN HÀNG
+        // 2. API WEBHOOK NHẬN DỮ LIỆU TỪ NGÂN HÀNG THỰC
         [HttpPost("bank-webhook")]
         public async Task<IActionResult> ReceiveBankWebhook([FromBody] BankWebhookModel bankData)
         {
-            // Tìm kiếm nội dung chuyển khoản xem có chứa mã PaymentCode (MGX....) không
-            // Dịch vụ PayOS/Casso sẽ trả về chuỗi nội dung chuyển khoản trong biến description hoặc transactionDescription
-            // Đổi bankData.Description thành bankData.Content
             string content = bankData.Content?.ToUpper() ?? "";
 
-            // Truy vấn tìm hóa đơn chưa thanh toán trùng khớp mã code
             var order = await _context.PaymentOrders
                 .FirstOrDefaultAsync(o => !o.IsCompleted && content.Contains(o.PaymentCode));
 
             if (order != null)
             {
-                // Bước 1: Xác nhận hóa đơn đã thanh toán thành công
                 order.IsCompleted = true;
                 order.PaidAt = DateTime.UtcNow;
 
-                // Bước 2: Truy vấn tài khoản người dùng thực tế trong database để cộng tài nguyên
                 var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == order.UserId);
                 if (profile != null)
                 {
-                    profile.Tokens += order.TokensAmount; // Cộng trực tiếp Token thật
-                    // Nếu nạp gói lớn có thể nâng cấp hạng Tier tại đây
+                    profile.Tokens += order.TokensAmount;
                     if (order.MoneyAmount >= 300000) profile.Tier = "Pro Max";
                     else if (order.MoneyAmount >= 150000) profile.Tier = "Plus";
                 }
@@ -82,7 +75,7 @@ namespace MiniSeries.WebApi.Controllers
             return BadRequest("Nội dung chuyển khoản không khớp hóa đơn nào.");
         }
 
-        // 3. API KIỂM TRA TRẠNG THÁI (Trang Frontend gọi liên tục mỗi 3 giây để mở Panel thành công)
+        // 3. API KIỂM TRA TRẠNG THÁI
         [HttpGet("check-status")]
         public async Task<IActionResult> CheckStatus([FromQuery] string userId, [FromQuery] string code)
         {
@@ -95,10 +88,35 @@ namespace MiniSeries.WebApi.Controllers
             }
             return Ok(new { isPaid = false });
         }
+
+        // 4. API PROXY NỘI BỘ - GIÚP FRONTEND ĐỌC WEBHOOK.SITE KHÔNG BỊ CORS
+        [HttpGet("webhook-gateway")]
+        public async Task<IActionResult> GetWebhookData()
+        {
+            try
+            {
+                using (var client = new System.Net.Http.HttpClient())
+                {
+                    var url = "https://webhook.site/token/ee7acda5-ed3d-42df-bade-39d0ce0cb17a/requests?sorting=newest";
+                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (.NET Proxy)");
+                    
+                    var response = await client.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var jsonString = await response.Content.ReadAsStringAsync();
+                        return Content(jsonString, "application/json");
+                    }
+                    return StatusCode((int)response.StatusCode, "Lỗi khi kết nối webhook.site");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 
-    // Các lớp định nghĩa DTO nhận dữ liệu
-    public class InvoiceRequest
+    public class CreateInvoiceInput
     {
         public string UserId { get; set; }
         public int Tokens { get; set; }
@@ -106,16 +124,16 @@ namespace MiniSeries.WebApi.Controllers
     }
 
     public class BankWebhookModel
-{
-    public long Id { get; set; }
-    public string Gateway { get; set; }
-    public DateTime TransactionDate { get; set; }
-    public string AccountNumber { get; set; }
-    public string Code { get; set; }
-    public string Content { get; set; } // <--- SePay dùng trường 'Content' làm nội dung chuyển khoản ngân hàng
-    public decimal TransferAmount { get; set; } // <--- SePay dùng trường này cho số tiền chuyển
-    public string TransferType { get; set; }
-    public string ReferenceCode { get; set; }
-    public string Description { get; set; }
-}
+    {
+        public long Id { get; set; }
+        public string Gateway { get; set; }
+        public DateTime TransactionDate { get; set; }
+        public string AccountNumber { get; set; }
+        public string Code { get; set; }
+        public string Content { get; set; } 
+        public decimal TransferAmount { get; set; } 
+        public string TransferType { get; set; }
+        public string ReferenceCode { get; set; }
+        public string Description { get; set; }
+    }
 }

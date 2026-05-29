@@ -39,8 +39,11 @@
             padding: 0;
         ">
             <a href="home.html" class="text-gray-300 hover:text-purple-400 transition font-medium" style="text-decoration: none; white-space: nowrap;">Trang chủ</a>
-            <a href="#" class="text-gray-300 hover:text-purple-400 transition font-medium" style="text-decoration: none; white-space: nowrap;">Thư viện</a>
+            <a href="tu-van.html" class="text-gray-300 hover:text-purple-400 transition font-medium" style="text-decoration: none; white-space: nowrap;">Tư vấn</a>
             <a href="pricing.html" class="text-gray-300 hover:text-purple-400 transition font-medium" style="text-decoration: none; white-space: nowrap;">Bảng giá</a>
+            <button id="btnOpenFeedback" style="background: none; border: 1px solid rgba(168,85,247,0.35); color: #cbd5e1; padding: 6px 12px; border-radius: 9999px; cursor: pointer; font-weight: 600; white-space: nowrap;" onmouseover="this.style.borderColor='#a855f7'; this.style.color='#ffffff'" onmouseout="this.style.borderColor='rgba(168,85,247,0.35)'; this.style.color='#cbd5e1'">
+                Đánh giá
+            </button>
             
             <div id="user-header-zone" style="display: flex !important; align-items: center !important;">
                 <div class="animate-pulse bg-slate-800 h-9 w-28 rounded-full"></div>
@@ -93,6 +96,34 @@
             <button onclick="handleLogout()" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #f87171; font-size: 13px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(239,68,68,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
                 🚪 Đăng xuất tài khoản
             </button>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-overlay" style="display:none; position:fixed; inset:0; background: rgba(0,0,0,0.75); z-index: 100000;"></div>
+    <div id="feedback-panel" style="display:none; position:fixed; top:50%; left:50%; transform: translate(-50%, -50%); width: 520px; max-width: 92vw; background:#1e293b; border: 1px solid #334155; border-radius: 18px; padding: 22px; z-index: 100001; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);">
+        <div style="display:flex; justify-content:space-between; gap: 10px; align-items:center;">
+            <h3 style="margin:0; font-size: 18px; font-weight: 800; color:#c084fc;">Đánh giá dịch vụ</h3>
+            <button id="btnCloseFeedback" style="background: transparent; border: 1px solid #475569; color: #cbd5e1; border-radius: 10px; padding: 6px 10px; cursor:pointer;">Đóng</button>
+        </div>
+        <p style="margin: 8px 0 14px 0; font-size: 13px; color:#94a3b8;">Chọn số sao và để lại bình luận để giúp EduGenAI cải thiện tốt hơn.</p>
+
+        <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 10px;">
+            <span style="font-size: 13px; color:#e2e8f0; font-weight:700;">Số sao:</span>
+            <div id="stars" style="display:flex; gap: 6px;">
+                <button class="star-btn" data-star="1" type="button" style="background:none; border:none; font-size: 22px; cursor:pointer; color:#64748b;">★</button>
+                <button class="star-btn" data-star="2" type="button" style="background:none; border:none; font-size: 22px; cursor:pointer; color:#64748b;">★</button>
+                <button class="star-btn" data-star="3" type="button" style="background:none; border:none; font-size: 22px; cursor:pointer; color:#64748b;">★</button>
+                <button class="star-btn" data-star="4" type="button" style="background:none; border:none; font-size: 22px; cursor:pointer; color:#64748b;">★</button>
+                <button class="star-btn" data-star="5" type="button" style="background:none; border:none; font-size: 22px; cursor:pointer; color:#64748b;">★</button>
+            </div>
+            <span id="starLabel" style="font-size: 12px; color:#94a3b8;">(chưa chọn)</span>
+        </div>
+
+        <textarea id="feedbackComment" rows="4" style="width:100%; resize:vertical; background: rgba(15,23,42,0.7); border: 1px solid #334155; color:#e2e8f0; border-radius: 14px; padding: 12px; outline:none;" placeholder="Bạn thấy trải nghiệm thế nào?"></textarea>
+
+        <div style="display:flex; justify-content:flex-end; gap: 10px; margin-top: 14px;">
+            <button id="btnSubmitFeedback" style="background: linear-gradient(to right, #9333ea, #7c3aed); border:none; color:#fff; padding: 10px 14px; border-radius: 12px; cursor:pointer; font-weight: 800;">Gửi đánh giá</button>
         </div>
     </div>
 
@@ -155,6 +186,12 @@
                     </div>
                 </div>
             </div>
+        </section>
+
+        <section class="glass" style="max-width: 1100px; margin: 30px auto 0 auto; padding: 22px; border-radius: 18px;">
+            <h2 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 800; color:#e2e8f0;">Ý kiến khách hàng</h2>
+            <p style="margin:0 0 14px 0; color:#94a3b8; font-size: 13px;">Các đánh giá mới nhất từ cơ sở dữ liệu Supabase PostgreSQL.</p>
+            <div id="feedbackList" style="display:flex; flex-direction:column; gap: 10px;"></div>
         </section>
     </main>
 
@@ -259,6 +296,10 @@
                 document.getElementById("dropdown-tokens").innerText = `${defaultUser.tokens} ✨`;
                 document.getElementById("dropdown-tier").innerText = defaultUser.tier.toUpperCase();
             }
+
+            // Lưu lại để các trang khác (tu-van.html) dùng được
+            localStorage.setItem("user_email", defaultUser.email);
+            localStorage.setItem("user_name", defaultUser.fullName);
         }
     
         // Đóng/Mở Tab thông tin hồ sơ cá nhân khi click vào viên thuốc
@@ -291,6 +332,130 @@
     
         // Kích hoạt chạy tự động
         window.addEventListener("DOMContentLoaded", fetchAndRenderHeaderProfile);
+    </script>
+
+    <script>
+        const FEEDBACK_API = "http://localhost:5137/api/feedback";
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function renderFeedbackList() {
+            const listEl = document.getElementById('feedbackList');
+            if (!listEl) return;
+            fetch(`${FEEDBACK_API}/public-list`)
+                .then(async (res) => {
+                    const text = await res.text();
+                    const items = text ? JSON.parse(text) : [];
+                    if (!Array.isArray(items) || items.length === 0) {
+                        listEl.innerHTML = `<div style="color:#94a3b8; font-size: 13px;">Chưa có đánh giá nào. Hãy là người đầu tiên gửi đánh giá.</div>`;
+                        return;
+                    }
+
+                    listEl.innerHTML = items.slice(0, 20).map((f) => {
+                        const rating = Number(f.rating || f.stars || 0);
+                        const stars = '★'.repeat(Math.max(0, Math.min(5, rating))) + '☆'.repeat(Math.max(0, 5 - Math.max(0, Math.min(5, rating))));
+                        const email = escapeHtml(f.email || f.emailKhach || 'unknown');
+                        const comment = escapeHtml(f.comment || '');
+                        const when = f.createdAt || f.ngayGui ? new Date(f.createdAt || f.ngayGui).toLocaleString('vi-VN') : '';
+                        return `
+                            <div style="background: rgba(15,23,42,0.55); border: 1px solid #334155; border-radius: 14px; padding: 12px;">
+                                <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+                                    <div style="font-weight:800; color:#fbbf24; letter-spacing: 0.5px;">${stars}</div>
+                                    <div style="font-size: 12px; color:#94a3b8;">${escapeHtml(when)}</div>
+                                </div>
+                                <div style="margin-top:6px; font-size: 13px; color:#e2e8f0;">${comment}</div>
+                                <div style="margin-top:8px; font-size: 12px; color:#94a3b8;">${email}</div>
+                            </div>`;
+                    }).join('');
+                })
+                .catch(() => {
+                    listEl.innerHTML = `<div style="color:#94a3b8; font-size: 13px;">Không tải được danh sách đánh giá từ hệ thống.</div>`;
+                });
+        }
+
+        (function initFeedbackUi() {
+            let selectedStars = 0;
+            const overlay = document.getElementById('feedback-overlay');
+            const panel = document.getElementById('feedback-panel');
+            const openBtn = document.getElementById('btnOpenFeedback');
+            const closeBtn = document.getElementById('btnCloseFeedback');
+            const submitBtn = document.getElementById('btnSubmitFeedback');
+            const commentEl = document.getElementById('feedbackComment');
+            const starLabel = document.getElementById('starLabel');
+            const starButtons = Array.from(document.querySelectorAll('.star-btn'));
+
+            function setStars(n) {
+                selectedStars = n;
+                starButtons.forEach((btn) => {
+                    const s = Number(btn.dataset.star || '0');
+                    btn.style.color = s <= selectedStars ? '#fbbf24' : '#64748b';
+                });
+                if (starLabel) starLabel.innerText = selectedStars ? `(${selectedStars}/5)` : '(chưa chọn)';
+            }
+
+            function openModal() {
+                if (overlay) overlay.style.display = 'block';
+                if (panel) panel.style.display = 'block';
+            }
+            function closeModal() {
+                if (overlay) overlay.style.display = 'none';
+                if (panel) panel.style.display = 'none';
+            }
+
+            starButtons.forEach((btn) => btn.addEventListener('click', () => setStars(Number(btn.dataset.star || '0'))));
+            if (openBtn) openBtn.addEventListener('click', openModal);
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (overlay) overlay.addEventListener('click', closeModal);
+
+            if (submitBtn) {
+                submitBtn.addEventListener('click', () => {
+                    const comment = (commentEl?.value || '').trim();
+                    if (!selectedStars) {
+                        alert('Vui lòng chọn số sao (1-5).');
+                        return;
+                    }
+                    if (!comment) {
+                        alert('Vui lòng nhập bình luận.');
+                        return;
+                    }
+                    const emailKhach = localStorage.getItem('user_email') || 'unknown@customer.local';
+                    fetch(`${FEEDBACK_API}/create`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                        },
+                        body: JSON.stringify({
+                            email: emailKhach,
+                            rating: selectedStars,
+                            comment
+                        })
+                    })
+                    .then(async (res) => {
+                        const text = await res.text();
+                        const data = text ? JSON.parse(text) : {};
+                        if (!res.ok) throw new Error(data.message || 'Gửi đánh giá thất bại.');
+                        if (commentEl) commentEl.value = '';
+                        setStars(0);
+                        closeModal();
+                        renderFeedbackList();
+                        alert('Đã gửi đánh giá. Cảm ơn bạn!');
+                    })
+                    .catch((err) => {
+                        alert('Gửi đánh giá thất bại: ' + err.message);
+                    });
+                });
+            }
+
+            renderFeedbackList();
+            setStars(0);
+        })();
     </script>
 </body>
 </html>

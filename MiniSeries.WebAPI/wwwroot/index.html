@@ -14,19 +14,6 @@
 </head>
 <body class="flex items-center justify-center min-h-screen text-slate-200 relative overflow-hidden">
     
-    <script>
-        const checkUserId = localStorage.getItem('userId');
-        if (checkUserId) {
-            // Nếu đã đăng nhập đàng hoàng trước đó, đẩy thẳng vào home.html để sài Gen AI luôn
-            const currentUrl = window.location.href;
-            if (currentUrl.includes('index.html')) {
-                window.location.href = currentUrl.replace('index.html', 'home.html');
-            } else {
-                window.location.href = 'home.html';
-            }
-        }
-    </script>
-    
     <div class="absolute w-96 h-96 bg-purple-600/10 rounded-full blur-3xl -top-20 -left-20"></div>
     <div class="absolute w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -bottom-20 -right-20"></div>
 
@@ -37,19 +24,19 @@
         </div>
 
         <div id="loginFormSection">
-            <div class="space-y-4">
+            <form id="loginForm" class="space-y-4" action="#" method="post" novalidate>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email</label>
-                    <input type="email" id="loginEmail" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="name@example.com">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2" for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" name="email" autocomplete="email" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="name@example.com" required>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Mật khẩu</label>
-                    <input type="password" id="loginPassword" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="••••••••">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2" for="loginPassword">Mật khẩu</label>
+                    <input type="password" id="loginPassword" name="password" autocomplete="current-password" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="••••••••" required>
                 </div>
-                <button id="loginBtn" class="w-full py-3 mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold rounded-xl transition shadow-lg shadow-purple-600/20 flex justify-center items-center">
+                <button type="submit" id="loginBtn" class="w-full py-3 mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold rounded-xl transition shadow-lg shadow-purple-600/20 flex justify-center items-center">
                     Đăng nhập
                 </button>
-            </div>
+            </form>
             <p class="text-center text-sm text-slate-400 mt-6">
                 Chưa có tài khoản? <a href="#" id="toRegisterLink" class="text-purple-400 hover:underline">Đăng ký ngay</a>
             </p>
@@ -80,5 +67,125 @@
     </div>
 
     <script src="auth.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const loginSection = document.getElementById("loginFormSection");
+        const registerSection = document.getElementById("registerFormSection");
+        const formSubtitle = document.getElementById("formSubtitle");
+        const toRegisterLink = document.getElementById("toRegisterLink");
+        const toLoginLink = document.getElementById("toLoginLink");
+
+        if (toRegisterLink) {
+            toRegisterLink.addEventListener("click", function (e) {
+                e.preventDefault();
+                loginSection.classList.add("hidden");
+                registerSection.classList.remove("hidden");
+                formSubtitle.innerText = "Đăng ký tài khoản mới để trải nghiệm hệ thống";
+            });
+        }
+
+        if (toLoginLink) {
+            toLoginLink.addEventListener("click", function (e) {
+                e.preventDefault();
+                registerSection.classList.add("hidden");
+                loginSection.classList.remove("hidden");
+                formSubtitle.innerText = "Đăng nhập để bắt đầu chuyển đổi bài học";
+            });
+        }
+
+        const loginForm = document.getElementById("loginForm");
+        if (loginForm) {
+            loginForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+            });
+        }
+
+        // XỬ LÝ SỰ KIỆN: ĐĂNG NHẬP
+        const oldLoginBtn = document.getElementById("loginBtn");
+        if (oldLoginBtn) {
+            console.log("🎯 Đã tìm thấy nút Đăng nhập. Tiến hành bẻ gãy mọi sự kiện cũ trùng lặp!");
+            const newLoginBtn = oldLoginBtn.cloneNode(true);
+            oldLoginBtn.parentNode.replaceChild(newLoginBtn, oldLoginBtn);
+            newLoginBtn.setAttribute("type", "button");
+
+            newLoginBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const emailInput = document.getElementById("loginEmail");
+                const passwordInput = document.getElementById("loginPassword");
+                if (!emailInput || !passwordInput) return;
+
+                const email = emailInput.value.trim().toLowerCase();
+                const password = passwordInput.value;
+
+                if (!email || !password) {
+                    alert("Vui lòng điền đầy đủ Email và Mật khẩu!");
+                    return;
+                }
+
+                if (email === "admin@test.com" && password === "123456") {
+                    localStorage.setItem('userId', 'mock-admin-id-999');
+                    localStorage.setItem('user_name', 'MOCK ADMIN');
+                    localStorage.setItem('userRole', 'Admin');
+                    localStorage.setItem('user_role', 'Admin');
+                    alert("Đăng nhập quyền ADMIN thành công!");
+                    window.location.href = "dashboard.html";
+                    return;
+                }
+
+                if (email === "staff@test.com" && password === "123456") {
+                    localStorage.setItem('userId', 'mock-staff-id-888');
+                    localStorage.setItem('user_name', 'MOCK STAFF');
+                    localStorage.setItem('userRole', 'Staff');
+                    localStorage.setItem('user_role', 'Staff');
+                    alert("Đăng nhập quyền STAFF thành công!");
+                    window.location.href = "dashboard.html";
+                    return;
+                }
+
+                console.log("Tài khoản người dùng, chuyển tiếp sang hàm xử lý API auth.js...");
+                if (typeof handleLogin === "function") {
+                    handleLogin(email, password);
+                } else {
+                    alert("Không tải được module đăng nhập (auth.js). Vui lòng tải lại trang.");
+                }
+            });
+        }
+
+        // XỬ LÝ SỰ KIỆN: ĐĂNG KÝ MỚI
+        const registerBtn = document.getElementById("registerBtn");
+        if (registerBtn) {
+            registerBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+
+                const regNameInput = document.getElementById("regName");
+                const regEmailInput = document.getElementById("regEmail");
+                const regPasswordInput = document.getElementById("regPassword");
+
+                const fullName = regNameInput ? regNameInput.value.trim() : "";
+                const email = regEmailInput ? regEmailInput.value.trim().toLowerCase() : "";
+                const password = regPasswordInput ? regPasswordInput.value : "";
+
+                if (!fullName || !email || !password) {
+                    alert("Vui lòng điền đầy đủ các thông tin đăng ký!");
+                    return;
+                }
+
+                if (password.length < 6) {
+                    alert("Mật khẩu bảo mật phải tối thiểu từ 6 ký tự trở lên!");
+                    return;
+                }
+
+                console.log("Đang gửi yêu cầu đăng ký tài khoản mới lên API...");
+                if (typeof handleRegister === "function") {
+                    handleRegister(email, password, fullName);
+                } else {
+                    alert("Không tải được cấu trúc xử lý đăng ký tài khoản (auth.js). Vui lòng tải lại trang.");
+                }
+            });
+        }
+    });
+    </script>
 </body>
 </html>

@@ -158,27 +158,39 @@
 
     <script>
         async function goToPayment(planName, amount, tokens) {
-            const userId = localStorage.getItem("userId") || "USER_TEST_KHANG";
+            const userId = (localStorage.getItem("userId") || "").trim();
+            const userEmail = (localStorage.getItem("user_email") || "").trim().toLowerCase();
+
+            if (!userId && !userEmail) {
+                alert("Vui lòng đăng nhập trước khi mua gói.");
+                window.location.href = "index.html";
+                return;
+            }
 
             try {
                 const response = await fetch("http://localhost:5137/api/payment/create-invoice", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        userId: userId,
+                        userId: userId || null,
+                        userEmail: userEmail || null,
                         amount: amount,
                         tokens: tokens,
                         planName: planName
                     })
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
+                const data = await response.json().catch(() => ({}));
 
+                if (response.ok) {
+                    const resolvedUserId = data.userId || userId;
                     localStorage.setItem("selectedPlan", planName);
                     localStorage.setItem("paymentAmount", amount.toString());
                     localStorage.setItem("targetTokens", tokens.toString());
-                    localStorage.setItem("userId", userId);
+                    localStorage.setItem("userId", resolvedUserId);
+                    if (data.userEmail) {
+                        localStorage.setItem("user_email", data.userEmail);
+                    }
                     localStorage.setItem("paymentCode", data.paymentCode);
 
                     const currentUrl = window.location.href;
@@ -188,7 +200,7 @@
                         window.location.href = "checkout.html";
                     }
                 } else {
-                    alert("Không thể khởi tạo hóa đơn thanh toán từ hệ thống.");
+                    alert(data.message || "Không thể khởi tạo hóa đơn thanh toán từ hệ thống.");
                 }
             } catch (error) {
                 console.error("Lỗi kết nối API:", error);

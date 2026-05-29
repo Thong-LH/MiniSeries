@@ -11,7 +11,10 @@ namespace MiniSeries.Infrastructure.Persistence
         public DbSet<GenerationJob> GenerationJobs => Set<GenerationJob>();
         public DbSet<GenerationLog> GenerationLogs => Set<GenerationLog>();
         public DbSet<UserProfile> UserProfiles { get; set; }
-        public DbSet<PaymentOrder> PaymentOrders { get; set; } // Đã khớp tầng thực thể hoàn toàn sạch sẽ
+        public DbSet<PaymentOrder> PaymentOrders { get; set; }
+        public DbSet<SupportRequest> SupportRequests { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<StaffReport> StaffReports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -95,6 +98,34 @@ namespace MiniSeries.Infrastructure.Persistence
                 entity.Property(x => x.UserId).HasMaxLength(100);
                 entity.Property(x => x.PaymentCode).HasMaxLength(50);
                 entity.Property(x => x.MoneyAmount).HasColumnType("decimal(18,2)");
+            });
+
+            modelBuilder.Entity<SupportRequest>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.CustomerEmail).HasMaxLength(320);
+                entity.Property(x => x.Content).HasColumnType("text");
+                entity.Property(x => x.Reply).HasColumnType("text");
+                entity.Property(x => x.Status).HasMaxLength(50);
+                entity.HasIndex(x => x.CreatedAt);
+            });
+
+            modelBuilder.Entity<Feedback>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Email).HasMaxLength(320);
+                entity.Property(x => x.Comment).HasColumnType("text");
+                entity.HasIndex(x => x.CreatedAt);
+            });
+
+            modelBuilder.Entity<StaffReport>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.StaffName).HasMaxLength(200);
+                entity.Property(x => x.Content).HasColumnType("text");
+                entity.Property(x => x.AdminReply).HasColumnType("text");
+                entity.Property(x => x.Status).HasMaxLength(50);
+                entity.HasIndex(x => x.CreatedAt);
             });
         }
     }
