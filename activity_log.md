@@ -174,7 +174,6 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 ## [2026-05-30] - Doi sang cau hinh local JSON don gian
 
 ### Da hoan thanh:
-1. Them load `appsettings.Development.local.json` trong `Program.cs`.
-2. Them `MiniSeries.WebAPI/appsettings.Development.local.example.json` lam file mau cho team copy va dien secret.
-3. Them `docs/LOCAL_CONFIG_SETUP.md` huong dan cach dung file local.
-4. File `appsettings.Development.local.json` da duoc ignore san, nen khong bi commit len Git.
+1. Them load `appsettings.local.json` trong `Program.cs`.
+2. Don gian hoa cau hinh: Git chi giu `appsettings.json` placeholder, secret that nam trong `appsettings.local.json`.
+3. File `appsettings.local.json` match rule `*.local.json` nen khong bi commit len Git.
