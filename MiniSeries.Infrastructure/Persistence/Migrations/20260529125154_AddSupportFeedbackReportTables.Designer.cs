@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniSeries.Infrastructure.Persistence;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MiniSeries.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(MiniSeriesDbContext))]
-    partial class MiniSeriesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529125154_AddSupportFeedbackReportTables")]
+    partial class AddSupportFeedbackReportTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,56 +62,6 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Chapters");
-                });
-
-            modelBuilder.Entity("MiniSeries.Domain.Entities.ChapterQuiz", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ChapterId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CorrectOption")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("character varying(1)");
-
-                    b.Property<string>("Explanation")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("OptionA")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("OptionB")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("OptionC")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("OptionD")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChapterId")
-                        .IsUnique();
-
-                    b.ToTable("ChapterQuizzes");
                 });
 
             modelBuilder.Entity("MiniSeries.Domain.Entities.Feedback", b =>
@@ -459,15 +412,6 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MiniSeries.Domain.Entities.ChapterQuiz", b =>
-                {
-                    b.HasOne("MiniSeries.Domain.Entities.Chapter", null)
-                        .WithOne("Quiz")
-                        .HasForeignKey("MiniSeries.Domain.Entities.ChapterQuiz", "ChapterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("MiniSeries.Domain.Entities.GenerationJob", b =>
                 {
                     b.HasOne("MiniSeries.Domain.Entities.Lesson", null)
@@ -493,11 +437,6 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
                         .HasForeignKey("LessonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("MiniSeries.Domain.Entities.Chapter", b =>
-                {
-                    b.Navigation("Quiz");
                 });
 
             modelBuilder.Entity("MiniSeries.Domain.Entities.GenerationJob", b =>

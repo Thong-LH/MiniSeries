@@ -1,5 +1,5 @@
-using MiniSeries.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using MiniSeries.Domain.Entities;
 
 namespace MiniSeries.Infrastructure.Persistence;
 
@@ -11,6 +11,11 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
     public DbSet<LlmJson> LlmJsons => Set<LlmJson>();
     public DbSet<GenerationJob> GenerationJobs => Set<GenerationJob>();
     public DbSet<GenerationLog> GenerationLogs => Set<GenerationLog>();
+    public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
+    public DbSet<PaymentOrder> PaymentOrders => Set<PaymentOrder>();
+    public DbSet<SupportRequest> SupportRequests => Set<SupportRequest>();
+    public DbSet<Feedback> Feedbacks => Set<Feedback>();
+    public DbSet<StaffReport> StaffReports => Set<StaffReport>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -103,6 +108,42 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.Step).HasMaxLength(120);
             entity.Property(x => x.Message).HasColumnType("text");
             entity.Property(x => x.PayloadJson).HasColumnType("jsonb");
+        });
+
+        modelBuilder.Entity<PaymentOrder>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.UserId).HasMaxLength(100);
+            entity.Property(x => x.PaymentCode).HasMaxLength(50);
+            entity.Property(x => x.MoneyAmount).HasColumnType("decimal(18,2)");
+        });
+
+        modelBuilder.Entity<SupportRequest>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.CustomerEmail).HasMaxLength(320);
+            entity.Property(x => x.Content).HasColumnType("text");
+            entity.Property(x => x.Reply).HasColumnType("text");
+            entity.Property(x => x.Status).HasMaxLength(50);
+            entity.HasIndex(x => x.CreatedAt);
+        });
+
+        modelBuilder.Entity<Feedback>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Email).HasMaxLength(320);
+            entity.Property(x => x.Comment).HasColumnType("text");
+            entity.HasIndex(x => x.CreatedAt);
+        });
+
+        modelBuilder.Entity<StaffReport>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.StaffName).HasMaxLength(200);
+            entity.Property(x => x.Content).HasColumnType("text");
+            entity.Property(x => x.AdminReply).HasColumnType("text");
+            entity.Property(x => x.Status).HasMaxLength(50);
+            entity.HasIndex(x => x.CreatedAt);
         });
     }
 }

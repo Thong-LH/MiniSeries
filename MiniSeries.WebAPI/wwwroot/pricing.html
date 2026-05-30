@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Giá Token - EduGenAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .header h1 {
+            font-size: 36px;
+            color: #c084fc;
+            margin-bottom: 10px;
+        }
+        .pricing-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 24px;
+            padding: 30px;
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.3s, border-color 0.3s;
+            position: relative;
+        }
+        .card.popular {
+            border-color: #a855f7;
+            box-shadow: 0 10px 25px -5px rgba(168, 85, 247, 0.3);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #a855f7;
+        }
+        .badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #a855f7;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 9999px;
+        }
+        .plan-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+        }
+        .price {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .price span {
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+        .features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 30px 0;
+            text-align: left;
+        }
+        .features li {
+            font-size: 14px;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-buy {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-free { background-color: #475569; color: #cbd5e1; }
+        .btn-premium { background-color: #a855f7; color: white; }
+        .btn-premium:hover { background-color: #9333ea; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Chọn gói Token phù hợp</h1>
+        <p style="color: #94a3b8;">Mỗi 1.000 Token tương đương 1.000 VNĐ. Mua gói để mở khóa giới hạn AI.</p>
+    </div>
+
+    <div class="pricing-container">
+        <div class="card">
+            <div>
+                <h3 class="plan-name" style="color: #94a3b8;">Free</h3>
+                <div class="price">0đ <span>/ vĩnh viễn</span></div>
+                <ul class="features">
+                    <li>🔹 Tặng sẵn 1.000 Token tài khoản</li>
+                    <li>🎬 Trải nghiệm tạo 1 bộ truyện Manga</li>
+                    <li>⚡ Tốc độ xử lý cơ bản</li>
+                </ul>
+            </div>
+            <button class="btn-buy btn-free" disabled>Gói Hiện Tại</button>
+        </div>
+
+        <div class="card popular">
+            <span class="badge">Phổ biến</span>
+            <div>
+                <h3 class="plan-name" style="color: #c084fc;">Plus</h3>
+                <div class="price">150.000đ <span>/ nạp theo lượt</span></div>
+                <ul class="features">
+                    <li>✨ Nhận ngay 150.000 Token</li>
+                    <li>📖 Đủ tạo khoảng 5 bộ truyện Manga</li>
+                    <li>⚡ Ưu tiên xử lý kịch bản nhanh</li>
+                </ul>
+            </div>
+            <button class="btn-buy btn-premium" onclick="goToPayment('Plus', 150000, 150000)">Mua gói Plus</button>
+        </div>
+
+        <div class="card">
+            <div>
+                <h3 class="plan-name" style="color: #fbbf24;">Pro Max</h3>
+                <div class="price">300.000đ <span>/ nạp theo lượt</span></div>
+                <ul class="features">
+                    <li>✨ Nhận ngay 300.000 Token</li>
+                    <li>🎬 Tạo được 10 bộ phim ngắn (MiniSeries)</li>
+                    <li>💎 Server kết xuất video cao cấp</li>
+                </ul>
+            </div>
+            <button class="btn-buy btn-premium" onclick="goToPayment('Pro Max', 300000, 300000)" style="background-color: #eab308;">Mua gói Pro Max</button>
+        </div>
+    </div>
+
+    <script>
+        async function goToPayment(planName, amount, tokens) {
+            const userId = (localStorage.getItem("userId") || "").trim();
+            const userEmail = (localStorage.getItem("user_email") || "").trim().toLowerCase();
+
+            if (!userId && !userEmail) {
+                alert("Vui lòng đăng nhập trước khi mua gói.");
+                window.location.href = "index.html";
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:5137/api/payment/create-invoice", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        userId: userId || null,
+                        userEmail: userEmail || null,
+                        amount: amount,
+                        tokens: tokens,
+                        planName: planName
+                    })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok) {
+                    const resolvedUserId = data.userId || userId;
+                    localStorage.setItem("selectedPlan", planName);
+                    localStorage.setItem("paymentAmount", amount.toString());
+                    localStorage.setItem("targetTokens", tokens.toString());
+                    localStorage.setItem("userId", resolvedUserId);
+                    if (data.userEmail) {
+                        localStorage.setItem("user_email", data.userEmail);
+                    }
+                    localStorage.setItem("paymentCode", data.paymentCode);
+
+                    const currentUrl = window.location.href;
+                    if (currentUrl.includes("pricing.html")) {
+                        window.location.href = currentUrl.replace("pricing.html", "checkout.html");
+                    } else {
+                        window.location.href = "checkout.html";
+                    }
+                } else {
+                    alert(data.message || "Không thể khởi tạo hóa đơn thanh toán từ hệ thống.");
+                }
+            } catch (error) {
+                console.error("Lỗi kết nối API:", error);
+                alert("Server đang bảo trì hoặc chưa được bật!");
+            }
+        }
+    </script>
+</body>
+</html>

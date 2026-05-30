@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MiniSeries.Application\MiniSeries.Application.csproj" />
+    <ProjectReference Include="..\MiniSeries.Domain\MiniSeries.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

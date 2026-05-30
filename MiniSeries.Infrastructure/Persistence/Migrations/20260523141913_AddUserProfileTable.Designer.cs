@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniSeries.Infrastructure.Persistence;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MiniSeries.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(MiniSeriesDbContext))]
-    partial class MiniSeriesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260523141913_AddUserProfileTable")]
+    partial class AddUserProfileTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,84 +62,6 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Chapters");
-                });
-
-            modelBuilder.Entity("MiniSeries.Domain.Entities.ChapterQuiz", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ChapterId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CorrectOption")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("character varying(1)");
-
-                    b.Property<string>("Explanation")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("OptionA")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("OptionB")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("OptionC")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("OptionD")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChapterId")
-                        .IsUnique();
-
-                    b.ToTable("ChapterQuizzes");
-                });
-
-            modelBuilder.Entity("MiniSeries.Domain.Entities.Feedback", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("character varying(320)");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("MiniSeries.Domain.Entities.GenerationJob", b =>
@@ -318,112 +243,6 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
                     b.ToTable("LlmJsons");
                 });
 
-            modelBuilder.Entity("MiniSeries.Domain.Entities.PaymentOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal>("MoneyAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("PaidAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PaymentCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int>("TokensAmount")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PaymentOrders");
-                });
-
-            modelBuilder.Entity("MiniSeries.Domain.Entities.StaffReport", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AdminReply")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("StaffName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.ToTable("StaffReports");
-                });
-
-            modelBuilder.Entity("MiniSeries.Domain.Entities.SupportRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CustomerEmail")
-                        .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("character varying(320)");
-
-                    b.Property<string>("Reply")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.ToTable("SupportRequests");
-                });
-
             modelBuilder.Entity("MiniSeries.Domain.Entities.UserProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -459,15 +278,6 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MiniSeries.Domain.Entities.ChapterQuiz", b =>
-                {
-                    b.HasOne("MiniSeries.Domain.Entities.Chapter", null)
-                        .WithOne("Quiz")
-                        .HasForeignKey("MiniSeries.Domain.Entities.ChapterQuiz", "ChapterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("MiniSeries.Domain.Entities.GenerationJob", b =>
                 {
                     b.HasOne("MiniSeries.Domain.Entities.Lesson", null)
@@ -493,11 +303,6 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
                         .HasForeignKey("LessonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("MiniSeries.Domain.Entities.Chapter", b =>
-                {
-                    b.Navigation("Quiz");
                 });
 
             modelBuilder.Entity("MiniSeries.Domain.Entities.GenerationJob", b =>

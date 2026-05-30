@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduGenAI - Tư vấn & Chăm sóc khách hàng</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body { margin: 0; font-family: 'Inter', sans-serif; background: #0b0f19; color: #e2e8f0; }
+        .container { max-width: 920px; margin: 0 auto; padding: 36px 20px 60px; }
+        .card { background: rgba(30, 41, 59, 0.75); border: 1px solid #334155; border-radius: 18px; padding: 22px; }
+        .title { font-size: 28px; font-weight: 800; margin: 0 0 6px 0; color: #c084fc; }
+        .subtitle { margin: 0 0 18px 0; color: #94a3b8; font-size: 14px; line-height: 1.5; }
+        textarea { width: 100%; min-height: 180px; resize: vertical; background: rgba(15, 23, 42, 0.7); border: 1px solid #334155; color: #e2e8f0; border-radius: 14px; padding: 14px; font-size: 14px; outline: none; }
+        textarea:focus { border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.18); }
+        .actions { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+        .btn { border: none; border-radius: 12px; padding: 12px 16px; font-weight: 700; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: linear-gradient(to right, #9333ea, #7c3aed); color: #fff; }
+        .btn-primary:hover { filter: brightness(1.08); }
+        .btn-secondary { background: transparent; border: 1px solid #475569; color: #cbd5e1; }
+        .btn-secondary:hover { border-color: #64748b; color: #fff; }
+        .hint { margin-top: 10px; font-size: 12px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <script>
+        const checkUserId = localStorage.getItem('userId');
+        if (!checkUserId && localStorage.getItem('user_role') !== 'Customer') {
+            alert('Vui lòng đăng nhập để sử dụng tính năng này!');
+            window.location.href = 'index.html';
+        }
+    </script>
+
+    <div class="container">
+        <div class="card">
+            <h1 class="title">Tư vấn & Chăm sóc khách hàng</h1>
+            <p class="subtitle">
+                Hãy gửi thắc mắc của bạn. Đội ngũ Staff sẽ phản hồi sớm nhất có thể qua hệ thống lưu trữ vĩnh viễn.
+            </p>
+
+            <label for="supportContent" style="display:block; font-size: 13px; font-weight: 700; color:#e2e8f0; margin-bottom: 8px;">
+                Nội dung yêu cầu
+            </label>
+            <textarea id="supportContent" placeholder="Ví dụ: Mình đã nạp gói Pro Max nhưng chưa thấy cộng Token..."></textarea>
+
+            <div class="actions">
+                <button class="btn btn-primary" id="btnSendSupport">Gửi yêu cầu</button>
+                <button class="btn btn-secondary" id="btnBackHome">Quay về Trang chủ</button>
+            </div>
+
+            <p class="hint">
+                Gợi ý: Đăng nhập mock Admin/Staff để vào `dashboard.html` và trả lời yêu cầu.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:5137/api";
+
+        document.getElementById('btnBackHome').addEventListener('click', () => {
+            window.location.href = 'home.html';
+        });
+
+        document.getElementById('btnSendSupport').addEventListener('click', () => {
+            const contentEl = document.getElementById('supportContent');
+            const noiDung = (contentEl.value || '').trim();
+            if (!noiDung) {
+                alert('Vui lòng nhập nội dung thắc mắc trước khi gửi.');
+                return;
+            }
+
+            const emailKhach =
+                localStorage.getItem('user_email') ||
+                localStorage.getItem('userEmail') ||
+                'unknown@customer.local';
+
+            fetch(`${API_BASE}/support/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                },
+                body: JSON.stringify({
+                    customerEmail: emailKhach,
+                    content: noiDung
+                })
+            })
+            .then(async (res) => {
+                const text = await res.text();
+                const data = text ? JSON.parse(text) : {};
+                if (!res.ok) throw new Error(data.message || 'Không gửi được yêu cầu tư vấn.');
+                contentEl.value = '';
+                alert('Đã gửi yêu cầu tư vấn lên hệ thống!');
+            })
+            .catch((err) => {
+                alert('Gửi yêu cầu thất bại: ' + err.message);
+            });
+        });
+    </script>
+</body>
+</html>

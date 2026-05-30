@@ -25,7 +25,7 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 ### Ghi chú kỹ thuật:
 - **LLM:** Đã chuyển đổi sang **Groq (Llama 3.3)** để tăng tốc độ và độ ổn định. Model: `llama-3.3-70b-versatile`.
 - **Manga Page:** Đã nâng cấp thành công việc gen **1 ảnh chứa 4 khung hình có sẵn chữ và bong bóng thoại** do AI tự vẽ.
-- **Sửa lỗi:** 
+- **Sửa lỗi:**
     - Đã đính kèm API Key vào URL ảnh/video để tránh lỗi 401.
     - Đã cấu hình `UseDefaultFiles` để truy cập trang chủ không bị lỗi 404.
 - **Lưu trữ:** Đang lên kế hoạch tích hợp **Supabase** và **Cloudinary** để lưu trữ vĩnh viễn.
@@ -160,3 +160,13 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 3. Them `MiniSeries.WebAPI/appsettings.Development.example.json` lam mau cau hinh cho thanh vien khac tu dien secret rieng.
 4. Cap nhat `.gitignore` de tranh commit file cau hinh local co secret.
 5. Quet nhanh secret pattern trong tracked files va build solution thanh cong (`0 warning`, `0 error`).
+
+## [2026-05-30] - Merge nhanh auth/payment/support tu nhanh AnKhang
+
+### Da hoan thanh:
+1. Fetch va merge `origin/AnKhang` vao `feature/cloud_addtion`.
+2. Giu lai controller-based AI generation flow hien tai, bo phan minimal API lesson legacy cua nhanh cu.
+3. Ghep them Supabase auth, OTP email, payment, customer/staff dashboard, support, feedback va report endpoints.
+4. Gop mapping EF cho `ChapterQuiz` voi cac entity moi: `UserProfile`, `PaymentOrder`, `SupportRequest`, `Feedback`, `StaffReport`.
+5. Chuyen `EmailSettings` va `Supabase` secret trong `appsettings.json` sang placeholder, gia tri local duoc luu vao user-secrets.
+6. Build solution thanh cong sau merge (`0 warning`, `0 error`).
