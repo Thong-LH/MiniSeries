@@ -14,6 +14,11 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddJsonFile(
+    "appsettings.Development.local.json",
+    optional: true,
+    reloadOnChange: true);
+
 builder.Services.AddControllers();
 builder.Services.AddHttpClient<GroqService>();
 builder.Services.AddHttpClient<PollinationsService>();

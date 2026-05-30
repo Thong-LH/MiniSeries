@@ -170,3 +170,11 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 4. Gop mapping EF cho `ChapterQuiz` voi cac entity moi: `UserProfile`, `PaymentOrder`, `SupportRequest`, `Feedback`, `StaffReport`.
 5. Chuyen `EmailSettings` va `Supabase` secret trong `appsettings.json` sang placeholder, gia tri local duoc luu vao user-secrets.
 6. Build solution thanh cong sau merge (`0 warning`, `0 error`).
+
+## [2026-05-30] - Doi sang cau hinh local JSON don gian
+
+### Da hoan thanh:
+1. Them load `appsettings.Development.local.json` trong `Program.cs`.
+2. Them `MiniSeries.WebAPI/appsettings.Development.local.example.json` lam file mau cho team copy va dien secret.
+3. Them `docs/LOCAL_CONFIG_SETUP.md` huong dan cach dung file local.
+4. File `appsettings.Development.local.json` da duoc ignore san, nen khong bi commit len Git.
