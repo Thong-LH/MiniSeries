@@ -269,3 +269,20 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 ### Con lai:
 1. Chua test approve lesson thanh cong het luong AI vi se goi LLM/image/video that.
 2. Chua them webhook secret/signature cho `bank-webhook`.
+
+## [2026-06-02] - Dong bo FE sang quota generate
+
+### Da hoan thanh:
+1. Doi `pricing.html` tu token le sang 3 goi quota:
+   - `Free`: 3 luot generate/thang.
+   - `Basic`: 30 luot generate/thang.
+   - `Premium`: 100 luot generate/thang.
+2. `pricing.html` tao invoice bang `planName` va luu `targetGenerations` de checkout hien thi dung quota.
+3. Cap nhat `checkout.html` de hien thi goi MiniSeries, quota generate va thong bao thanh toan theo quota thay vi Token.
+4. Cap nhat `profile.html` de hien thi goi hien tai, luot da dung va luot con lai tu API profile.
+5. Cap nhat `home.html` dropdown profile de hien thi luot generate con lai va link mua them goi.
+6. Kiem tra cac trang `/pricing.html`, `/checkout.html`, `/profile.html`, `/home.html` deu tra `200`.
+7. Build solution thanh cong (`0 warning`, `0 error`).
+
+### Ghi chu:
+1. `dashboard.html` van con mot so text Token trong khu admin mock cu; file nay dang co byte encoding loi nen chua sua bang patch de tranh lam hong file.
