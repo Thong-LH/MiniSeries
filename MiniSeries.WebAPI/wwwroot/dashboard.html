@@ -381,7 +381,12 @@
                 .replaceAll("\"", "&quot;")
                 .replaceAll("'", "&#039;");
         }
-        async function fetchJson(url, options) {
+        function authHeaders(headers = {}) {
+            const token = localStorage.getItem("token");
+            return token ? { ...headers, Authorization: `Bearer ${token}` } : headers;
+        }
+        async function fetchJson(url, options = {}) {
+            options.headers = authHeaders(options.headers || {});
             const response = await fetch(url, options);
             const text = await response.text();
             const data = text ? JSON.parse(text) : {};

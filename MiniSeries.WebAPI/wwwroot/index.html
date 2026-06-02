@@ -123,27 +123,6 @@
                     alert("Vui lòng điền đầy đủ Email và Mật khẩu!");
                     return;
                 }
-
-                if (email === "admin@test.com" && password === "123456") {
-                    localStorage.setItem('userId', 'mock-admin-id-999');
-                    localStorage.setItem('user_name', 'MOCK ADMIN');
-                    localStorage.setItem('userRole', 'Admin');
-                    localStorage.setItem('user_role', 'Admin');
-                    alert("Đăng nhập quyền ADMIN thành công!");
-                    window.location.href = "dashboard.html";
-                    return;
-                }
-
-                if (email === "staff@test.com" && password === "123456") {
-                    localStorage.setItem('userId', 'mock-staff-id-888');
-                    localStorage.setItem('user_name', 'MOCK STAFF');
-                    localStorage.setItem('userRole', 'Staff');
-                    localStorage.setItem('user_role', 'Staff');
-                    alert("Đăng nhập quyền STAFF thành công!");
-                    window.location.href = "dashboard.html";
-                    return;
-                }
-
                 console.log("Tài khoản người dùng, chuyển tiếp sang hàm xử lý API auth.js...");
                 if (typeof handleLogin === "function") {
                     handleLogin(email, password);

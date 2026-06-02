@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cổng Thanh Toán Thực - EduGenAI</title>
+    <title>Cổng Thanh Toán - MiniSeries</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { background-color: #0f172a; color: #ffffff; font-family: 'Inter', sans-serif; margin: 0; padding: 40px; display: flex; justify-content: center; }
@@ -36,9 +36,9 @@
             <hr style="border-color: #334155; margin-bottom: 20px;">
 
             <p><strong>Tài khoản người mua:</strong> <span id="user-nickname" style="color: #38bdf8;">Đang truy vấn...</span></p>
-            <p><strong>Gói Token:</strong> <span id="info-plan" style="color: #fbbf24;">...</span></p>
+            <p><strong>Gói MiniSeries:</strong> <span id="info-plan" style="color: #fbbf24;">...</span></p>
             <p><strong>Số tiền thực tế:</strong> <span id="info-amount" style="color: #22c55e; font-size: 18px; font-weight: bold;">0đ</span></p>
-            <p><strong>Tài nguyên biểu thị:</strong> <span id="info-tokens" style="color: #a855f7; font-weight: bold;">0 Token ✨</span></p>
+            <p><strong>Quota nhận được:</strong> <span id="info-tokens" style="color: #a855f7; font-weight: bold;">0 lượt generate</span></p>
 
             <label for="bankSelect"><strong>Chọn ngân hàng thanh toán:</strong></label>
             <select id="bankSelect" class="select-bank" onchange="generateRealQR()">
@@ -62,7 +62,7 @@
             <p style="font-size: 12px; color: #cbd5e1; margin: 5px 0;"><strong>Số tài khoản:</strong> 00002409999</p>
             <p style="font-size: 12px; color: #cbd5e1; margin: 5px 0;"><strong>Chủ TK:</strong> Thousand Sunsilk Company</p>
             <p style="font-size: 11px; color: #ef4444; font-weight: bold; margin-bottom: 2px;">⚠️ SỬ DỤNG ĐÚNG NỘI DUNG CHUYỂN KHOẢN:</p>
-            <p style="font-size: 14px; color: #fbbf24; font-family: monospace; background: #1e293b; padding: 6px; border-radius: 4px; font-weight: bold; border: 1px dashed #fbbf24; margin: 0;" id="info-content">EDUGENAI...</p>
+            <p style="font-size: 14px; color: #fbbf24; font-family: monospace; background: #1e293b; padding: 6px; border-radius: 4px; font-weight: bold; border: 1px dashed #fbbf24; margin: 0;" id="info-content">MINISERIES...</p>
         </div>
     </div>
 
@@ -70,7 +70,7 @@
     <div id="confirm-panel">
         <h3>Xác nhận thông tin thanh toán</h3>
         <div class="confirm-detail">
-            <p style="margin: 0 0 10px 0;"><strong>Gói Token:</strong> <span id="confirm-plan-name">—</span></p>
+            <p style="margin: 0 0 10px 0;"><strong>Gói MiniSeries:</strong> <span id="confirm-plan-name">—</span></p>
             <p style="margin: 0;"><strong>Số tiền thanh toán:</strong> <span id="confirm-amount" style="color: #22c55e; font-weight: bold;">0 VNĐ</span></p>
         </div>
         <div class="confirm-actions">
@@ -84,11 +84,15 @@
         <div style="font-size: 50px; color: #22c55e; margin-bottom: 15px;">✅</div>
         <h3 style="margin: 0 0 10px 0; color: #22c55e; font-size: 22px;">Thanh Toán Thành Công!</h3>
         <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 20px;" id="success-message">...</p>
-        <button onclick="backToHome()" style="padding: 10px 24px; background-color: #22c55e; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Quay về trang chủ sử dụng Token</button>
+        <button onclick="backToHome()" style="padding: 10px 24px; background-color: #22c55e; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Quay về trang chủ sử dụng lượt generate</button>
     </div>
 
     <script>
         const BACKEND_API = "http://localhost:5137/api";
+        function authHeaders(headers = {}) {
+            const token = localStorage.getItem("token");
+            return token ? { ...headers, Authorization: `Bearer ${token}` } : headers;
+        }
         let webhookCheckInterval = null;
         let latestOldRequestId = null;
 
@@ -119,7 +123,7 @@
             const overlay = document.getElementById("payment-overlay");
 
             if (msgBox) {
-                msgBox.innerText = message || "Hệ thống xác nhận đã nhận đủ tiền! Tài khoản đã được cộng Token thành công.";
+                msgBox.innerText = message || "Hệ thống xác nhận đã nhận đủ tiền. Tài khoản đã được cập nhật quota generate.";
             }
             if (overlay) overlay.style.display = "block";
             if (panel) panel.style.display = "block";
@@ -127,7 +131,7 @@
 
         // Gọi trực tiếp qua API Proxy nội bộ của Backend .NET
         async function fetchWebhookRequests() {
-            const response = await fetch(`${BACKEND_API}/payment/webhook-gateway`);
+            const response = await fetch(`${BACKEND_API}/payment/webhook-gateway`, { headers: authHeaders() });
             if (!response.ok) {
                 throw new Error("Không thể lấy dữ liệu từ gateway Backend");
             }
@@ -204,7 +208,7 @@
 
                             // Gọi ngầm về Backend kiểm tra & cập nhật Database
                             try {
-                                await fetch(`${BACKEND_API}/payment/check-status?userId=${localStorage.getItem("userId")}&code=${currentPaymentCode}`);
+                                await fetch(`${BACKEND_API}/payment/check-status?userId=${localStorage.getItem("userId")}&code=${currentPaymentCode}`, { headers: authHeaders() });
                             } catch(e){}
 
                             showPaymentSuccessPanel("Hệ thống xác nhận đã nhận đủ tiền từ webhook.site! Giao dịch hoàn tất thành công.");
@@ -219,7 +223,7 @@
 
         const planName = localStorage.getItem("selectedPlan");
         const amount = localStorage.getItem("paymentAmount");
-        const tokensToReceive = localStorage.getItem("targetTokens");
+        const generationsToReceive = localStorage.getItem("targetGenerations") || localStorage.getItem("targetTokens");
         const userId = localStorage.getItem("userId");
         const paymentCode = localStorage.getItem("paymentCode");
         const formattedAmount = parseInt(amount || "0", 10).toLocaleString("vi-VN") + " VNĐ";
@@ -230,7 +234,7 @@
         } else {
             document.getElementById("info-plan").innerText = planName || "—";
             document.getElementById("info-amount").innerText = formattedAmount;
-            document.getElementById("info-tokens").innerText = parseInt(tokensToReceive || "0", 10).toLocaleString("vi-VN") + " ✨";
+            document.getElementById("info-tokens").innerText = parseInt(generationsToReceive || "0", 10).toLocaleString("vi-VN") + " lượt generate / tháng";
             document.getElementById("info-content").innerText = paymentCode;
 
             document.getElementById("confirm-plan-name").innerText = planName || "—";
@@ -238,7 +242,7 @@
 
             async function loadUserProfile() {
                 try {
-                    const res = await fetch(`${BACKEND_API}/profile/${encodeURIComponent(userId)}`);
+                    const res = await fetch(`${BACKEND_API}/profile/${encodeURIComponent(userId)}`, { headers: authHeaders() });
                     if (res.ok) {
                         const data = await res.json();
                         document.getElementById("user-nickname").innerText = data.fullName + ` (${data.email})`;

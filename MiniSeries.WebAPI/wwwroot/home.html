@@ -28,7 +28,7 @@
         padding: 16px 40px !important;
         height: 70px !important;
     ">
-        <h1 class="text-2xl font-bold text-purple-400 tracking-wider cursor-pointer" onclick="window.location.reload()" style="margin: 0;">EduGenAI</h1>
+        <h1 class="text-2xl font-bold text-purple-400 tracking-wider cursor-pointer" onclick="window.location.reload()" style="margin: 0;">MiniSeries</h1>
 
         <div style="
             display: flex !important;
@@ -80,8 +80,8 @@
                 <span id="dropdown-tier" style="font-size: 12px; color: #fbbf24; font-weight: 700;">PREMIUM</span>
             </div>
             <div style="text-align: right;">
-                <p style="margin: 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Số dư Token</p>
-                <span id="dropdown-tokens" style="font-size: 14px; color: #c084fc; font-weight: 700; font-family: monospace;">0 ✨</span>
+                <p style="margin: 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Lượt còn lại</p>
+                <span id="dropdown-tokens" style="font-size: 14px; color: #c084fc; font-weight: 700; font-family: monospace;">0 lượt</span>
             </div>
         </div>
 
@@ -89,8 +89,8 @@
             <button onclick="alert('Đang mở danh sách Series truyện tranh yêu thích của bạn...')" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #cbd5e1; font-size: 13px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(51,65,85,0.5)'" onmouseout="this.style.backgroundColor='transparent'">
                 💖 Series yêu thích
             </button>
-            <button onclick="alert('Đang kết nối đến hệ thống nạp token và trang thanh toán...')" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #fbbf24; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(51,65,85,0.5)'" onmouseout="this.style.backgroundColor='transparent'">
-                ✨ Mua thêm Token / Gói
+            <button onclick="window.location.href='pricing.html'" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #fbbf24; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(51,65,85,0.5)'" onmouseout="this.style.backgroundColor='transparent'">
+                Mua thêm lượt / Gói
             </button>
             <hr style="border: 0; border-top: 1px solid #334155; margin: 6px 0;">
             <button onclick="handleLogout()" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #f87171; font-size: 13px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(239,68,68,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
@@ -106,7 +106,7 @@
             <h3 style="margin:0; font-size: 18px; font-weight: 800; color:#c084fc;">Đánh giá dịch vụ</h3>
             <button id="btnCloseFeedback" style="background: transparent; border: 1px solid #475569; color: #cbd5e1; border-radius: 10px; padding: 6px 10px; cursor:pointer;">Đóng</button>
         </div>
-        <p style="margin: 8px 0 14px 0; font-size: 13px; color:#94a3b8;">Chọn số sao và để lại bình luận để giúp EduGenAI cải thiện tốt hơn.</p>
+        <p style="margin: 8px 0 14px 0; font-size: 13px; color:#94a3b8;">Chọn số sao và để lại bình luận để giúp MiniSeries cải thiện tốt hơn.</p>
 
         <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 10px;">
             <span style="font-size: 13px; color:#e2e8f0; font-weight:700;">Số sao:</span>
@@ -214,21 +214,23 @@
             let defaultUser = {
                 fullName: "Nguyễn Khang",
                 email: "annkang040704@gmail.com",
-                tokens: 150,
-                tier: "Premium",
+                tokens: 3,
+                tier: "Free",
                 avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Khang"
             };
 
             // Nạp dữ liệu thật từ Backend từ ID đăng nhập của bạn
             if (userId) {
                 try {
-                    const response = await fetch(`${BACKEND_API}/profile/${userId}`);
+                    const response = await fetch(`${BACKEND_API}/profile/${userId}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` } });
                     if (response.ok) {
                         const apiData = await response.json();
                         defaultUser.fullName = apiData.fullName || defaultUser.fullName;
                         defaultUser.email = apiData.email || defaultUser.email;
-                        if (apiData.tokens !== undefined) defaultUser.tokens = apiData.tokens;
-                        if (apiData.tier) defaultUser.tier = apiData.tier;
+                        if (apiData.remainingGenerationCount !== undefined) defaultUser.tokens = apiData.remainingGenerationCount;
+                        else if (apiData.tokens !== undefined) defaultUser.tokens = apiData.tokens;
+                        if (apiData.planName) defaultUser.tier = apiData.planName;
+                        else if (apiData.tier) defaultUser.tier = apiData.tier;
                     }
                 } catch (error) {
                     console.log("Đang hiển thị dữ liệu tài khoản cục bộ.");
@@ -262,7 +264,7 @@
                         border-radius: 9999px;
                         border: 1px solid rgba(168, 85, 247, 0.3);
                         white-space: nowrap;
-                    ">${defaultUser.tokens} ✨</span>
+                    ">${defaultUser.tokens} lượt</span>
 
                     <span style="
                         color: #e2e8f0;
@@ -293,7 +295,7 @@
                 document.getElementById("dropdown-avatar").src = defaultUser.avatarUrl;
                 document.getElementById("dropdown-fullname").innerText = defaultUser.fullName;
                 document.getElementById("dropdown-email").innerText = defaultUser.email;
-                document.getElementById("dropdown-tokens").innerText = `${defaultUser.tokens} ✨`;
+                document.getElementById("dropdown-tokens").innerText = `${defaultUser.tokens} lượt`;
                 document.getElementById("dropdown-tier").innerText = defaultUser.tier.toUpperCase();
             }
 

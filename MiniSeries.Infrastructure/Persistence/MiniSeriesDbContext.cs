@@ -114,8 +114,26 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
         {
             entity.HasKey(x => x.Id);
             entity.Property(x => x.UserId).HasMaxLength(100);
+            entity.Property(x => x.UserEmail).HasMaxLength(320);
+            entity.Property(x => x.PlanName).HasMaxLength(100);
             entity.Property(x => x.PaymentCode).HasMaxLength(50);
             entity.Property(x => x.MoneyAmount).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.Status).HasMaxLength(50);
+            entity.HasIndex(x => x.PaymentCode).IsUnique();
+            entity.HasIndex(x => x.UserId);
+        });
+
+        modelBuilder.Entity<UserProfile>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Email).HasMaxLength(320);
+            entity.Property(x => x.FullName).HasMaxLength(200);
+            entity.Property(x => x.Role).HasMaxLength(50);
+            entity.Property(x => x.PlanName).HasMaxLength(50).HasDefaultValue("Free");
+            entity.Property(x => x.MonthlyGenerationLimit).HasDefaultValue(3);
+            entity.Property(x => x.UsedGenerationCount).HasDefaultValue(0);
+            entity.Property(x => x.CurrentPeriodStart).HasDefaultValueSql("NOW()");
+            entity.Property(x => x.CurrentPeriodEnd).HasDefaultValueSql("NOW() + INTERVAL '1 month'");
         });
 
         modelBuilder.Entity<SupportRequest>(entity =>

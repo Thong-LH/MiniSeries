@@ -194,6 +194,11 @@ public sealed class SupabaseRestService
             Email = email.Trim(),
             FullName = fullName.Trim(),
             Role = string.IsNullOrWhiteSpace(role) ? "Customer" : role.Trim(),
+            PlanName = "Free",
+            MonthlyGenerationLimit = 3,
+            UsedGenerationCount = 0,
+            CurrentPeriodStart = DateTime.UtcNow,
+            CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1),
             CreatedAt = DateTime.UtcNow
         });
 
@@ -304,6 +309,11 @@ public sealed class SupabaseUserProfileRow
     public string Email { get; set; } = "";
     public string FullName { get; set; } = "";
     public string Role { get; set; } = "Customer";
+    public string PlanName { get; set; } = "Free";
+    public int MonthlyGenerationLimit { get; set; } = 3;
+    public int UsedGenerationCount { get; set; }
+    public DateTime CurrentPeriodStart { get; set; }
+    public DateTime CurrentPeriodEnd { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
