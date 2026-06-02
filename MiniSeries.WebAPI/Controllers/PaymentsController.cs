@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Infrastructure.ExternalServices;
 using MiniSeries.Infrastructure.Persistence;
+using MiniSeries.Infrastructure.Services;
 using MiniSeries.WebAPI.Contracts;
 using MiniSeries.WebAPI.Security;
 
@@ -13,7 +14,8 @@ namespace MiniSeries.WebAPI.Controllers;
 [Route("api/payment")]
 public sealed class PaymentsController(
     SupabaseRestService supabaseDb,
-    MiniSeriesDbContext dbContext) : ControllerBase
+    MiniSeriesDbContext dbContext,
+    UserPlanQuotaService quotaService) : ControllerBase
 {
     [Authorize(Policy = "AuthenticatedUser")]
     [HttpPost("create-invoice")]
@@ -42,9 +44,9 @@ public sealed class PaymentsController(
             return BadRequest(new { message = ex.Message });
         }
 
-        if (req.Amount <= 0 || req.Tokens <= 0)
+        if (req.Amount <= 0)
         {
-            return BadRequest(new { message = "amount va tokens phai lon hon 0." });
+            return BadRequest(new { message = "amount phai lon hon 0." });
         }
 
         string cleanId = resolvedUserId.Replace("-", "", StringComparison.Ordinal);
@@ -59,14 +61,15 @@ public sealed class PaymentsController(
         dbContext.PaymentOrders.RemoveRange(oldOrders);
 
         var safeCode = await GeneratePaymentCodeAsync(cleanId[^4..].ToUpperInvariant());
+        var plan = UserPlanQuotaService.ResolvePlan(req.PlanName);
         var order = new PaymentOrder
         {
             UserId = resolvedUserId,
             UserEmail = userEmail,
-            PlanName = string.IsNullOrWhiteSpace(req.PlanName) ? "Token Pack" : req.PlanName.Trim(),
+            PlanName = plan.Name,
             PaymentCode = safeCode,
             MoneyAmount = req.Amount,
-            TokensAmount = req.Tokens,
+            TokensAmount = plan.MonthlyGenerationLimit,
             Status = "Pending",
             IsCompleted = false,
             CreatedAt = DateTime.UtcNow
@@ -81,6 +84,8 @@ public sealed class PaymentsController(
             paymentCode = order.PaymentCode,
             userId = order.UserId,
             userEmail = order.UserEmail,
+            planName = order.PlanName,
+            monthlyGenerationLimit = order.TokensAmount,
             status = order.Status
         });
     }
@@ -142,13 +147,18 @@ public sealed class PaymentsController(
             matched.PaidAt = DateTime.UtcNow;
             await dbContext.SaveChangesAsync();
 
+            var quota = await quotaService.ApplyPaidPlanAsync(Guid.Parse(matched.UserId), matched.PlanName);
+
             return Ok(new
             {
                 success = true,
                 message = "Payment history saved.",
                 orderId = matched.Id,
                 paymentCode = matched.PaymentCode,
-                status = matched.Status
+                status = matched.Status,
+                planName = quota.PlanName,
+                monthlyGenerationLimit = quota.MonthlyGenerationLimit,
+                remainingGenerationCount = quota.RemainingGenerationCount
             });
         }
         catch (Exception ex)
@@ -184,6 +194,8 @@ public sealed class PaymentsController(
                     isPaid = true,
                     orderId = order.Id,
                     status = order.Status,
+                    planName = order.PlanName,
+                    monthlyGenerationLimit = order.TokensAmount,
                     paidAt = order.PaidAt
                 });
             }

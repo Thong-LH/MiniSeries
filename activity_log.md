@@ -244,3 +244,28 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 ### Con lai:
 1. Chua lam token balance/tier that trong `UserProfile`.
 2. Chua them webhook secret/signature cho `bank-webhook`.
+
+## [2026-06-02] - Them plan quota cho 3 goi
+
+### Da hoan thanh:
+1. Doi logic thanh toan tu token le sang quota generate theo goi:
+   - `Free`: 3 luot/thang.
+   - `Basic`: 30 luot/thang.
+   - `Premium`: 100 luot/thang.
+2. Them quota fields vao `UserProfile`: `PlanName`, `MonthlyGenerationLimit`, `UsedGenerationCount`, `CurrentPeriodStart`, `CurrentPeriodEnd`.
+3. Them `UserPlanQuotaService` de resolve goi, cap goi sau thanh toan, reserve/refund luot generate va reset ky quota khi het han.
+4. Cap nhat `bank-webhook`: khi payment order duoc xac nhan `Paid`, backend cap goi cho user va reset quota ky moi.
+5. Cap nhat `ProfileController`: profile tra quota that thay vi token/tier mock.
+6. Cap nhat `LessonsController`: endpoint approve yeu cau customer login, reserve 1 luot generate truoc khi approve, refund neu approve/generate fail.
+7. Cap nhat `app.js`: dung flow moi `drafts -> approve`, gui bearer token va hien thi loi het quota.
+8. Tao va apply migration `AddUserGenerationQuota` len Supabase.
+9. Test runtime:
+   - Profile ban dau cua customer test tra `Free`, `3/3` luot.
+   - Tao invoice goi `Plus` duoc normalize thanh `Basic`, `30` luot.
+   - Bank webhook paid cap goi `Basic`, reset quota ve `30/30`.
+   - Approve lesson id khong ton tai tra `404` va quota duoc refund/giu nguyen.
+10. Build solution thanh cong (`0 warning`, `0 error`).
+
+### Con lai:
+1. Chua test approve lesson thanh cong het luong AI vi se goi LLM/image/video that.
+2. Chua them webhook secret/signature cho `bank-webhook`.

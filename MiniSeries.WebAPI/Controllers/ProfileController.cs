@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniSeries.Infrastructure.ExternalServices;
+using MiniSeries.Infrastructure.Services;
 using MiniSeries.WebAPI.Security;
 
 namespace MiniSeries.WebAPI.Controllers;
@@ -8,7 +9,9 @@ namespace MiniSeries.WebAPI.Controllers;
 [ApiController]
 [Authorize(Policy = "AuthenticatedUser")]
 [Route("api/profile")]
-public sealed class ProfileController(SupabaseRestService supabaseDb) : ControllerBase
+public sealed class ProfileController(
+    SupabaseRestService supabaseDb,
+    UserPlanQuotaService quotaService) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
@@ -31,6 +34,8 @@ public sealed class ProfileController(SupabaseRestService supabaseDb) : Controll
                 return NotFound(new { message = "Khong tim thay ho so nguoi dung." });
             }
 
+            var quota = await quotaService.GetSnapshotAsync(id);
+
             return Ok(new
             {
                 id = profile.Id,
@@ -38,8 +43,14 @@ public sealed class ProfileController(SupabaseRestService supabaseDb) : Controll
                 fullName = profile.FullName,
                 role = AuthUser.NormalizeRole(profile.Role),
                 avatarUrl = $"https://api.dicebear.com/7.x/bottts/svg?seed={Uri.EscapeDataString(profile.FullName)}",
-                tokens = 100,
-                tier = "Free"
+                planName = quota.PlanName,
+                tier = quota.PlanName,
+                monthlyGenerationLimit = quota.MonthlyGenerationLimit,
+                usedGenerationCount = quota.UsedGenerationCount,
+                remainingGenerationCount = quota.RemainingGenerationCount,
+                currentPeriodStart = quota.CurrentPeriodStart,
+                currentPeriodEnd = quota.CurrentPeriodEnd,
+                tokens = quota.RemainingGenerationCount
             });
         }
         catch (Exception ex)

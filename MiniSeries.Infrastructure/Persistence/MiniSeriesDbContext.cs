@@ -123,6 +123,19 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.HasIndex(x => x.UserId);
         });
 
+        modelBuilder.Entity<UserProfile>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Email).HasMaxLength(320);
+            entity.Property(x => x.FullName).HasMaxLength(200);
+            entity.Property(x => x.Role).HasMaxLength(50);
+            entity.Property(x => x.PlanName).HasMaxLength(50).HasDefaultValue("Free");
+            entity.Property(x => x.MonthlyGenerationLimit).HasDefaultValue(3);
+            entity.Property(x => x.UsedGenerationCount).HasDefaultValue(0);
+            entity.Property(x => x.CurrentPeriodStart).HasDefaultValueSql("NOW()");
+            entity.Property(x => x.CurrentPeriodEnd).HasDefaultValueSql("NOW() + INTERVAL '1 month'");
+        });
+
         modelBuilder.Entity<SupportRequest>(entity =>
         {
             entity.HasKey(x => x.Id);

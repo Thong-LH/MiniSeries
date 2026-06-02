@@ -5,6 +5,7 @@ using MiniSeries.Infrastructure.ExternalServices;
 using MiniSeries.Infrastructure.Options;
 using MiniSeries.Infrastructure.Persistence;
 using MiniSeries.Infrastructure.Repositories;
+using MiniSeries.Infrastructure.Services;
 
 namespace MiniSeries.WebAPI.Extensions;
 
@@ -40,6 +41,7 @@ public static class ServiceCollectionExtensions
             services.AddDbContext<MiniSeriesDbContext>(options =>
                 options.UseNpgsql(databaseConnectionString));
             services.AddScoped<ILessonRepository, LessonRepository>();
+            services.AddScoped<UserPlanQuotaService>();
         }
 
         var cloudinary = configuration.GetSection(CloudinaryOptions.SectionName).Get<CloudinaryOptions>();
