@@ -177,3 +177,70 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 1. Them load `appsettings.local.json` trong `Program.cs`.
 2. Don gian hoa cau hinh: Git chi giu `appsettings.json` placeholder, secret that nam trong `appsettings.local.json`.
 3. File `appsettings.local.json` match rule `*.local.json` nen khong bi commit len Git.
+
+## [2026-06-01] - Step 1 auth va phan quyen JWT
+
+### Da hoan thanh:
+1. Them JWT Bearer authentication cho `MiniSeries.WebAPI`, verify Supabase access token bang JWKS endpoint thay vi dung legacy `JwtSecret`.
+2. Lay role that tu `UserProfiles` sau khi token hop le, roi gan policy `CustomerOnly`, `StaffOnly`, `AdminOnly`, `StaffOrAdmin`.
+3. Chan client tu set role khi dang ky; user moi mac dinh la `Customer`.
+4. Bao ve cac endpoint profile, payment customer, admin dashboard, support, feedback va report bang policy phu hop.
+5. Bo mock login `admin@test.com` / `staff@test.com` o frontend va them bearer token header cho cac request dashboard/payment/profile.
+6. Kiem tra JWKS Supabase tra ve key `ES256/P-256` va build solution thanh cong (`0 warning`, `0 error`).
+
+## [2026-06-01] - Refactor WebAPI sang controller
+
+### Da hoan thanh:
+1. Rut gon `Program.cs` ve bootstrap: load config, dang ky service, middleware va `MapControllers()`.
+2. Tach auth setup sang `Extensions/AuthenticationExtensions.cs` va service registration sang `Extensions/ServiceCollectionExtensions.cs`.
+3. Chuyen cac minimal API auth/payment/admin/support/feedback/report sang controller binh thuong.
+4. Tach request model sang `Contracts/ApiRequests.cs`.
+5. Tach helper bao mat sang `Security/AuthUser.cs` va `Security/SupabaseJwksKeyResolver.cs`.
+6. Build solution thanh cong sau refactor (`0 warning`, `0 error`).
+
+## [2026-06-02] - Test runtime auth/controller
+
+### Da hoan thanh:
+1. Chay `MiniSeries.WebAPI` local tai `http://localhost:5137`.
+2. Kiem tra static home tra `200`.
+3. Kiem tra `GET /api/feedback/public-list` doc du lieu Supabase thanh cong (`200`).
+4. Kiem tra endpoint can token nhu `/api/admin/customers`, `/api/profile/{id}` va `/api/payment/create-invoice` tra `401` khi khong co bearer token.
+5. Kiem tra `POST /api/auth/login-profile` voi credential sai tra `401`.
+6. Kiem tra validate dang ky rong tra `400`.
+
+### Chua test duoc:
+1. Chua test duoc luong customer/staff/admin voi token that vi chua co email/password test hop le.
+
+## [2026-06-02] - PaymentOrder persistent checkout
+
+### Da hoan thanh:
+1. Mo rong `PaymentOrder` them `UserEmail`, `PlanName`, `Status`.
+2. Cap nhat EF mapping va tao migration `ExtendPaymentOrderForPersistentCheckout`.
+3. Chuyen `PaymentsController` tu `PendingPayments` in-memory sang dung `MiniSeriesDbContext.PaymentOrders`.
+4. `create-invoice` tao order trong DB, xoa order pending cu cua user va sinh payment code unique.
+5. `bank-webhook` tim order pending trong DB, update `Paid`/`PaidAt` va insert `PaymentHistory`.
+6. `check-status` doc trang thai tu `PaymentOrders` truoc, chi fallback sang `PaymentHistory` khi khong tim thay order.
+7. Xoa file mock cu `MiniSeries.WebAPI/wwwroot/PaymentController.cs`.
+8. Apply patch DB cho `PaymentOrders` tren Supabase va dong bo `__EFMigrationsHistory`; `dotnet ef database update` bao DB da up to date.
+9. Build solution thanh cong (`0 warning`, `0 error`) va test runtime co ban: payment protected tra `401`, bank webhook khong match tra `400`.
+
+### Con lai:
+1. Chua test duoc luong tao invoice thanh cong vi can access token that tu user login.
+2. Chua lam token balance/tier that trong `UserProfile`.
+3. Chua them webhook secret/signature cho `bank-webhook`.
+
+## [2026-06-02] - Test full payment flow bang JWT that
+
+### Da hoan thanh:
+1. Dang ky va xac thuc OTP cho customer test `luonghoangthong@gmail.com`.
+2. Login thanh cong bang Supabase Auth va nhan access token hop le.
+3. Test `POST /api/payment/create-invoice` voi bearer token: tao `PaymentOrder` trong DB thanh cong, trang thai ban dau `Pending`.
+4. Sua loi `GET /api/payment/check-status` yeu cau query `userId` du thua; endpoint hien lay user dang dang nhap tu JWT.
+5. Test `check-status` truoc webhook tra `isPaid=false`, `status=Pending`.
+6. Test `POST /api/payment/bank-webhook` voi noi dung co payment code: order duoc update sang `Paid` va ghi `PaymentHistory`.
+7. Test `check-status` sau webhook tra `isPaid=true`, `status=Paid`.
+8. Build solution thanh cong sau fix (`0 warning`, `0 error`).
+
+### Con lai:
+1. Chua lam token balance/tier that trong `UserProfile`.
+2. Chua them webhook secret/signature cho `bank-webhook`.

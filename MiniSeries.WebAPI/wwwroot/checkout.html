@@ -89,6 +89,10 @@
 
     <script>
         const BACKEND_API = "http://localhost:5137/api";
+        function authHeaders(headers = {}) {
+            const token = localStorage.getItem("token");
+            return token ? { ...headers, Authorization: `Bearer ${token}` } : headers;
+        }
         let webhookCheckInterval = null;
         let latestOldRequestId = null;
 
@@ -127,7 +131,7 @@
 
         // Gọi trực tiếp qua API Proxy nội bộ của Backend .NET
         async function fetchWebhookRequests() {
-            const response = await fetch(`${BACKEND_API}/payment/webhook-gateway`);
+            const response = await fetch(`${BACKEND_API}/payment/webhook-gateway`, { headers: authHeaders() });
             if (!response.ok) {
                 throw new Error("Không thể lấy dữ liệu từ gateway Backend");
             }
@@ -204,7 +208,7 @@
 
                             // Gọi ngầm về Backend kiểm tra & cập nhật Database
                             try {
-                                await fetch(`${BACKEND_API}/payment/check-status?userId=${localStorage.getItem("userId")}&code=${currentPaymentCode}`);
+                                await fetch(`${BACKEND_API}/payment/check-status?userId=${localStorage.getItem("userId")}&code=${currentPaymentCode}`, { headers: authHeaders() });
                             } catch(e){}
 
                             showPaymentSuccessPanel("Hệ thống xác nhận đã nhận đủ tiền từ webhook.site! Giao dịch hoàn tất thành công.");
@@ -238,7 +242,7 @@
 
             async function loadUserProfile() {
                 try {
-                    const res = await fetch(`${BACKEND_API}/profile/${encodeURIComponent(userId)}`);
+                    const res = await fetch(`${BACKEND_API}/profile/${encodeURIComponent(userId)}`, { headers: authHeaders() });
                     if (res.ok) {
                         const data = await res.json();
                         document.getElementById("user-nickname").innerText = data.fullName + ` (${data.email})`;

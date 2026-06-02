@@ -222,7 +222,7 @@
             // Nạp dữ liệu thật từ Backend từ ID đăng nhập của bạn
             if (userId) {
                 try {
-                    const response = await fetch(`${BACKEND_API}/profile/${userId}`);
+                    const response = await fetch(`${BACKEND_API}/profile/${userId}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` } });
                     if (response.ok) {
                         const apiData = await response.json();
                         defaultUser.fullName = apiData.fullName || defaultUser.fullName;

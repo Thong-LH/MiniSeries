@@ -158,10 +158,11 @@
 
     <script>
         async function goToPayment(planName, amount, tokens) {
+            const token = (localStorage.getItem("token") || "").trim();
             const userId = (localStorage.getItem("userId") || "").trim();
             const userEmail = (localStorage.getItem("user_email") || "").trim().toLowerCase();
 
-            if (!userId && !userEmail) {
+            if (!token || (!userId && !userEmail)) {
                 alert("Vui lòng đăng nhập trước khi mua gói.");
                 window.location.href = "index.html";
                 return;
@@ -170,7 +171,7 @@
             try {
                 const response = await fetch("http://localhost:5137/api/payment/create-invoice", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                     body: JSON.stringify({
                         userId: userId || null,
                         userEmail: userEmail || null,

@@ -114,8 +114,13 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
         {
             entity.HasKey(x => x.Id);
             entity.Property(x => x.UserId).HasMaxLength(100);
+            entity.Property(x => x.UserEmail).HasMaxLength(320);
+            entity.Property(x => x.PlanName).HasMaxLength(100);
             entity.Property(x => x.PaymentCode).HasMaxLength(50);
             entity.Property(x => x.MoneyAmount).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.Status).HasMaxLength(50);
+            entity.HasIndex(x => x.PaymentCode).IsUnique();
+            entity.HasIndex(x => x.UserId);
         });
 
         modelBuilder.Entity<SupportRequest>(entity =>

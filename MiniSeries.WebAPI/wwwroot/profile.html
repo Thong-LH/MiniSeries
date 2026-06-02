@@ -59,7 +59,7 @@
 
         async function loadProfile() {
             try {
-                const res = await fetch(`${API_BASE}/profile/${userId}`);
+                const res = await fetch(`${API_BASE}/profile/${userId}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` } });
                 if (!res.ok) throw new Error("Không thể tải hồ sơ.");
 
                 const user = await res.json();
@@ -91,7 +91,7 @@
             try {
                 const res = await fetch(`${API_BASE}/profile/${userId}`, {
                     method: "PUT",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token") || ""}` },
                     body: JSON.stringify({ fullName, phoneNumber, avatarUrl: "" })
                 });
 
