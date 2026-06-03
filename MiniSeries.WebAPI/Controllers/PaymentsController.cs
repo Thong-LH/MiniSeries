@@ -85,6 +85,8 @@ public sealed class PaymentsController(
             userId = order.UserId,
             userEmail = order.UserEmail,
             planName = order.PlanName,
+            mangaMonthlyLimit = plan.MangaMonthlyLimit,
+            videoMonthlyLimit = plan.VideoMonthlyLimit,
             monthlyGenerationLimit = order.TokensAmount,
             status = order.Status
         });
@@ -157,6 +159,10 @@ public sealed class PaymentsController(
                 paymentCode = matched.PaymentCode,
                 status = matched.Status,
                 planName = quota.PlanName,
+                mangaMonthlyLimit = quota.MangaMonthlyLimit,
+                remainingMangaCount = quota.RemainingMangaCount,
+                videoMonthlyLimit = quota.VideoMonthlyLimit,
+                remainingVideoCount = quota.RemainingVideoCount,
                 monthlyGenerationLimit = quota.MonthlyGenerationLimit,
                 remainingGenerationCount = quota.RemainingGenerationCount
             });
@@ -189,12 +195,15 @@ public sealed class PaymentsController(
         {
             if (order.IsCompleted)
             {
+                var plan = UserPlanQuotaService.ResolvePlan(order.PlanName);
                 return Ok(new
                 {
                     isPaid = true,
                     orderId = order.Id,
                     status = order.Status,
                     planName = order.PlanName,
+                    mangaMonthlyLimit = plan.MangaMonthlyLimit,
+                    videoMonthlyLimit = plan.VideoMonthlyLimit,
                     monthlyGenerationLimit = order.TokensAmount,
                     paidAt = order.PaidAt
                 });

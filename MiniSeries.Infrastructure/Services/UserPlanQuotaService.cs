@@ -1,14 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using MiniSeries.Domain.Entities;
+using MiniSeries.Domain.Enums;
 using MiniSeries.Infrastructure.Persistence;
 
 namespace MiniSeries.Infrastructure.Services;
 
 public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
 {
-    private static readonly PlanQuota FreePlan = new("Free", 3);
-    private static readonly PlanQuota BasicPlan = new("Basic", 30);
-    private static readonly PlanQuota PremiumPlan = new("Premium", 100);
+    private static readonly PlanQuota FreePlan = new("Free", 3, 1);
+    private static readonly PlanQuota BasicPlan = new("Basic", 30, 10);
+    private static readonly PlanQuota PremiumPlan = new("Premium", 100, 50);
 
     public static PlanQuota ResolvePlan(string? planName)
     {
@@ -40,8 +41,10 @@ public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
         var now = DateTime.UtcNow;
 
         profile.PlanName = plan.Name;
-        profile.MonthlyGenerationLimit = plan.MonthlyGenerationLimit;
-        profile.UsedGenerationCount = 0;
+        profile.MangaMonthlyLimit = plan.MangaMonthlyLimit;
+        profile.VideoMonthlyLimit = plan.VideoMonthlyLimit;
+        profile.UsedMangaCount = 0;
+        profile.UsedVideoCount = 0;
         profile.CurrentPeriodStart = now;
         profile.CurrentPeriodEnd = now.AddMonths(1);
 
@@ -49,28 +52,46 @@ public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
         return UserPlanQuotaSnapshot.FromProfile(profile);
     }
 
-    public async Task<QuotaReservationResult> TryReserveGenerationAsync(Guid userId)
+    public async Task<QuotaReservationResult> TryReserveGenerationAsync(Guid userId, OutputMode outputMode)
     {
         var profile = await GetProfileAsync(userId);
         EnsureCurrentPeriod(profile, DateTime.UtcNow);
 
-        if (profile.UsedGenerationCount >= profile.MonthlyGenerationLimit)
+        if (outputMode == OutputMode.Video)
         {
-            return QuotaReservationResult.Denied(UserPlanQuotaSnapshot.FromProfile(profile));
+            if (profile.UsedVideoCount >= profile.VideoMonthlyLimit)
+            {
+                return QuotaReservationResult.Denied(UserPlanQuotaSnapshot.FromProfile(profile));
+            }
+
+            profile.UsedVideoCount++;
+        }
+        else
+        {
+            if (profile.UsedMangaCount >= profile.MangaMonthlyLimit)
+            {
+                return QuotaReservationResult.Denied(UserPlanQuotaSnapshot.FromProfile(profile));
+            }
+
+            profile.UsedMangaCount++;
         }
 
-        profile.UsedGenerationCount++;
         await dbContext.SaveChangesAsync();
 
         return QuotaReservationResult.Allowed(UserPlanQuotaSnapshot.FromProfile(profile));
     }
 
-    public async Task<UserPlanQuotaSnapshot> RefundGenerationAsync(Guid userId)
+    public async Task<UserPlanQuotaSnapshot> RefundGenerationAsync(Guid userId, OutputMode outputMode)
     {
         var profile = await GetProfileAsync(userId);
-        if (profile.UsedGenerationCount > 0)
+        if (outputMode == OutputMode.Video && profile.UsedVideoCount > 0)
         {
-            profile.UsedGenerationCount--;
+            profile.UsedVideoCount--;
+            await dbContext.SaveChangesAsync();
+        }
+        else if (outputMode != OutputMode.Video && profile.UsedMangaCount > 0)
+        {
+            profile.UsedMangaCount--;
             await dbContext.SaveChangesAsync();
         }
 
@@ -92,35 +113,52 @@ public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
 
         var plan = ResolvePlan(profile.PlanName);
         profile.PlanName = plan.Name;
-        profile.MonthlyGenerationLimit = plan.MonthlyGenerationLimit;
-        profile.UsedGenerationCount = 0;
+        profile.MangaMonthlyLimit = plan.MangaMonthlyLimit;
+        profile.VideoMonthlyLimit = plan.VideoMonthlyLimit;
+        profile.UsedMangaCount = 0;
+        profile.UsedVideoCount = 0;
         profile.CurrentPeriodStart = now;
         profile.CurrentPeriodEnd = now.AddMonths(1);
         return true;
     }
 }
 
-public sealed record PlanQuota(string Name, int MonthlyGenerationLimit);
+public sealed record PlanQuota(string Name, int MangaMonthlyLimit, int VideoMonthlyLimit)
+{
+    public int TotalMonthlyLimit => MangaMonthlyLimit + VideoMonthlyLimit;
+    public int MonthlyGenerationLimit => TotalMonthlyLimit;
+}
 
 public sealed record UserPlanQuotaSnapshot(
     string PlanName,
-    int MonthlyGenerationLimit,
-    int UsedGenerationCount,
-    int RemainingGenerationCount,
+    int MangaMonthlyLimit,
+    int UsedMangaCount,
+    int RemainingMangaCount,
+    int VideoMonthlyLimit,
+    int UsedVideoCount,
+    int RemainingVideoCount,
     DateTime CurrentPeriodStart,
     DateTime CurrentPeriodEnd)
 {
     public static UserPlanQuotaSnapshot FromProfile(UserProfile profile)
     {
-        var remaining = Math.Max(0, profile.MonthlyGenerationLimit - profile.UsedGenerationCount);
+        var remainingManga = Math.Max(0, profile.MangaMonthlyLimit - profile.UsedMangaCount);
+        var remainingVideo = Math.Max(0, profile.VideoMonthlyLimit - profile.UsedVideoCount);
         return new UserPlanQuotaSnapshot(
             profile.PlanName,
-            profile.MonthlyGenerationLimit,
-            profile.UsedGenerationCount,
-            remaining,
+            profile.MangaMonthlyLimit,
+            profile.UsedMangaCount,
+            remainingManga,
+            profile.VideoMonthlyLimit,
+            profile.UsedVideoCount,
+            remainingVideo,
             profile.CurrentPeriodStart,
             profile.CurrentPeriodEnd);
     }
+
+    public int MonthlyGenerationLimit => MangaMonthlyLimit + VideoMonthlyLimit;
+    public int UsedGenerationCount => UsedMangaCount + UsedVideoCount;
+    public int RemainingGenerationCount => RemainingMangaCount + RemainingVideoCount;
 }
 
 public sealed record QuotaReservationResult(

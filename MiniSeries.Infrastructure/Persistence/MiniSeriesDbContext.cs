@@ -132,8 +132,10 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.FullName).HasMaxLength(200);
             entity.Property(x => x.Role).HasMaxLength(50);
             entity.Property(x => x.PlanName).HasMaxLength(50).HasDefaultValue("Free");
-            entity.Property(x => x.MonthlyGenerationLimit).HasDefaultValue(3);
-            entity.Property(x => x.UsedGenerationCount).HasDefaultValue(0);
+            entity.Property(x => x.MangaMonthlyLimit).HasDefaultValue(3);
+            entity.Property(x => x.UsedMangaCount).HasDefaultValue(0);
+            entity.Property(x => x.VideoMonthlyLimit).HasDefaultValue(1);
+            entity.Property(x => x.UsedVideoCount).HasDefaultValue(0);
             entity.Property(x => x.CurrentPeriodStart).HasDefaultValueSql("NOW()");
             entity.Property(x => x.CurrentPeriodEnd).HasDefaultValueSql("NOW() + INTERVAL '1 month'");
         });

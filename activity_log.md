@@ -325,3 +325,70 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
    - Check invoice paid.
 4. Khong hardcode password vao script; password lay tu tham so `-Password` hoac env `MINISERIES_TEST_PASSWORD`.
 5. Da chay script thanh cong voi account test hien tai; invoice smoke test tao order `42` va duoc mark `Paid`.
+
+## [2026-06-03] - Trien khai video provider bang Pexels
+
+### Da hoan thanh:
+1. Them `PexelsOptions` cho cau hinh `Pexels:ApiKey` va `Pexels:BaseUrl`.
+2. Them `PexelsVideoService` implement `IVideoService`.
+3. Video flow hien tai:
+   - Approve lesson co `OutputMode.Video`.
+   - Tao chapter/quiz bang LLM nhu cu.
+   - Tao anchor image bang Pollinations.
+   - Moi chapter goi Pexels video search theo prompt.
+   - Lay file `mp4` landscape/medium phu hop.
+   - Upload video URL len Cloudinary bang `CloudinaryStorageService`.
+   - Luu `Chapter.VideoUrl`.
+4. Dang ky DI:
+   - Image/Manga tiep tuc dung `PollinationsService`.
+   - Video dung `PexelsVideoService` neu co API key.
+   - Neu khong co Pexels key thi fallback ve `PollinationsService`.
+5. Them fallback query video `education learning` va `classroom learning` neu prompt chapter qua cu the khong co ket qua.
+6. Them log trong approve job cho buoc start/upload manga/video tung chapter.
+7. Test truc tiep Pexels API bang key local: tra ve video mp4 usable.
+8. Build solution thanh cong (`0 warning`, `0 error`).
+9. Khi test full flow, phat hien Cloudinary remote-fetch anh Pollinations co the timeout.
+10. Cap nhat `CloudinaryStorageService`:
+   - Neu upload anh tu remote URL fail do timeout/loading, backend tu download anh ve stream roi upload len Cloudinary.
+   - Error message Cloudinary khong con dua raw source URL vao exception.
+11. Test full video flow thanh cong voi lesson `be87f85e-80f8-468e-967b-667968a74739`:
+   - Login customer thanh cong.
+   - Tao draft video thanh cong.
+   - Approve thanh cong.
+   - Tao anchor image thanh cong.
+   - Tao 4 chapter.
+   - 4/4 chapter co `VideoUrl`.
+   - Job media generation completed.
+   - Quota customer Basic con 29 luot sau test.
+
+### Ghi chu:
+1. Lesson test loi truoc do `1fb2fd8d-f2f5-4935-bf15-7626db0a1700` fail o buoc upload anchor image do Cloudinary timeout khi doc remote URL.
+
+## [2026-06-04] - Tach quota manga va video theo goi
+
+### Da hoan thanh:
+1. Doi quota tu mot so luot chung sang hai quota rieng:
+   - `Free`: 3 manga / 1 video moi thang.
+   - `Basic`: 30 manga / 10 video moi thang.
+   - `Premium`: 100 manga / 50 video moi thang.
+2. Cap nhat `UserPlanQuotaService`:
+   - Resolve plan tra ve manga/video limit rieng.
+   - Reserve/refund quota theo `OutputMode` cua lesson.
+   - Snapshot tra them `mangaMonthlyLimit`, `usedMangaCount`, `remainingMangaCount`, `videoMonthlyLimit`, `usedVideoCount`, `remainingVideoCount`.
+   - Van giu cac field tong `monthlyGenerationLimit`, `usedGenerationCount`, `remainingGenerationCount` de FE hien tai chua bi gay.
+3. Cap nhat `LessonsController`:
+   - Lay lesson va check owner truoc.
+   - Reserve quota dung loai manga/video truoc khi approve.
+   - Refund dung loai quota neu approve fail.
+4. Cap nhat `ProfileController` va `PaymentsController` de response co quota manga/video rieng.
+5. Cap nhat `SupabaseRestService` de user moi tao profile mac dinh `Free` voi 3 manga / 1 video.
+6. Tao va apply migration `SplitMangaVideoQuota` len Supabase:
+   - Doi `MonthlyGenerationLimit` thanh `MangaMonthlyLimit`.
+   - Doi `UsedGenerationCount` thanh `UsedMangaCount`.
+   - Them `VideoMonthlyLimit` va `UsedVideoCount`.
+   - Chuan hoa limit cua user hien co theo `PlanName`.
+7. Build solution thanh cong (`0 warning`, `0 error`).
+8. Test runtime thanh cong:
+   - Login customer thanh cong.
+   - Profile Basic tra `manga 1/30`, `video 0/10`, tong con 39.
+   - Tao invoice Basic tra `mangaMonthlyLimit = 30`, `videoMonthlyLimit = 10`, `monthlyGenerationLimit = 40`.
