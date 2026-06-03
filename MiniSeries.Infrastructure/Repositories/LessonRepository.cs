@@ -108,4 +108,14 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
                 .ThenInclude(x => x.Logs.OrderBy(log => log.CreatedAt))
             .FirstOrDefaultAsync(x => x.Id == lessonId);
     }
+
+    public async Task<IReadOnlyList<Lesson>> ListByUserIdAsync(Guid userId)
+    {
+        return await dbContext.Lessons
+            .AsNoTracking()
+            .Include(x => x.Chapters)
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+    }
 }

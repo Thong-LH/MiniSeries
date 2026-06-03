@@ -286,3 +286,42 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 
 ### Ghi chu:
 1. `dashboard.html` van con mot so text Token trong khu admin mock cu; file nay dang co byte encoding loi nen chua sua bang patch de tranh lam hong file.
+
+## [2026-06-03] - Them ownership cho lesson
+
+### Da hoan thanh:
+1. Them `UserId` va `UserEmail` vao entity `Lesson` va `LessonDto`.
+2. `POST /api/lessons/drafts` lay user hien tai tu JWT va gan owner vao lesson, khong tin `UserId` tu client.
+3. Them query/repository `ListByUserIdAsync` va endpoint `GET /api/lessons/my` de customer xem lich su lesson cua chinh minh.
+4. Bao ve `GET /api/lessons/{lessonId}`, `review`, `approve` bang owner check:
+   - Customer chi thao tac lesson cua chinh minh.
+   - Staff/Admin duoc phep xem qua rule backend hien tai.
+5. Doi thu tu approve: check owner truoc, sau do moi reserve quota generate.
+6. Tao va apply migration `AddLessonOwnership` len Supabase.
+7. Test runtime nhe bang JWT that:
+   - Login customer thanh cong.
+   - `GET /api/lessons/my` tra list hop le.
+   - `GET /api/lessons/{id}` voi id khong ton tai tra `404`.
+
+### Ghi chu:
+1. Khong tao draft moi trong smoke test de tranh goi AI khong can thiet.
+2. Lesson cu truoc migration co `UserId = Guid.Empty`; lesson moi se co owner that.
+
+## [2026-06-03] - Them script smoke test backend
+
+### Da hoan thanh:
+1. Them `scripts/test-backend-smoke.ps1` de tu dong test backend flow nhe.
+2. Script tu start `MiniSeries.WebAPI` neu port `5137` chua chay, va tu tat server neu script la ben start.
+3. Script test cac buoc:
+   - Static `home.html` tra `200`.
+   - Protected endpoint `/api/lessons/my` khong token tra `401`.
+   - Login customer test bang Supabase Auth.
+   - Profile quota tra du lieu hop le.
+   - `/api/lessons/my` tra list hop le.
+   - Missing lesson tra `404`.
+   - Tao payment invoice mock.
+   - Check invoice pending.
+   - Goi bank webhook mock.
+   - Check invoice paid.
+4. Khong hardcode password vao script; password lay tu tham so `-Password` hoac env `MINISERIES_TEST_PASSWORD`.
+5. Da chay script thanh cong voi account test hien tai; invoice smoke test tao order `42` va duoc mark `Paid`.

@@ -5,6 +5,8 @@ namespace MiniSeries.Domain.Entities;
 public class Lesson
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid UserId { get; set; }
+    public string UserEmail { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string RawContent { get; set; } = string.Empty;
     public CreativeMode CreativeMode { get; set; } = CreativeMode.Auto;

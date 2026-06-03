@@ -5,6 +5,8 @@ namespace MiniSeries.Application.Lessons.Dtos;
 
 public sealed record LessonDto(
     Guid Id,
+    Guid UserId,
+    string UserEmail,
     string Title,
     string RawContent,
     CreativeMode CreativeMode,
@@ -25,6 +27,8 @@ public sealed record LessonDto(
     {
         return new LessonDto(
             lesson.Id,
+            lesson.UserId,
+            lesson.UserEmail,
             lesson.Title,
             lesson.RawContent,
             lesson.CreativeMode,
