@@ -22,6 +22,7 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
         modelBuilder.Entity<Lesson>(entity =>
         {
             entity.HasKey(x => x.Id);
+            entity.Property(x => x.UserEmail).HasMaxLength(320);
             entity.Property(x => x.Title).HasMaxLength(300);
             entity.Property(x => x.RawContent).HasColumnType("text");
             entity.Property(x => x.CreativeBrief).HasColumnType("text");
@@ -31,6 +32,7 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.CreativeMode).HasConversion<string>().HasMaxLength(32);
             entity.Property(x => x.OutputMode).HasConversion<string>().HasMaxLength(32);
             entity.Property(x => x.ScriptStatus).HasConversion<string>().HasMaxLength(32);
+            entity.HasIndex(x => x.UserId);
 
             entity.HasMany(x => x.Chapters)
                 .WithOne()

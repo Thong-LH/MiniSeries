@@ -6,6 +6,7 @@ using MiniSeries.Application.Lessons.Commands.CreateLessonDraft;
 using MiniSeries.Application.Lessons.Commands.ReviewLessonScript;
 using MiniSeries.Application.Lessons.Dtos;
 using MiniSeries.Application.Lessons.Queries.GetLessonById;
+using MiniSeries.Application.Lessons.Queries.GetMyLessons;
 using MiniSeries.Infrastructure.Services;
 using MiniSeries.WebAPI.Security;
 
@@ -22,7 +23,31 @@ public sealed class LessonsController(
     [HttpPost("drafts")]
     public async Task<IActionResult> CreateDraft([FromBody] CreateLessonDraftCommand command)
     {
-        var result = await mediator.Send(command);
+        var currentUserId = AuthUser.GetCurrentUserId(User);
+        if (currentUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await mediator.Send(command with
+        {
+            UserId = currentUserId.Value,
+            UserEmail = AuthUser.GetCurrentUserEmail(User)
+        });
+        return Ok(result);
+    }
+
+    [Authorize(Policy = "CustomerOnly")]
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMyLessons()
+    {
+        var currentUserId = AuthUser.GetCurrentUserId(User);
+        if (currentUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await mediator.Send(new GetMyLessonsQuery(currentUserId.Value));
         return Ok(result);
     }
 
@@ -30,6 +55,12 @@ public sealed class LessonsController(
     [HttpPost("{lessonId:guid}/review")]
     public async Task<IActionResult> Review(Guid lessonId, [FromBody] ReviewLessonScriptRequest request)
     {
+        var access = await EnsureCanAccessLessonAsync(lessonId);
+        if (access is not null)
+        {
+            return access;
+        }
+
         var result = await mediator.Send(new ReviewLessonScriptCommand(lessonId, request.Feedback));
         return Ok(result);
     }
@@ -42,6 +73,12 @@ public sealed class LessonsController(
         if (currentUserId is null)
         {
             return Unauthorized();
+        }
+
+        var access = await EnsureCanAccessLessonAsync(lessonId);
+        if (access is not null)
+        {
+            return access;
         }
 
         var reservation = await quotaService.TryReserveGenerationAsync(currentUserId.Value);
@@ -75,6 +112,38 @@ public sealed class LessonsController(
     public async Task<IActionResult> GetById(Guid lessonId)
     {
         var result = await mediator.Send(new GetLessonByIdQuery(lessonId));
-        return result is null ? NotFound() : Ok(result);
+        if (result is null)
+        {
+            return NotFound();
+        }
+
+        if (!CanAccessLesson(result))
+        {
+            return Forbid();
+        }
+
+        return Ok(result);
+    }
+
+    private async Task<IActionResult?> EnsureCanAccessLessonAsync(Guid lessonId)
+    {
+        var lesson = await mediator.Send(new GetLessonByIdQuery(lessonId));
+        if (lesson is null)
+        {
+            return NotFound();
+        }
+
+        return CanAccessLesson(lesson) ? null : Forbid();
+    }
+
+    private bool CanAccessLesson(LessonDto lesson)
+    {
+        if (User.IsInRole("Staff") || User.IsInRole("Admin"))
+        {
+            return true;
+        }
+
+        var currentUserId = AuthUser.GetCurrentUserId(User);
+        return currentUserId is not null && lesson.UserId == currentUserId.Value;
     }
 }

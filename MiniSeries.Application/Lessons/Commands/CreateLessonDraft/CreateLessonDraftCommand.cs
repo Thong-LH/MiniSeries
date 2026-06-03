@@ -9,4 +9,8 @@ public sealed record CreateLessonDraftCommand(
     string Title,
     bool GenerateVideo,
     CreativeMode CreativeMode,
-    string? CreativeBrief) : IRequest<LessonDto>;
+    string? CreativeBrief) : IRequest<LessonDto>
+{
+    public Guid UserId { get; init; }
+    public string? UserEmail { get; init; }
+}

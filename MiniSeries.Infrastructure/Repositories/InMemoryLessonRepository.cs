@@ -19,4 +19,13 @@ public sealed class InMemoryLessonRepository : ILessonRepository
         _lessons.TryGetValue(lessonId, out var lesson);
         return Task.FromResult(lesson);
     }
+
+    public Task<IReadOnlyList<Lesson>> ListByUserIdAsync(Guid userId)
+    {
+        IReadOnlyList<Lesson> lessons = _lessons.Values
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToList();
+        return Task.FromResult(lessons);
+    }
 }
