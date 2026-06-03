@@ -9,10 +9,14 @@ namespace MiniSeries.Infrastructure.ExternalServices;
 public sealed class CloudinaryStorageService : IStorageService
 {
     private readonly Cloudinary _cloudinary;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly CloudinaryOptions _options;
 
-    public CloudinaryStorageService(IOptions<CloudinaryOptions> options)
+    public CloudinaryStorageService(
+        IOptions<CloudinaryOptions> options,
+        IHttpClientFactory httpClientFactory)
     {
+        _httpClientFactory = httpClientFactory;
         _options = options.Value;
         EnsureConfigured();
 
@@ -58,6 +62,13 @@ public sealed class CloudinaryStorageService : IStorageService
         };
 
         var imageResult = await _cloudinary.UploadAsync(imageUpload);
+        if (imageResult.Error is not null && IsRemoteFetchFailure(imageResult.Error.Message))
+        {
+            await using var sourceStream = await DownloadSourceAsync(sourceUrl);
+            imageUpload.File = new FileDescription(fileName, sourceStream);
+            imageResult = await _cloudinary.UploadAsync(imageUpload);
+        }
+
         ThrowIfFailed(imageResult);
         return imageResult.SecureUrl?.ToString()
                ?? throw new InvalidOperationException("Cloudinary did not return an image URL.");
@@ -79,11 +90,33 @@ public sealed class CloudinaryStorageService : IStorageService
         return string.Join("_", value.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
     }
 
+    private static bool IsRemoteFetchFailure(string? message)
+    {
+        return message?.Contains("Timed out", StringComparison.OrdinalIgnoreCase) == true
+               || message?.Contains("Error in loading", StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    private async Task<Stream> DownloadSourceAsync(string sourceUrl)
+    {
+        var httpClient = _httpClientFactory.CreateClient();
+        using var response = await httpClient.GetAsync(sourceUrl);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException(
+                $"Could not download media before Cloudinary upload. HTTP {(int)response.StatusCode}.");
+        }
+
+        var stream = new MemoryStream();
+        await response.Content.CopyToAsync(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
     private static void ThrowIfFailed(RawUploadResult result)
     {
         if (result.Error is not null)
         {
-            throw new InvalidOperationException($"Cloudinary upload failed: {result.Error.Message}");
+            throw new InvalidOperationException("Cloudinary upload failed.");
         }
     }
 }

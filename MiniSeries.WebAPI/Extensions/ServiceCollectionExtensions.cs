@@ -18,8 +18,10 @@ public static class ServiceCollectionExtensions
         services.AddControllers();
         services.AddHttpClient<GroqService>();
         services.AddHttpClient<PollinationsService>();
+        services.AddHttpClient<PexelsVideoService>();
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
         services.Configure<SupabaseOptions>(configuration.GetSection(SupabaseOptions.SectionName));
+        services.Configure<PexelsOptions>(configuration.GetSection(PexelsOptions.SectionName));
         services.AddHttpClient<SupabaseRestService>();
         services.AddHttpClient<SupabaseAuthService>();
 
@@ -28,8 +30,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ILLMService, GroqService>();
         services.AddScoped<IImageGenerationService>(sp => sp.GetRequiredService<PollinationsService>());
         services.AddScoped<IMangaService>(sp => sp.GetRequiredService<PollinationsService>());
-        services.AddScoped<IVideoService>(sp => sp.GetRequiredService<PollinationsService>());
         services.AddScoped<PollinationsService>();
+        services.AddScoped<IVideoService>(sp =>
+        {
+            var pexels = configuration.GetSection(PexelsOptions.SectionName).Get<PexelsOptions>();
+            return pexels is not null && !string.IsNullOrWhiteSpace(pexels.ApiKey)
+                ? sp.GetRequiredService<PexelsVideoService>()
+                : sp.GetRequiredService<PollinationsService>();
+        });
 
         var databaseConnectionString = configuration.GetConnectionString("MiniSeries");
         if (string.IsNullOrWhiteSpace(databaseConnectionString))

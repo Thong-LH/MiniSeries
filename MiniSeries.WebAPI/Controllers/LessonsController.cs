@@ -55,10 +55,10 @@ public sealed class LessonsController(
     [HttpPost("{lessonId:guid}/review")]
     public async Task<IActionResult> Review(Guid lessonId, [FromBody] ReviewLessonScriptRequest request)
     {
-        var access = await EnsureCanAccessLessonAsync(lessonId);
-        if (access is not null)
+        var access = await GetAccessibleLessonAsync(lessonId);
+        if (access.Result is not null)
         {
-            return access;
+            return access.Result;
         }
 
         var result = await mediator.Send(new ReviewLessonScriptCommand(lessonId, request.Feedback));
@@ -75,18 +75,21 @@ public sealed class LessonsController(
             return Unauthorized();
         }
 
-        var access = await EnsureCanAccessLessonAsync(lessonId);
-        if (access is not null)
+        var access = await GetAccessibleLessonAsync(lessonId);
+        if (access.Result is not null)
         {
-            return access;
+            return access.Result;
         }
 
-        var reservation = await quotaService.TryReserveGenerationAsync(currentUserId.Value);
+        var lesson = access.Lesson!;
+        var reservation = await quotaService.TryReserveGenerationAsync(currentUserId.Value, lesson.OutputMode);
         if (!reservation.IsAllowed)
         {
             return StatusCode(StatusCodes.Status402PaymentRequired, new
             {
-                message = "Ban da het luot generate trong ky hien tai. Vui long nang cap goi hoac doi ky moi.",
+                message = lesson.OutputMode == Domain.Enums.OutputMode.Video
+                    ? "Ban da het luot generate video trong ky hien tai. Vui long nang cap goi hoac doi ky moi."
+                    : "Ban da het luot generate manga trong ky hien tai. Vui long nang cap goi hoac doi ky moi.",
                 quota = reservation.Quota
             });
         }
@@ -103,7 +106,7 @@ public sealed class LessonsController(
         }
         catch
         {
-            await quotaService.RefundGenerationAsync(currentUserId.Value);
+            await quotaService.RefundGenerationAsync(currentUserId.Value, lesson.OutputMode);
             throw;
         }
     }
@@ -125,15 +128,15 @@ public sealed class LessonsController(
         return Ok(result);
     }
 
-    private async Task<IActionResult?> EnsureCanAccessLessonAsync(Guid lessonId)
+    private async Task<(IActionResult? Result, LessonDto? Lesson)> GetAccessibleLessonAsync(Guid lessonId)
     {
         var lesson = await mediator.Send(new GetLessonByIdQuery(lessonId));
         if (lesson is null)
         {
-            return NotFound();
+            return (NotFound(), null);
         }
 
-        return CanAccessLesson(lesson) ? null : Forbid();
+        return CanAccessLesson(lesson) ? (null, lesson) : (Forbid(), null);
     }
 
     private bool CanAccessLesson(LessonDto lesson)

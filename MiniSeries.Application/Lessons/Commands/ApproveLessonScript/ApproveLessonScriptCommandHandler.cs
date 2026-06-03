@@ -85,13 +85,17 @@ public sealed class ApproveLessonScriptCommandHandler(
 
                 if (lesson.OutputMode == OutputMode.Video)
                 {
+                    AddLog(job, job.CurrentStep, $"Started generating video for chapter {chapter.Order}.");
                     var videoUrl = await videoService.GenerateVideoClipAsync(lesson.AnchorImageUrl, chapter.FullPrompt);
                     chapter.VideoUrl = await storageService.UploadAsync(videoUrl, $"chapter_vid_{chapter.Id}");
+                    AddLog(job, job.CurrentStep, $"Uploaded video for chapter {chapter.Order}.");
                 }
                 else
                 {
+                    AddLog(job, job.CurrentStep, $"Started generating manga page for chapter {chapter.Order}.");
                     var mangaPageUrl = await mangaService.GenerateMangaPageAsync(lesson.AnchorImageUrl, chapter.FullPrompt);
                     chapter.MangaUrl = await storageService.UploadAsync(mangaPageUrl, $"chapter_{chapter.Order}_{lesson.Id}");
+                    AddLog(job, job.CurrentStep, $"Uploaded manga page for chapter {chapter.Order}.");
                 }
 
                 chapter.Status = ChapterStatus.Generated;
