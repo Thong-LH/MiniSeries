@@ -125,7 +125,6 @@
             if (panel) panel.style.display = "block";
         }
 
-        // Gọi trực tiếp qua API Proxy nội bộ của Backend .NET
         async function fetchWebhookRequests() {
             const response = await fetch(`${BACKEND_API}/payment/webhook-gateway`);
             if (!response.ok) {
@@ -134,7 +133,6 @@
             return await response.json();
         }
 
-        // ĐH ĐÃ FIX TRIỆT ĐỂ: Nhận dạng cấu trúc object .data và thuộc tính .uuid của webhook.site
         async function startWebhookPolling() {
             const pollingLoader = document.getElementById("polling-loader");
             const pollingStatusText = document.getElementById("polling-status-text");
@@ -145,9 +143,10 @@
             }
 
             const currentPaymentCode = (localStorage.getItem("paymentCode") || "").toUpperCase();
+            const currentPlan = localStorage.getItem("selectedPlan") || "Plus";
+            const currentAmount = localStorage.getItem("paymentAmount") || "0";
 
             try {
-                // Lấy request đầu tiên hiện tại để làm MỐC GIỚI HẠN QUÁ KHỨ
                 const initialResult = await fetchWebhookRequests();
                 
                 let initialRequests = [];
@@ -158,7 +157,6 @@
                 }
 
                 if (initialRequests && initialRequests.length > 0) {
-                    // Ưu tiên lấy .uuid (chuỗi hash độc nhất), nếu không có thì lấy .id
                     latestOldRequestId = initialRequests[0].uuid || initialRequests[0].id; 
                     console.log("📌 Đã khóa mốc giao dịch cũ thành công. ID mốc:", latestOldRequestId);
                 } else {
@@ -174,7 +172,6 @@
                 pollingStatusText.innerText = "Đang kiểm tra dữ liệu giao dịch mới từ webhook.site...";
             }
 
-            // Bắt đầu vòng lặp quét sau mỗi 3 giây
             webhookCheckInterval = setInterval(async () => {
                 try {
                     const result = await fetchWebhookRequests();
@@ -191,21 +188,35 @@
                     for (let req of requests) {
                         const currentReqId = req.uuid || req.id;
 
-                        // Gặp đúng ID mốc cũ -> dừng lại ngay, toàn bộ requests phía dưới đều là đồ cũ
                         if (latestOldRequestId && currentReqId === latestOldRequestId) {
                             break; 
                         }
 
                         let fullText = JSON.stringify(req).toUpperCase();
 
-                        // Nếu tìm thấy mã đơn hiện tại hoặc tín hiệu TEST mới bắn
                         if ((currentPaymentCode && fullText.includes(currentPaymentCode)) || fullText.includes("SEPAYTEST")) {
                             console.log("🎉 Tuyệt vời! Phát hiện giao dịch MỚI TINH khớp mã đơn!");
                             
-                            // Gọi ngầm về Backend kiểm tra & cập nhật Database
+                            // Gửi nội dung webhook trực tiếp về Backend để Backend ghi lịch sử
                             try {
-                                await fetch(`${BACKEND_API}/payment/check-status?userId=${localStorage.getItem("userId")}&code=${currentPaymentCode}`);
-                            } catch(e){}
+                                await fetch(`${BACKEND_API}/payment/bank-webhook`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        Content: fullText,
+                                        TransferAmount: Number(currentAmount) || 0
+                                    })
+                                });
+                            } catch (e) {
+                                console.error("Lỗi gửi webhook về Backend:", e);
+                            }
+
+                            // Sau khi báo Backend, gọi check-status để backend trả isPaid (dùng bởi frontend nếu cần)
+                            try {
+                                await fetch(`${BACKEND_API}/payment/check-status?userId=${localStorage.getItem("userId")}&code=${currentPaymentCode}&plan=${encodeURIComponent(currentPlan)}&amount=${currentAmount}`);
+                            } catch(e){
+                                console.error("Lỗi đồng bộ dữ liệu với Backend:", e);
+                            }
 
                             showPaymentSuccessPanel("Hệ thống xác nhận đã nhận đủ tiền từ webhook.site! Giao dịch hoàn tất thành công.");
                             break;

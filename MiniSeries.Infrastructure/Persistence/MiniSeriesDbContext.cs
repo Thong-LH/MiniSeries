@@ -15,6 +15,7 @@ namespace MiniSeries.Infrastructure.Persistence
         public DbSet<SupportRequest> SupportRequests { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<StaffReport> StaffReports { get; set; }
+        public DbSet<PaymentHistory> PaymentHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

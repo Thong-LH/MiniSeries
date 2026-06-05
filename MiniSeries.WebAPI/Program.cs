@@ -521,39 +521,57 @@ app.MapGet("/api/admin/staffs", async (SupabaseRestService supabaseDb) =>
     }
 });
 
-app.MapPost("/api/payment/bank-webhook", async ([FromBody] BankWebhookModel bankData, SupabaseRestService supabaseDb) =>
+app.MapPost("/api/payment/bank-webhook", async ([FromBody] BankWebhookModel bankData, SupabaseRestService supabaseDb, ILogger<Program> logger) =>
 {
-    string content = bankData.Content ?? "";
+    logger.LogInformation("/api/payment/bank-webhook invoked");
+    logger.LogInformation("Incoming webhook content: {Content}", bankData?.Content);
+
+    string content = bankData?.Content ?? "";
     string contentUpper = content.ToUpperInvariant();
-    var amount = bankData.TransferAmount > 0 ? bankData.TransferAmount : bankData.Amount;
+    var amount = bankData?.TransferAmount > 0 ? bankData.TransferAmount : bankData?.Amount ?? 0m;
 
     var matched = pendingPayments.Values
         .FirstOrDefault(o => !o.IsCompleted && contentUpper.Contains(o.PaymentCode, StringComparison.OrdinalIgnoreCase));
 
     if (matched is null)
     {
+        logger.LogWarning("No matching pending payment found for webhook content.");
         return Results.BadRequest(new { message = "Nội dung chuyển khoản không trùng khớp hóa đơn nào." });
     }
 
+    logger.LogInformation("Matched paymentCode={Code} for user={UserId}", matched.PaymentCode, matched.UserId);
+
     try
     {
-        await supabaseDb.InsertPaymentHistoryAsync(
+        var inserted = await supabaseDb.InsertPaymentHistoryAsync(
             matched.UserEmail,
             amount,
             matched.PaymentCode,
             content);
+
+        logger.LogInformation("InsertPaymentHistoryAsync returned: {InsertedId}", inserted?.Id);
 
         if (pendingPayments.TryGetValue(matched.PaymentCode, out var order))
         {
             pendingPayments[matched.PaymentCode] = order with { IsCompleted = true };
         }
 
-        return Results.Ok(new { success = true, message = "Đã lưu lịch sử thanh toán lên Supabase!" });
+        return Results.Ok(new { success = true, message = "Đã lưu lịch sử thanh toán lên Supabase!", inserted = inserted });
     }
     catch (Exception ex)
     {
-        return Results.BadRequest(new { message = ex.Message });
+        logger.LogError(ex, "Failed to insert payment history for code {Code}", matched.PaymentCode);
+        return Results.StatusCode(500, new { message = "Lỗi khi ghi lịch sử thanh toán.", error = ex.Message });
     }
+});
+
+// Debug endpoint: list current pendingPayments (temporary)
+app.MapGet("/api/debug/pending-payments", () =>
+{
+    var list = pendingPayments.Values
+        .Select(p => new { p.UserId, p.UserEmail, p.PaymentCode, p.Amount, p.IsCompleted, p.CreatedAt })
+        .ToList();
+    return Results.Ok(list);
 });
 
 // SỬA LỖI 2: CẬP NHẬT LẠI API CHECK-STATUS ĐỒNG BỘ TRỰC TIẾP QUA BẢNG PAYMENT_HISTORY CỦA SUPABASE
@@ -608,6 +626,33 @@ app.MapGet("/api/admin/payment-stats", async ([FromQuery] string? groupBy, Supab
     {
         var stats = await supabaseDb.GetPaymentStatsAsync(groupBy ?? "month");
         return Results.Ok(stats);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { message = ex.Message });
+    }
+});
+
+// Compatibility endpoints for legacy admin dashboard (dashboard.html)
+app.MapGet("/api/admin/payments", async (SupabaseRestService supabaseDb) =>
+{
+    try
+    {
+        var list = await supabaseDb.ListPaymentHistoryAsync();
+        return Results.Ok(list);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { message = ex.Message });
+    }
+});
+
+app.MapGet("/api/admin/revenue-stats", async (SupabaseRestService supabaseDb) =>
+{
+    try
+    {
+        var stats = await supabaseDb.GetPaymentStatsAsync("month");
+        return Results.Ok(new { labels = stats.Labels, data = stats.Amounts });
     }
     catch (Exception ex)
     {
