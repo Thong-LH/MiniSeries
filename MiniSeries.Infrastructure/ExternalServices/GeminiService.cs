@@ -34,13 +34,23 @@ public class GeminiService : ILLMService
     {
         var prompt = $@"
         Using the approved overall script below, break the lesson into 3 to 4 manga chapters/pages.
+        Also create ONE short interactive quiz question at the end of each chapter.
         Return ONLY valid JSON with this shape:
         {{
             ""chapters"": [
                 {{
                     ""chapterNumber"": 1,
                     ""summary"": ""Brief summary of the chapter."",
-                    ""fullPrompt"": ""Detailed prompt for one final manga page.""
+                    ""fullPrompt"": ""Detailed prompt for one final manga page."",
+                    ""quiz"": {{
+                        ""question"": ""A short question about the chapter content."",
+                        ""optionA"": ""First answer option."",
+                        ""optionB"": ""Second answer option."",
+                        ""optionC"": ""Third answer option."",
+                        ""optionD"": ""Fourth answer option."",
+                        ""correctOption"": ""A"",
+                        ""explanation"": ""Short explanation.""
+                    }}
                 }}
             ]
         }}
@@ -67,7 +77,8 @@ public class GeminiService : ILLMService
                 {
                     Order = chapter["chapterNumber"]?.Value<int>() ?? 0,
                     Summary = chapter["summary"]?.ToString() ?? string.Empty,
-                    FullPrompt = chapter["fullPrompt"]?.ToString() ?? string.Empty
+                    FullPrompt = chapter["fullPrompt"]?.ToString() ?? string.Empty,
+                    Quiz = ParseQuiz(chapter["quiz"])
                 });
             }
         }
@@ -76,6 +87,26 @@ public class GeminiService : ILLMService
         {
             RawJson = rawJson,
             Chapters = chapters
+        };
+    }
+
+    private static ChapterQuizDraftItem ParseQuiz(JToken? quiz)
+    {
+        var correctOption = quiz?["correctOption"]?.ToString().Trim().ToUpperInvariant();
+        if (correctOption is not ("A" or "B" or "C" or "D"))
+        {
+            correctOption = "A";
+        }
+
+        return new ChapterQuizDraftItem
+        {
+            Question = quiz?["question"]?.ToString() ?? string.Empty,
+            OptionA = quiz?["optionA"]?.ToString() ?? string.Empty,
+            OptionB = quiz?["optionB"]?.ToString() ?? string.Empty,
+            OptionC = quiz?["optionC"]?.ToString() ?? string.Empty,
+            OptionD = quiz?["optionD"]?.ToString() ?? string.Empty,
+            CorrectOption = correctOption,
+            Explanation = quiz?["explanation"]?.ToString() ?? string.Empty
         };
     }
 

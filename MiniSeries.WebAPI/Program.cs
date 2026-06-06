@@ -1,70 +1,15 @@
-using MiniSeries.Application.Common.Interfaces;
-using MiniSeries.Application.Lessons.Commands.ApproveLessonScript;
-using MiniSeries.Application.Lessons.Commands.CreateLessonDraft;
-using MiniSeries.Application.Lessons.Commands.GenerateLesson;
-using MiniSeries.Application.Lessons.Commands.ReviewLessonScript;
-using MiniSeries.Domain.Enums;
-using MiniSeries.Infrastructure.ExternalServices;
-using MiniSeries.Infrastructure.Options;
-using MiniSeries.Infrastructure.Persistence;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using System.Net;
-using System.Net.Mail;
-using Microsoft.AspNetCore.Mvc;
-using MiniSeries.Domain.Entities;
-using System.Text.Json.Serialization;
+ using MiniSeries.WebAPI.Extensions;
+using MiniSeries.WebAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CẤU HÌNH SERVICES
-builder.Services.AddHttpClient<GroqService>();
-builder.Services.AddHttpClient<PollinationsService>();
-builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection(CloudinaryOptions.SectionName));
-builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection(SupabaseOptions.SectionName));
-builder.Services.AddHttpClient<SupabaseRestService>();
-builder.Services.AddHttpClient<SupabaseAuthService>();
+builder.Configuration.AddJsonFile(
+    "appsettings.local.json",
+    optional: true,
+    reloadOnChange: true);
 
-builder.Services.AddScoped<ILLMService, GroqService>();
-builder.Services.AddScoped<IImageGenerationService>(sp => sp.GetRequiredService<PollinationsService>());
-builder.Services.AddScoped<IMangaService>(sp => sp.GetRequiredService<PollinationsService>());
-builder.Services.AddScoped<IVideoService>(sp => sp.GetRequiredService<PollinationsService>());
-builder.Services.AddScoped<PollinationsService>();
+builder.Services.AddMiniSeriesServices(builder.Configuration);
 
-var databaseConnectionString = builder.Configuration.GetConnectionString("MiniSeries");
-if (string.IsNullOrWhiteSpace(databaseConnectionString))
-{
-    builder.Services.AddSingleton<ILessonStore, InMemoryLessonStore>();
-}
-else
-{
-    builder.Services.AddDbContext<MiniSeriesDbContext>(options =>
-        options.UseNpgsql(databaseConnectionString));
-    builder.Services.AddScoped<ILessonStore, EfLessonStore>();
-}
-
-var cloudinary = builder.Configuration.GetSection(CloudinaryOptions.SectionName).Get<CloudinaryOptions>();
-if (cloudinary is not null &&
-    !string.IsNullOrWhiteSpace(cloudinary.CloudName) &&
-    !string.IsNullOrWhiteSpace(cloudinary.ApiKey) &&
-    !string.IsNullOrWhiteSpace(cloudinary.ApiSecret))
-{
-    builder.Services.AddScoped<IStorageService, CloudinaryStorageService>();
-}
-else
-{
-    builder.Services.AddScoped<IStorageService>(sp => sp.GetRequiredService<PollinationsService>());
-}
-
-builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(GenerateLessonCommand).Assembly));
-
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.PropertyNameCaseInsensitive = true;
-});
-
-// CẤU HÌNH CORS CHO PHÉP FRONT-END VÀ LIVE SERVER KẾT NỐI AN TOÀN
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -76,9 +21,12 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
 
 // ==================== CÁC ENDPOINT ĐÃ CÓ SẴN ====================
 
@@ -840,141 +788,6 @@ app.MapPost("/api/report/reply", async (HttpContext http, SupabaseRestService su
         return Results.BadRequest(new { message = ex.Message });
     }
 });
+app.MapControllers();
 
 app.Run();
-
-
-// ==================== ĐỊNH NGHĨA DTO / RECORD ĐÃ ĐƯỢC CHUẨN HÓA ĐỒNG BỘ ====================
-
-public sealed record CreateLessonDraftRequest(
-    string RawContent,
-    string Title,
-    bool GenerateVideo,
-    CreativeMode CreativeMode,
-    string? CreativeBrief);
-
-public sealed record ReviewLessonScriptRequest(string Feedback);
-public record UpdateProfileDto(string FullName, string? PhoneNumber, string? AvatarUrl);
-
-public sealed class CreateInvoiceRequest
-{
-    [JsonPropertyName("userId")]
-    public string? UserId { get; set; }
-
-    [JsonPropertyName("userEmail")]
-    public string? UserEmail { get; set; }
-
-    [JsonPropertyName("amount")]
-    public decimal Amount { get; set; }
-
-    [JsonPropertyName("tokens")]
-    public int Tokens { get; set; }
-
-    [JsonPropertyName("planName")]
-    public string? PlanName { get; set; }
-}
-
-public class BankWebhookModel
-{
-    public string Content { get; set; } = string.Empty;
-    public decimal TransferAmount { get; set; }
-    public decimal Amount { get; set; }
-}
-
-public sealed record PendingPaymentOrder(
-    string UserId,
-    string UserEmail,
-    string PaymentCode,
-    decimal MoneyAmount,
-    int TokensAmount,
-    bool IsCompleted,
-    DateTime CreatedAt);
-
-public sealed class RegisterProfileRequest
-{
-    [JsonPropertyName("supabaseUserId")]
-    public string? SupabaseUserId { get; set; }
-
-    [JsonPropertyName("email")]
-    public string? Email { get; set; }
-
-    [JsonPropertyName("fullName")]
-    public string? FullName { get; set; }
-
-    [JsonPropertyName("password")]
-    public string? Password { get; set; }
-
-    [JsonPropertyName("role")]
-    public string? Role { get; set; }
-}
-
-public sealed class VerifyOtpRequest
-{
-    [JsonPropertyName("supabaseUserId")]
-    public string? SupabaseUserId { get; set; }
-
-    [JsonPropertyName("email")]
-    public string? Email { get; set; }
-
-    [JsonPropertyName("fullName")]
-    public string? FullName { get; set; }
-
-    [JsonPropertyName("otpCode")]
-    public string? OtpCode { get; set; }
-}
-
-public sealed class LoginProfileRequest
-{
-    [JsonPropertyName("email")]
-    public string? Email { get; set; }
-
-    [JsonPropertyName("password")]
-    public string? Password { get; set; }
-}
-
-public sealed class PendingRegistration
-{
-    public string Email { get; init; } = "";
-    public string Password { get; init; } = "";
-    public string FullName { get; init; } = "";
-    public string Role { get; init; } = "Customer";
-    public string? SupabaseUserId { get; init; }
-}
-
-public record SupportCreateRequest(string CustomerEmail, string Content);
-public record FeedbackCreateRequest(string Email, int Rating, string Comment);
-public record ReportCreateRequest(string StaffName, string Content);
-
-public sealed class SupportReplyRequest
-{
-    [JsonPropertyName("id")]
-    public string? Id { get; set; }
-
-    [JsonPropertyName("reply")]
-    public string? Reply { get; set; }
-
-    public Guid? ResolveId()
-    {
-        if (Guid.TryParse(Id, out var parsed)) return parsed;
-        return null;
-    }
-
-    public string? ResolveReply() => Reply;
-}
-
-public sealed class ReportReplyRequest
-{
-    [JsonPropertyName("id")]
-    public string? Id { get; set; }
-
-    [JsonPropertyName("adminReply")]
-    public string? AdminReply { get; set; }
-
-    public Guid? ResolveId()
-    {
-        if (Guid.TryParse(Id, out var parsed)) return parsed;
-        return null;
-    }
-
-    public string? ResolveAdminReply() => AdminReply;
-}

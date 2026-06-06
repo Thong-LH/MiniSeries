@@ -1,7 +1,9 @@
+using MediatR;
+using MiniSeries.Application.Common.Exceptions;
 using MiniSeries.Application.Common.Interfaces;
+using MiniSeries.Application.Lessons.Dtos;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Domain.Enums;
-using MediatR;
 
 namespace MiniSeries.Application.Lessons.Commands.ApproveLessonScript;
 
@@ -11,17 +13,22 @@ public sealed class ApproveLessonScriptCommandHandler(
     IMangaService mangaService,
     IVideoService videoService,
     IStorageService storageService,
-    ILessonStore lessonStore)
-    : IRequestHandler<ApproveLessonScriptCommand, Lesson>
+    ILessonRepository lessonRepository)
+    : IRequestHandler<ApproveLessonScriptCommand, LessonDto>
 {
-    public async Task<Lesson> Handle(ApproveLessonScriptCommand request, CancellationToken cancellationToken)
+    public async Task<LessonDto> Handle(ApproveLessonScriptCommand request, CancellationToken cancellationToken)
     {
-        var lesson = await lessonStore.GetByIdAsync(request.LessonId)
-                     ?? throw new InvalidOperationException("Không tìm thấy lesson cần duyệt.");
+        if (request.LessonId == Guid.Empty)
+        {
+            throw new AppValidationException("LessonId is required.");
+        }
+
+        var lesson = await lessonRepository.GetByIdAsync(request.LessonId)
+                     ?? throw new NotFoundException("Lesson was not found.");
 
         if (lesson.ScriptStatus != ScriptStatus.AwaitingReview)
         {
-            throw new InvalidOperationException("Lesson chỉ có thể được duyệt khi đang chờ review.");
+            throw new BusinessRuleException("Lesson can only be approved when it is awaiting review.");
         }
 
         lesson.ScriptStatus = ScriptStatus.Approved;
@@ -31,7 +38,7 @@ public sealed class ApproveLessonScriptCommandHandler(
         var job = StartJob(lesson, GenerationJobType.MediaGeneration, "CreateChapters");
         try
         {
-            AddLog(job, "CreateChapters", "Bắt đầu tạo chapter chi tiết từ kịch bản đã duyệt.");
+            AddLog(job, "CreateChapters", "Started creating chapters from approved script.");
             var chapterDraft = await llmService.CreateChaptersAsync(
                 lesson.RawContent,
                 lesson.OverallScript,
@@ -52,11 +59,21 @@ public sealed class ApproveLessonScriptCommandHandler(
                 Order = ch.Order,
                 Summary = ch.Summary,
                 FullPrompt = ch.FullPrompt,
-                Status = ChapterStatus.ReadyForGeneration
+                Status = ChapterStatus.ReadyForGeneration,
+                Quiz = new ChapterQuiz
+                {
+                    Question = ch.Quiz.Question,
+                    OptionA = ch.Quiz.OptionA,
+                    OptionB = ch.Quiz.OptionB,
+                    OptionC = ch.Quiz.OptionC,
+                    OptionD = ch.Quiz.OptionD,
+                    CorrectOption = ch.Quiz.CorrectOption,
+                    Explanation = ch.Quiz.Explanation
+                }
             }).ToList();
 
             job.CurrentStep = "GenerateAnchorImage";
-            AddLog(job, "GenerateAnchorImage", "Bắt đầu tạo anchor image.");
+            AddLog(job, "GenerateAnchorImage", "Started generating anchor image.");
             var anchorLocalUrl = await imageGenerationService.GenerateAnchorImageAsync(lesson.CharacterProfile);
             lesson.AnchorImageUrl = await storageService.UploadAsync(anchorLocalUrl, $"anchor_{lesson.Id}");
 
@@ -68,27 +85,31 @@ public sealed class ApproveLessonScriptCommandHandler(
 
                 if (lesson.OutputMode == OutputMode.Video)
                 {
+                    AddLog(job, job.CurrentStep, $"Started generating video for chapter {chapter.Order}.");
                     var videoUrl = await videoService.GenerateVideoClipAsync(lesson.AnchorImageUrl, chapter.FullPrompt);
                     chapter.VideoUrl = await storageService.UploadAsync(videoUrl, $"chapter_vid_{chapter.Id}");
+                    AddLog(job, job.CurrentStep, $"Uploaded video for chapter {chapter.Order}.");
                 }
                 else
                 {
+                    AddLog(job, job.CurrentStep, $"Started generating manga page for chapter {chapter.Order}.");
                     var mangaPageUrl = await mangaService.GenerateMangaPageAsync(lesson.AnchorImageUrl, chapter.FullPrompt);
                     chapter.MangaUrl = await storageService.UploadAsync(mangaPageUrl, $"chapter_{chapter.Order}_{lesson.Id}");
+                    AddLog(job, job.CurrentStep, $"Uploaded manga page for chapter {chapter.Order}.");
                 }
 
                 chapter.Status = ChapterStatus.Generated;
-                AddLog(job, job.CurrentStep, $"Đã sinh xong chapter {chapter.Order}.");
+                AddLog(job, job.CurrentStep, $"Generated chapter {chapter.Order}.");
             }
 
-            CompleteJob(job, "Đã sinh xong toàn bộ media cho lesson.");
-            await lessonStore.SaveAsync(lesson);
-            return lesson;
+            CompleteJob(job, "Generated all media for lesson.");
+            await lessonRepository.SaveAsync(lesson);
+            return LessonDto.FromEntity(lesson);
         }
         catch (Exception ex)
         {
             FailJob(job, ex);
-            await lessonStore.SaveAsync(lesson);
+            await lessonRepository.SaveAsync(lesson);
             throw;
         }
     }

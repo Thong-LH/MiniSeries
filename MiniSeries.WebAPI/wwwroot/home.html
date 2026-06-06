@@ -17,23 +17,23 @@
             window.location.href = 'index.html';
         }
     </script>
-    
+
     <div class="background-blobs"></div>
 
     <nav class="bg-slate-900/80 backdrop-blur-md p-4 fixed w-full top-0 z-50 border-b border-slate-800" style="
-        display: flex !important; 
-        justify-content: space-between !important; 
-        align-items: center !important; 
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
         box-sizing: border-box !important;
         padding: 16px 40px !important;
         height: 70px !important;
     ">
-        <h1 class="text-2xl font-bold text-purple-400 tracking-wider cursor-pointer" onclick="window.location.reload()" style="margin: 0;">EduGenAI</h1>
-        
+        <h1 class="text-2xl font-bold text-purple-400 tracking-wider cursor-pointer" onclick="window.location.reload()" style="margin: 0;">MiniSeries</h1>
+
         <div style="
-            display: flex !important; 
+            display: flex !important;
             flex-direction: row !important;
-            align-items: center !important; 
+            align-items: center !important;
             gap: 24px !important;
             margin: 0;
             padding: 0;
@@ -44,25 +44,25 @@
             <button id="btnOpenFeedback" style="background: none; border: 1px solid rgba(168,85,247,0.35); color: #cbd5e1; padding: 6px 12px; border-radius: 9999px; cursor: pointer; font-weight: 600; white-space: nowrap;" onmouseover="this.style.borderColor='#a855f7'; this.style.color='#ffffff'" onmouseout="this.style.borderColor='rgba(168,85,247,0.35)'; this.style.color='#cbd5e1'">
                 Đánh giá
             </button>
-            
+
             <div id="user-header-zone" style="display: flex !important; align-items: center !important;">
                 <div class="animate-pulse bg-slate-800 h-9 w-28 rounded-full"></div>
             </div>
         </div>
     </nav>
-    
+
     <div id="profile-dropdown" style="
-        display: none; 
-        position: fixed; 
-        right: 40px; 
-        top: 75px; 
-        width: 280px; 
-        background-color: #1e293b; 
-        border: 1px solid #334155; 
-        border-radius: 16px; 
-        padding: 20px; 
-        color: #ffffff; 
-        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5); 
+        display: none;
+        position: fixed;
+        right: 40px;
+        top: 75px;
+        width: 280px;
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 16px;
+        padding: 20px;
+        color: #ffffff;
+        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
         z-index: 99999;
         font-family: 'Inter', sans-serif;
     ">
@@ -73,24 +73,24 @@
                 <p id="dropdown-email" style="margin: 2px 0 0 0; font-size: 12px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Đang tải...</p>
             </div>
         </div>
-        
+
         <div style="background-color: rgba(15, 23, 42, 0.6); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
             <div style="text-align: left;">
                 <p style="margin: 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Tài khoản</p>
                 <span id="dropdown-tier" style="font-size: 12px; color: #fbbf24; font-weight: 700;">PREMIUM</span>
             </div>
             <div style="text-align: right;">
-                <p style="margin: 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Số dư Token</p>
-                <span id="dropdown-tokens" style="font-size: 14px; color: #c084fc; font-weight: 700; font-family: monospace;">0 ✨</span>
+                <p style="margin: 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Lượt còn lại</p>
+                <span id="dropdown-tokens" style="font-size: 14px; color: #c084fc; font-weight: 700; font-family: monospace;">0 lượt</span>
             </div>
         </div>
-    
+
         <div style="display: flex; flex-direction: column; gap: 6px;">
             <button onclick="alert('Đang mở danh sách Series truyện tranh yêu thích của bạn...')" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #cbd5e1; font-size: 13px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(51,65,85,0.5)'" onmouseout="this.style.backgroundColor='transparent'">
                 💖 Series yêu thích
             </button>
-            <button onclick="alert('Đang kết nối đến hệ thống nạp token và trang thanh toán...')" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #fbbf24; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(51,65,85,0.5)'" onmouseout="this.style.backgroundColor='transparent'">
-                ✨ Mua thêm Token / Gói
+            <button onclick="window.location.href='pricing.html'" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #fbbf24; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(51,65,85,0.5)'" onmouseout="this.style.backgroundColor='transparent'">
+                Mua thêm lượt / Gói
             </button>
             <hr style="border: 0; border-top: 1px solid #334155; margin: 6px 0;">
             <button onclick="handleLogout()" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #f87171; font-size: 13px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(239,68,68,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
@@ -106,7 +106,7 @@
             <h3 style="margin:0; font-size: 18px; font-weight: 800; color:#c084fc;">Đánh giá dịch vụ</h3>
             <button id="btnCloseFeedback" style="background: transparent; border: 1px solid #475569; color: #cbd5e1; border-radius: 10px; padding: 6px 10px; cursor:pointer;">Đóng</button>
         </div>
-        <p style="margin: 8px 0 14px 0; font-size: 13px; color:#94a3b8;">Chọn số sao và để lại bình luận để giúp EduGenAI cải thiện tốt hơn.</p>
+        <p style="margin: 8px 0 14px 0; font-size: 13px; color:#94a3b8;">Chọn số sao và để lại bình luận để giúp MiniSeries cải thiện tốt hơn.</p>
 
         <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 10px;">
             <span style="font-size: 13px; color:#e2e8f0; font-weight:700;">Số sao:</span>
@@ -200,45 +200,47 @@
     </footer>
 
     <script src="app.js"></script>
-    
+
     <script>
         const BACKEND_API = "http://localhost:5137/api";
-    
+
         async function fetchAndRenderHeaderProfile() {
             const userId = localStorage.getItem("userId");
             const headerZone = document.getElementById("user-header-zone");
-            
+
             if (!headerZone) return;
-    
-            // Dữ liệu tài khoản cục bộ dự phòng 
+
+            // Dữ liệu tài khoản cục bộ dự phòng
             let defaultUser = {
                 fullName: "Nguyễn Khang",
                 email: "annkang040704@gmail.com",
-                tokens: 150,
-                tier: "Premium",
+                tokens: 3,
+                tier: "Free",
                 avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Khang"
             };
-    
+
             // Nạp dữ liệu thật từ Backend từ ID đăng nhập của bạn
             if (userId) {
                 try {
-                    const response = await fetch(`${BACKEND_API}/profile/${userId}`);
+                    const response = await fetch(`${BACKEND_API}/profile/${userId}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` } });
                     if (response.ok) {
                         const apiData = await response.json();
                         defaultUser.fullName = apiData.fullName || defaultUser.fullName;
                         defaultUser.email = apiData.email || defaultUser.email;
-                        if (apiData.tokens !== undefined) defaultUser.tokens = apiData.tokens;
-                        if (apiData.tier) defaultUser.tier = apiData.tier;
+                        if (apiData.remainingGenerationCount !== undefined) defaultUser.tokens = apiData.remainingGenerationCount;
+                        else if (apiData.tokens !== undefined) defaultUser.tokens = apiData.tokens;
+                        if (apiData.planName) defaultUser.tier = apiData.planName;
+                        else if (apiData.tier) defaultUser.tier = apiData.tier;
                     }
                 } catch (error) {
                     console.log("Đang hiển thị dữ liệu tài khoản cục bộ.");
                 }
             }
-    
+
             // Ép cấu trúc viên thuốc Profile luôn nằm ngang hàng và thu nhỏ Icon đại diện
             headerZone.style.display = "flex";
             headerZone.style.alignItems = "center";
-            
+
             headerZone.innerHTML = `
                 <div onclick="toggleProfileDropdown(event)" style="
                     display: flex;
@@ -252,7 +254,7 @@
                     user-select: none;
                     transition: all 0.2s ease;
                 " onmouseover="this.style.borderColor='#a855f7'" onmouseout="this.style.borderColor='#334155'">
-                    
+
                     <span style="
                         background-color: rgba(168, 85, 247, 0.2);
                         color: #c084fc;
@@ -262,8 +264,8 @@
                         border-radius: 9999px;
                         border: 1px solid rgba(168, 85, 247, 0.3);
                         white-space: nowrap;
-                    ">${defaultUser.tokens} ✨</span>
-                    
+                    ">${defaultUser.tokens} lượt</span>
+
                     <span style="
                         color: #e2e8f0;
                         font-size: 13px;
@@ -273,7 +275,7 @@
                         overflow: hidden;
                         text-overflow: ellipsis;
                     ">${defaultUser.fullName}</span>
-                    
+
                     <img src="${defaultUser.avatarUrl}" style="
                         width: 26px;
                         height: 26px;
@@ -285,7 +287,7 @@
                     ">
                 </div>
             `;
-    
+
             // Đồng bộ nạp dữ liệu vào bảng Tab ẩn Profile Dropdown
             const dropdown = document.getElementById("profile-dropdown");
             if (dropdown) {
@@ -293,7 +295,7 @@
                 document.getElementById("dropdown-avatar").src = defaultUser.avatarUrl;
                 document.getElementById("dropdown-fullname").innerText = defaultUser.fullName;
                 document.getElementById("dropdown-email").innerText = defaultUser.email;
-                document.getElementById("dropdown-tokens").innerText = `${defaultUser.tokens} ✨`;
+                document.getElementById("dropdown-tokens").innerText = `${defaultUser.tokens} lượt`;
                 document.getElementById("dropdown-tier").innerText = defaultUser.tier.toUpperCase();
             }
 
@@ -301,7 +303,7 @@
             localStorage.setItem("user_email", defaultUser.email);
             localStorage.setItem("user_name", defaultUser.fullName);
         }
-    
+
         // Đóng/Mở Tab thông tin hồ sơ cá nhân khi click vào viên thuốc
         function toggleProfileDropdown(event) {
             event.stopPropagation();
@@ -314,7 +316,7 @@
                 }
             }
         }
-    
+
         // Click chuột ra ngoài khoảng không của trang thì tự động đóng Tab hồ sơ
         window.addEventListener("click", () => {
             const dropdown = document.getElementById("profile-dropdown");
@@ -322,14 +324,14 @@
                 dropdown.style.display = "none";
             }
         });
-    
+
         // Hàm đăng xuất hệ thống
         function handleLogout() {
             localStorage.clear();
             alert("Đã đăng xuất tài khoản thành công!");
             window.location.href = "index.html";
         }
-    
+
         // Kích hoạt chạy tự động
         window.addEventListener("DOMContentLoaded", fetchAndRenderHeaderProfile);
     </script>

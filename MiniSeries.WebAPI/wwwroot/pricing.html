@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng Giá Token - EduGenAI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;600;700&display=swap" rel="stylesheet">
+    <title>Bảng Giá - MiniSeries</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             background-color: #0f172a;
@@ -18,12 +18,18 @@
         }
         .header {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 42px;
+            max-width: 720px;
         }
         .header h1 {
             font-size: 36px;
             color: #c084fc;
             margin-bottom: 10px;
+        }
+        .header p {
+            color: #94a3b8;
+            line-height: 1.6;
+            margin: 0;
         }
         .pricing-container {
             display: flex;
@@ -36,7 +42,7 @@
         .card {
             background-color: #1e293b;
             border: 1px solid #334155;
-            border-radius: 24px;
+            border-radius: 18px;
             padding: 30px;
             width: 280px;
             display: flex;
@@ -72,12 +78,17 @@
         .price {
             font-size: 32px;
             font-weight: 700;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .price span {
             font-size: 14px;
             color: #94a3b8;
             font-weight: 400;
+        }
+        .quota {
+            color: #c084fc;
+            font-weight: 700;
+            margin-bottom: 20px;
         }
         .features {
             list-style: none;
@@ -108,60 +119,63 @@
     </style>
 </head>
 <body>
-
     <div class="header">
-        <h1>Chọn gói Token phù hợp</h1>
-        <p style="color: #94a3b8;">Mỗi 1.000 Token tương đương 1.000 VNĐ. Mua gói để mở khóa giới hạn AI.</p>
+        <h1>Chọn gói MiniSeries</h1>
+        <p>Mỗi gói cấp số lượt generate trong 1 tháng. Một lượt được tính khi bạn phê duyệt script để hệ thống tạo media và quiz hoàn chỉnh.</p>
     </div>
 
     <div class="pricing-container">
         <div class="card">
             <div>
                 <h3 class="plan-name" style="color: #94a3b8;">Free</h3>
-                <div class="price">0đ <span>/ vĩnh viễn</span></div>
+                <div class="price">0đ <span>/ tháng</span></div>
+                <div class="quota">3 lượt generate / tháng</div>
                 <ul class="features">
-                    <li>🔹 Tặng sẵn 1.000 Token tài khoản</li>
-                    <li>🎬 Trải nghiệm tạo 1 bộ truyện Manga</li>
-                    <li>⚡ Tốc độ xử lý cơ bản</li>
+                    <li>Trải nghiệm flow tạo MiniSeries cơ bản</li>
+                    <li>Tạo script, chapter, quiz và media</li>
+                    <li>Phù hợp để dùng thử</li>
                 </ul>
             </div>
-            <button class="btn-buy btn-free" disabled>Gói Hiện Tại</button>
+            <button class="btn-buy btn-free" disabled>Gói mặc định</button>
         </div>
 
         <div class="card popular">
             <span class="badge">Phổ biến</span>
             <div>
-                <h3 class="plan-name" style="color: #c084fc;">Plus</h3>
-                <div class="price">150.000đ <span>/ nạp theo lượt</span></div>
+                <h3 class="plan-name" style="color: #c084fc;">Basic</h3>
+                <div class="price">150.000đ <span>/ tháng</span></div>
+                <div class="quota">30 lượt generate / tháng</div>
                 <ul class="features">
-                    <li>✨ Nhận ngay 150.000 Token</li>
-                    <li>📖 Đủ tạo khoảng 5 bộ truyện Manga</li>
-                    <li>⚡ Ưu tiên xử lý kịch bản nhanh</li>
+                    <li>Phù hợp cho học sinh, sinh viên hoặc giáo viên dùng thường xuyên</li>
+                    <li>Ưu tiên cho nội dung manga và quiz</li>
+                    <li>Reset quota theo kỳ thanh toán</li>
                 </ul>
             </div>
-            <button class="btn-buy btn-premium" onclick="goToPayment('Plus', 150000, 150000)">Mua gói Plus</button>
+            <button class="btn-buy btn-premium" onclick="goToPayment('Basic', 150000, 30)">Mua gói Basic</button>
         </div>
 
         <div class="card">
             <div>
-                <h3 class="plan-name" style="color: #fbbf24;">Pro Max</h3>
-                <div class="price">300.000đ <span>/ nạp theo lượt</span></div>
+                <h3 class="plan-name" style="color: #fbbf24;">Premium</h3>
+                <div class="price">300.000đ <span>/ tháng</span></div>
+                <div class="quota">100 lượt generate / tháng</div>
                 <ul class="features">
-                    <li>✨ Nhận ngay 300.000 Token</li>
-                    <li>🎬 Tạo được 10 bộ phim ngắn (MiniSeries)</li>
-                    <li>💎 Server kết xuất video cao cấp</li>
+                    <li>Dành cho người dùng tạo nhiều bài học</li>
+                    <li>Phù hợp cho video, manga và nội dung dài hơn</li>
+                    <li>Reset quota theo kỳ thanh toán</li>
                 </ul>
             </div>
-            <button class="btn-buy btn-premium" onclick="goToPayment('Pro Max', 300000, 300000)" style="background-color: #eab308;">Mua gói Pro Max</button>
+            <button class="btn-buy btn-premium" onclick="goToPayment('Premium', 300000, 100)" style="background-color: #eab308;">Mua gói Premium</button>
         </div>
     </div>
 
     <script>
-        async function goToPayment(planName, amount, tokens) {
+        async function goToPayment(planName, amount, generations) {
+            const token = (localStorage.getItem("token") || "").trim();
             const userId = (localStorage.getItem("userId") || "").trim();
             const userEmail = (localStorage.getItem("user_email") || "").trim().toLowerCase();
 
-            if (!userId && !userEmail) {
+            if (!token || (!userId && !userEmail)) {
                 alert("Vui lòng đăng nhập trước khi mua gói.");
                 window.location.href = "index.html";
                 return;
@@ -170,13 +184,13 @@
             try {
                 const response = await fetch("http://localhost:5137/api/payment/create-invoice", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                     body: JSON.stringify({
                         userId: userId || null,
                         userEmail: userEmail || null,
-                        amount: amount,
-                        tokens: tokens,
-                        planName: planName
+                        amount,
+                        tokens: generations,
+                        planName
                     })
                 });
 
@@ -184,27 +198,26 @@
 
                 if (response.ok) {
                     const resolvedUserId = data.userId || userId;
-                    localStorage.setItem("selectedPlan", planName);
+                    const resolvedPlan = data.planName || planName;
+                    const resolvedLimit = data.monthlyGenerationLimit || generations;
+
+                    localStorage.setItem("selectedPlan", resolvedPlan);
                     localStorage.setItem("paymentAmount", amount.toString());
-                    localStorage.setItem("targetTokens", tokens.toString());
+                    localStorage.setItem("targetGenerations", resolvedLimit.toString());
+                    localStorage.setItem("targetTokens", resolvedLimit.toString());
                     localStorage.setItem("userId", resolvedUserId);
                     if (data.userEmail) {
                         localStorage.setItem("user_email", data.userEmail);
                     }
                     localStorage.setItem("paymentCode", data.paymentCode);
 
-                    const currentUrl = window.location.href;
-                    if (currentUrl.includes("pricing.html")) {
-                        window.location.href = currentUrl.replace("pricing.html", "checkout.html");
-                    } else {
-                        window.location.href = "checkout.html";
-                    }
+                    window.location.href = "checkout.html";
                 } else {
-                    alert(data.message || "Không thể khởi tạo hóa đơn thanh toán từ hệ thống.");
+                    alert(data.message || "Không thể khởi tạo hóa đơn thanh toán.");
                 }
             } catch (error) {
                 console.error("Lỗi kết nối API:", error);
-                alert("Server đang bảo trì hoặc chưa được bật!");
+                alert("Server đang bảo trì hoặc chưa được bật.");
             }
         }
     </script>

@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGenAI - Hệ Thống Quản Trị</title>
+    <title>EduGenAI - H? Th?ng Qu?n Tr?</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -33,43 +33,43 @@
             <div class="text-2xl font-bold tracking-wider text-white mb-1">
                 Edu<span class="text-purple-500">Admin</span>
             </div>
-            <p class="text-xs text-slate-500 mb-6">Bảng điều khiển nội bộ</p>
+            <p class="text-xs text-slate-500 mb-6">B?ng di?u khi?n n?i b?</p>
 
             <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2 px-2">Chung</p>
             <nav class="space-y-1 mb-6" id="nav-common">
                 <a href="#content" class="nav-item active" data-section="content" data-access="common">
-                    <span>📚</span> Quản lý nội dung
+                    <span>??</span> Qu?n l� n?i dung
                 </a>
                 <a href="#customers" class="nav-item" data-section="customers" data-access="common" id="menu-customers">
-                    <span>👤</span> Quản lý Khách hàng
+                    <span>??</span> Qu?n l� Kh�ch h�ng
                 </a>
                 <a href="#tokens" class="nav-item" data-section="tokens" data-access="common">
-                    <span>✨</span> Quản lý Token
+                    <span>?</span> Qu?n l� Token
                 </a>
                 <a href="#support" class="nav-item" data-section="support" data-access="common">
-                    <span>💬</span> Hỗ trợ khách hàng
+                    <span>??</span> H? tr? kh�ch h�ng
                 </a>
                 <a href="#feedback" class="nav-item" data-section="feedback" data-access="common" id="menu-feedback">
-                    <span>⭐</span> Quản lý Đánh giá
+                    <span>?</span> Qu?n l� ��nh gi�
                 </a>
                 <a href="#reports-staff" class="nav-item staff-only" data-section="reports-staff" data-access="staff" id="menu-reports-staff">
-                    <span>📝</span> Báo cáo công việc
+                    <span>??</span> B�o c�o c�ng vi?c
                 </a>
             </nav>
 
-            <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2 px-2 admin-only-label">Quản trị hệ thống</p>
+            <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2 px-2 admin-only-label">Qu?n tr? h? th?ng</p>
             <nav class="space-y-1" id="nav-admin">
                 <a href="#payments" class="nav-item admin-only" data-section="payments" data-access="admin" id="menu-payments">
-                    <span>💳</span> Lịch sử thanh toán
+                    <span>??</span> L?ch s? thanh to�n
                 </a>
                 <a href="#revenue" class="nav-item admin-only" data-section="revenue" data-access="admin" id="menu-revenue">
-                    <span>📈</span> Biểu đồ doanh thu
+                    <span>??</span> Bi?u d? doanh thu
                 </a>
                 <a href="#staff" class="nav-item admin-only" data-section="staff" data-access="admin" id="menu-staff">
-                    <span>👥</span> Quản lý Nhân viên (Staff)
+                    <span>??</span> Qu?n l� Nh�n vi�n (Staff)
                 </a>
                 <a href="#reports-admin" class="nav-item admin-only" data-section="reports-admin" data-access="admin" id="menu-reports-admin">
-                    <span>📬</span> Xem Báo cáo
+                    <span>??</span> Xem B�o c�o
                 </a>
             </nav>
         </div>
@@ -79,10 +79,10 @@
                 <span id="roleBadge" class="role-badge">Staff</span>
             </div>
             <div class="text-xs text-slate-400 mb-3 px-1">
-                Xin chào, <span id="currentUserName" class="text-purple-400 font-bold">—</span>
+                Xin ch�o, <span id="currentUserName" class="text-purple-400 font-bold">�</span>
             </div>
             <button type="button" id="btnLogout" class="w-full py-2 bg-red-950/40 text-red-400 border border-red-900 rounded-lg text-sm font-medium hover:bg-red-900/40 transition logout-btn" onclick="window.handleLogout(event)">
-                Đăng xuất
+                �ang xu?t
             </button>
         </div>
     </aside>
@@ -90,34 +90,36 @@
     <main class="flex-1 p-8 lg:p-10 overflow-y-auto">
         <div id="access-denied-banner" class="hidden mb-6 p-4 rounded-xl border border-red-500/40 bg-red-950/30 text-red-300 text-sm font-medium"></div>
 
+        <!-- Qu?n l� n?i dung -->
         <section id="section-content" class="dashboard-section space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Quản lý nội dung</h2>
-                <p class="text-slate-400 text-sm mt-1">Duyệt bài học, truyện Manga và MiniSeries do người dùng tạo.</p>
+                <h2 class="text-2xl font-bold text-white">Qu?n l� n?i dung</h2>
+                <p class="text-slate-400 text-sm mt-1">Duy?t b�i h?c, truy?n Manga v� MiniSeries do ngu?i d�ng t?o.</p>
             </header>
             <div class="glass rounded-2xl border border-slate-800 p-6">
-                <p class="text-slate-300 text-sm">Danh sách nội dung đang chờ duyệt: <strong class="text-purple-400">8</strong> mục</p>
+                <p class="text-slate-300 text-sm">Danh s�ch n?i dung dang ch? duy?t: <strong class="text-purple-400">8</strong> m?c</p>
             </div>
         </section>
 
+        <!-- Qu?n l� Kh�ch h�ng -->
         <section id="section-customers" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Quản lý Khách hàng</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh sách Customer và trạng thái Online/Offline realtime theo dữ liệu API.</p>
+                <h2 class="text-2xl font-bold text-white">Qu?n l� Kh�ch h�ng</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh s�ch Customer v� tr?ng th�i Online/Offline realtime theo d? li?u API.</p>
             </header>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Tổng số khách hàng</p>
-                    <p class="text-2xl font-bold text-white mt-1" id="customers-total">—</p>
+                    <p class="text-xs text-slate-500 uppercase">T?ng s? kh�ch h�ng</p>
+                    <p class="text-2xl font-bold text-white mt-1" id="customers-total">�</p>
                 </div>
                 <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Đang Online 🟢</p>
-                    <p class="text-2xl font-bold text-green-300 mt-1" id="customers-online">—</p>
+                    <p class="text-xs text-slate-500 uppercase">�ang Online ??</p>
+                    <p class="text-2xl font-bold text-green-300 mt-1" id="customers-online">�</p>
                 </div>
                 <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Offline ⚪</p>
-                    <p class="text-2xl font-bold text-slate-300 mt-1" id="customers-offline">—</p>
+                    <p class="text-xs text-slate-500 uppercase">Offline ?</p>
+                    <p class="text-2xl font-bold text-slate-300 mt-1" id="customers-offline">�</p>
                 </div>
             </div>
 
@@ -126,73 +128,76 @@
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
-                            <th class="p-4">Tên khách hàng</th>
+                            <th class="p-4">T�n kh�ch h�ng</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">Token sở hữu</th>
-                            <th class="p-4">Trạng thái</th>
-                            <th class="p-4">Ngày đăng ký</th>
+                            <th class="p-4">Token s? h?u</th>
+                            <th class="p-4">Tr?ng th�i</th>
+                            <th class="p-4">Ng�y dang k�</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="customers-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="6">Đang tải dữ liệu khách hàng...</td>
+                            <td class="p-4 text-slate-400" colspan="6">�ang t?i d? li?u kh�ch h�ng...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
+        <!-- Qu?n l� Token -->
         <section id="section-tokens" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Quản lý Token</h2>
-                <p class="text-slate-400 text-sm mt-1">Theo dõi số dư Token và gói nạp của khách hàng.</p>
+                <h2 class="text-2xl font-bold text-white">Qu?n l� Token</h2>
+                <p class="text-slate-400 text-sm mt-1">Theo d�i s? du Token v� g�i n?p c?a kh�ch h�ng.</p>
             </header>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Token đã phát hành</p>
+                    <p class="text-xs text-slate-500 uppercase">Token d� ph�t h�nh</p>
                     <p class="text-2xl font-bold text-white mt-1">2.4M</p>
                 </div>
                 <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Gói Plus (150K)</p>
+                    <p class="text-xs text-slate-500 uppercase">G�i Plus (150K)</p>
                     <p class="text-2xl font-bold text-purple-400 mt-1">124</p>
                 </div>
                 <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Gói Pro Max (300K)</p>
+                    <p class="text-xs text-slate-500 uppercase">G�i Pro Max (300K)</p>
                     <p class="text-2xl font-bold text-amber-400 mt-1">47</p>
                 </div>
             </div>
         </section>
 
+        <!-- H? tr? kh�ch h�ng -->
         <section id="section-support" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Hỗ trợ khách hàng</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh sách yêu cầu tư vấn từ Customer (lưu trên Supabase PostgreSQL).</p>
+                <h2 class="text-2xl font-bold text-white">H? tr? kh�ch h�ng</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh s�ch y�u c?u tu v?n t? Customer (luu tr�n Supabase PostgreSQL).</p>
             </header>
             <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
-                            <th class="p-4">Email khách</th>
-                            <th class="p-4">Nội dung</th>
-                            <th class="p-4">Ngày gửi</th>
-                            <th class="p-4">Trạng thái</th>
-                            <th class="p-4">Thao tác</th>
+                            <th class="p-4">Email kh�ch</th>
+                            <th class="p-4">N?i dung</th>
+                            <th class="p-4">Ng�y g?i</th>
+                            <th class="p-4">Tr?ng th�i</th>
+                            <th class="p-4">Thao t�c</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="support-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="6">Đang tải dữ liệu yêu cầu...</td>
+                            <td class="p-4 text-slate-400" colspan="6">�ang t?i d? li?u y�u c?u...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
+        <!-- Qu?n l� ��nh gi� -->
         <section id="section-feedback" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Quản lý Đánh giá</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh sách feedback khách hàng (lưu trên Supabase PostgreSQL).</p>
+                <h2 class="text-2xl font-bold text-white">Qu?n l� ��nh gi�</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh s�ch feedback kh�ch h�ng (luu tr�n Supabase PostgreSQL).</p>
             </header>
             <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
                 <table class="w-full text-left text-sm">
@@ -200,30 +205,31 @@
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">Số sao</th>
-                            <th class="p-4">Bình luận</th>
-                            <th class="p-4">Ngày gửi</th>
+                            <th class="p-4">S? sao</th>
+                            <th class="p-4">B�nh lu?n</th>
+                            <th class="p-4">Ng�y g?i</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="feedback-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="5">Chưa có dữ liệu đánh giá.</td>
+                            <td class="p-4 text-slate-400" colspan="5">Chua c� d? li?u d�nh gi�.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
+        <!-- Staff: B�o c�o c�ng vi?c -->
         <section id="section-reports-staff" class="dashboard-section hidden space-y-6" data-access="staff">
             <header>
-                <h2 class="text-2xl font-bold text-white">Báo cáo công việc</h2>
-                <p class="text-slate-400 text-sm mt-1">Staff gửi báo cáo lên Admin (lưu trên Supabase PostgreSQL).</p>
+                <h2 class="text-2xl font-bold text-white">B�o c�o c�ng vi?c</h2>
+                <p class="text-slate-400 text-sm mt-1">Staff g?i b�o c�o l�n Admin (luu tr�n Supabase PostgreSQL).</p>
             </header>
             <div class="glass rounded-2xl border border-slate-800 p-6 space-y-3">
-                <label class="text-sm font-semibold text-slate-200">Nội dung báo cáo</label>
-                <textarea id="staff-report-content" rows="5" class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="Ví dụ: Hôm nay đã xử lý 8 ticket hỗ trợ, 2 ticket cần Admin duyệt hoàn tiền..."></textarea>
+                <label class="text-sm font-semibold text-slate-200">N?i dung b�o c�o</label>
+                <textarea id="staff-report-content" rows="5" class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="V� d?: H�m nay d� x? l� 8 ticket h? tr?, 2 ticket c?n Admin duy?t ho�n ti?n..."></textarea>
                 <div class="flex justify-end">
-                    <button id="btn-send-report" class="px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition">Gửi lên Admin</button>
+                    <button id="btn-send-report" class="px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition">G?i l�n Admin</button>
                 </div>
             </div>
             <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
@@ -239,91 +245,92 @@
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="reports-staff-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="5">Chưa có báo cáo nào.</td>
+                            <td class="p-4 text-slate-400" colspan="4">Chua c� b�o c�o n�o.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
+        <!-- Admin: Xem B�o c�o -->
         <section id="section-reports-admin" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">Xem Báo cáo (Dành cho Admin)</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh sách báo cáo do Staff gửi lên hệ thống.</p>
+                <h2 class="text-2xl font-bold text-white">Xem B�o c�o</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh s�ch b�o c�o do Staff g?i (luu tr�n Supabase PostgreSQL).</p>
             </header>
             <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
-                            <th class="p-4">ID</th>
-                            <th class="p-4">Nhân viên gửi</th>
-                            <th class="p-4">Ngày gửi</th>
-                            <th class="p-4">Nội dung</th>
-                            <th class="p-4">Trạng thái</th>
-                            <th class="p-4">Thao tác</th>
+                            <th class="p-4">Staff</th>
+                            <th class="p-4">Ng�y g?i</th>
+                            <th class="p-4">N?i dung</th>
+                            <th class="p-4">Reply</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="reports-admin-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="6">Chưa có báo cáo nào.</td>
+                            <td class="p-4 text-slate-400" colspan="4">Chua c� b�o c�o n�o.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
+        <!-- Admin: L?ch s? thanh to�n -->
         <section id="section-payments" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">Lịch sử thanh toán</h2>
-                <p class="text-slate-400 text-sm mt-1">Toàn bộ giao dịch nạp Token qua cổng thanh toán.</p>
+                <h2 class="text-2xl font-bold text-white">L?ch s? thanh to�n</h2>
+                <p class="text-slate-400 text-sm mt-1">To�n b? giao d?ch n?p Token qua c?ng thanh to�n.</p>
             </header>
             <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
-                            <th class="p-4">Mã GD</th>
-                            <th class="p-4">Email tài khoản</th>
-                            <th class="p-4">Số tiền nạp</th>
-                            <th class="p-4">Ngày thanh toán</th>
-                            <th class="p-4">Trạng thái</th>
+                            <th class="p-4">M� GD</th>
+                            <th class="p-4">Email</th>
+                            <th class="p-4">S? ti?n</th>
+                            <th class="p-4">Tr?ng th�i</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="payments-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="5">Đang tải lịch sử thanh toán...</td>
+                            <td class="p-4 text-slate-400" colspan="4">�ang t?i l?ch s? thanh to�n...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
+        <!-- Admin: Bi?u d? doanh thu -->
         <section id="section-revenue" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">Biểu đồ doanh thu</h2>
-                <p class="text-slate-400 text-sm mt-1">Phân tích doanh thu theo tháng (chỉ Admin).</p>
+                <h2 class="text-2xl font-bold text-white">Bi?u d? doanh thu</h2>
+                <p class="text-slate-400 text-sm mt-1">Ph�n t�ch doanh thu theo th�ng (ch? Admin).</p>
             </header>
             <div class="p-6 glass rounded-2xl border border-slate-800 max-w-4xl">
                 <canvas id="revenueChart" height="120"></canvas>
             </div>
         </section>
 
+        <!-- Admin: Qu?n l� Nh�n vi�n (Staff) -->
         <section id="section-staff" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">Quản lý Nhân viên (Staff)</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh sách Staff, trạng thái Online/Offline và ngày tham gia.</p>
+                <h2 class="text-2xl font-bold text-white">Qu?n l� Nh�n vi�n (Staff)</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh s�ch Staff, tr?ng th�i Online/Offline v� ng�y tham gia.</p>
             </header>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Tổng Staff</p>
-                    <p class="text-2xl font-bold text-white mt-1" id="staff-total">—</p>
+                    <p class="text-xs text-slate-500 uppercase">T?ng Staff</p>
+                    <p class="text-2xl font-bold text-white mt-1" id="staff-total">�</p>
                 </div>
                 <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Đang Online 🟢</p>
-                    <p class="text-2xl font-bold text-green-300 mt-1" id="staff-online">—</p>
+                    <p class="text-xs text-slate-500 uppercase">�ang Online ??</p>
+                    <p class="text-2xl font-bold text-green-300 mt-1" id="staff-online">�</p>
                 </div>
                 <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Offline ⚪</p>
-                    <p class="text-2xl font-bold text-slate-300 mt-1" id="staff-offline">—</p>
+                    <p class="text-xs text-slate-500 uppercase">Offline ?</p>
+                    <p class="text-2xl font-bold text-slate-300 mt-1" id="staff-offline">�</p>
                 </div>
             </div>
 
@@ -332,16 +339,16 @@
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
-                            <th class="p-4">Tên nhân viên</th>
+                            <th class="p-4">T�n nh�n vi�n</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">Vai trò</th>
-                            <th class="p-4">Trạng thái</th>
-                            <th class="p-4">Ngày tham gia</th>
+                            <th class="p-4">Vai tr�</th>
+                            <th class="p-4">Tr?ng th�i</th>
+                            <th class="p-4">Ng�y tham gia</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="staff-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="6">Đang tải dữ liệu nhân viên...</td>
+                            <td class="p-4 text-slate-400" colspan="6">�ang t?i d? li?u nh�n vi�n...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -356,8 +363,13 @@
                 e.preventDefault();
                 e.stopPropagation();
             }
-            if (!confirm("Bạn có chắc chắn muốn đăng xuất không?")) return;
-            localStorage.clear();
+            if (!confirm("B?n c� ch?c ch?n mu?n dang xu?t kh�ng?")) return;
+            localStorage.removeItem("userId");
+            localStorage.removeItem("userRole");
+            localStorage.removeItem("user_role");
+            localStorage.removeItem("user_name");
+            localStorage.removeItem("user_email");
+            localStorage.removeItem("token");
             window.location.href = "index.html";
         };
 
@@ -373,8 +385,12 @@
                 .replaceAll("\"", "&quot;")
                 .replaceAll("'", "&#039;");
         }
-
-        async function fetchJson(url, options) {
+        function authHeaders(headers = {}) {
+            const token = localStorage.getItem("token");
+            return token ? { ...headers, Authorization: `Bearer ${token}` } : headers;
+        }
+        async function fetchJson(url, options = {}) {
+            options.headers = authHeaders(options.headers || {});
             const response = await fetch(url, options);
             const text = await response.text();
             const data = text ? JSON.parse(text) : {};
@@ -385,9 +401,9 @@
         }
 
         function formatDateTime(value) {
-            if (!value) return "—";
+            if (!value) return "�";
             const d = new Date(value);
-            if (Number.isNaN(d.getTime())) return "—";
+            if (Number.isNaN(d.getTime())) return "�";
             return d.toLocaleString("vi-VN");
         }
 
@@ -493,8 +509,43 @@
                     `;
                 }).join("");
             } catch (err) {
-                setTableMessage("customers-tbody", 6, `Lỗi tải dữ liệu: ${err.message}`);
+                setTableMessage("customers-tbody", 6, `Kh�ng t?i du?c danh s�ch kh�ch h�ng: ${err.message}`);
+                return;
             }
+
+            const totalEl = document.getElementById("customers-total");
+            const onlineEl = document.getElementById("customers-online");
+            const offlineEl = document.getElementById("customers-offline");
+
+            const total = customers.length;
+            const onlineCount = 0;
+            const offlineCount = total;
+
+            if (totalEl) totalEl.textContent = String(total);
+            if (onlineEl) onlineEl.textContent = String(onlineCount);
+            if (offlineEl) offlineEl.textContent = String(offlineCount);
+
+            if (total === 0) {
+                setTableMessage("customers-tbody", 6, "Chua c� kh�ch h�ng (Role = Customer) tr�n Supabase.");
+                return;
+            }
+
+            tbody.innerHTML = customers.map((c) => {
+                const id = escapeHtml(String(c.id || ""));
+                const name = escapeHtml(c.fullName || c.FullName || "�");
+                const email = escapeHtml(c.email || c.Email || "�");
+                const created = escapeHtml(formatDateTime(c.createdAt || c.CreatedAt));
+                return `
+                    <tr>
+                        <td class="p-4 font-mono text-xs text-slate-400">${id}</td>
+                        <td class="p-4 text-slate-200">${name}</td>
+                        <td class="p-4 text-slate-300">${email}</td>
+                        <td class="p-4 text-amber-300">�</td>
+                        <td class="p-4"><span class="px-2 py-1 text-xs rounded-full bg-slate-500/10 text-slate-400">Offline</span></td>
+                        <td class="p-4 text-slate-400">${created}</td>
+                    </tr>
+                `;
+            }).join("");
         }
 
         // 2. Hỗ Trợ Khách Hàng (Support Ticket)
@@ -502,98 +553,307 @@
             const tbody = document.getElementById("support-tbody");
             if (!tbody) return;
             try {
-                const requests = await fetchJson(`${API_BASE}/support/list`);
-                if (requests.length === 0) {
-                    setTableMessage("support-tbody", 6, "Chưa có yêu cầu tư vấn nào.");
-                    return;
-                }
-                tbody.innerHTML = requests.map((r) => {
-                    const status = r.status || "Chờ trả lời";
-                    const statusHtml = status === "Đã trả lời"
-                        ? `<span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">Đã trả lời</span>`
-                        : `<span class="px-2 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400">Chờ trả lời</span>`;
-                    const rawId = String(r.id || "");
-                    return `
-                        <tr>
-                            <td class="p-4 font-mono text-slate-300">${escapeHtml(rawId)}</td>
-                            <td class="p-4 text-slate-200">${escapeHtml(r.customerEmail || "")}</td>
-                            <td class="p-4 text-slate-400">${escapeHtml(r.content || "")}</td>
-                            <td class="p-4 text-slate-400">${formatDateTime(r.createdAt)}</td>
-                            <td class="p-4">${statusHtml}</td>
-                            <td class="p-4">
-                                <button class="px-3 py-1.5 text-xs font-bold rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition" data-support-action="toggle" data-id="${rawId}">${status === "Đã trả lời" ? "Xem lại" : "Trả lời"}</button>
-                            </td>
-                        </tr>
-                        <tr class="hidden" id="support-reply-row-${rawId}">
-                            <td class="p-4" colspan="6">
-                                <div class="glass border border-slate-800 rounded-xl p-4">
-                                    <div class="text-sm text-slate-300 font-semibold mb-2">Nội dung phản hồi:</div>
-                                    <textarea class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" rows="4" id="support-reply-input-${rawId}" placeholder="Nhập câu trả lời gửi đến khách hàng...">${escapeHtml(r.reply || "")}</textarea>
-                                    <div class="flex justify-end gap-2 mt-3">
-                                        <button class="px-4 py-2 rounded-xl font-bold text-slate-200 border border-slate-700 hover:bg-slate-800/40 transition" data-support-action="cancel" data-id="${rawId}">Đóng</button>
-                                        <button class="px-4 py-2 rounded-xl font-bold text-white bg-green-600 hover:bg-green-500 transition" data-support-action="confirm" data-id="${rawId}">Gửi phản hồi</button>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join("");
-
-                // Gắn Event Delegation cho nút bấm
-                tbody.querySelectorAll("[data-support-action]").forEach((btn) => {
-                    btn.addEventListener("click", async () => {
-                        const action = btn.getAttribute("data-support-action");
-                        const id = btn.getAttribute("data-id");
-                        const row = document.getElementById(`support-reply-row-${id}`);
-                        
-                        if (action === "toggle") row.classList.toggle("hidden");
-                        if (action === "cancel") row.classList.add("hidden");
-                        if (action === "confirm") {
-                            const input = document.getElementById(`support-reply-input-${id}`);
-                            const replyText = (input?.value || "").trim();
-                            if (!replyText) { alert("Vui lòng điền nội dung câu trả lời!"); return; }
-                            try {
-                                await fetchJson(`${API_BASE}/support/reply`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ id: id, reply: replyText })
-                                });
-                                alert("Gửi phản hồi thành công!");
-                                renderSupportTable();
-                            } catch (e) { alert(`Lỗi: ${e.message}`); }
-                        }
-                    });
-                });
+                requests = await fetchJson(`${API_BASE}/support/list`);
             } catch (err) {
-                setTableMessage("support-tbody", 6, `Lỗi: ${err.message}`);
+                setTableMessage("support-tbody", 6, `Kh�ng t?i du?c y�u c?u tu v?n: ${err.message}`);
+                return;
             }
+            if (requests.length === 0) {
+                setTableMessage("support-tbody", 6, "Chua c� y�u c?u tu v?n n�o.");
+                return;
+            }
+            tbody.innerHTML = requests.map((r) => {
+                const status = r.status || "Ch? tr? l?i";
+                const statusHtml = status === "�� tr? l?i"
+                    ? `<span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">�� tr? l?i</span>`
+                    : `<span class="px-2 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400">Ch? tr? l?i</span>`;
+                const rawId = String(r.id || "");
+                const id = escapeHtml(rawId);
+                const email = escapeHtml(r.customerEmail || "");
+                const noiDung = escapeHtml(r.content || "");
+                const ngayGui = escapeHtml(formatDateTime(r.createdAt));
+                const btnLabel = status === "�� tr? l?i" ? "Xem" : "Tr? l?i";
+                return `
+                    <tr>
+                        <td class="p-4 font-mono text-slate-300">${id}</td>
+                        <td class="p-4 text-slate-200">${email}</td>
+                        <td class="p-4 text-slate-400">${noiDung}</td>
+                        <td class="p-4 text-slate-400">${ngayGui}</td>
+                        <td class="p-4">${statusHtml}</td>
+                        <td class="p-4">
+                            <button class="px-3 py-1.5 text-xs font-bold rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition" data-support-action="toggle" data-id="${rawId}">${btnLabel}</button>
+                        </td>
+                    </tr>
+                    <tr class="hidden" id="support-reply-row-${rawId}">
+                        <td class="p-4" colspan="6">
+                            <div class="glass border border-slate-800 rounded-xl p-4">
+                                <div class="text-sm text-slate-300 font-semibold mb-2">Ph?n h?i cho: <span class="font-mono text-slate-200">${email}</span></div>
+                                <textarea class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" rows="4" id="support-reply-input-${rawId}" placeholder="Nh?p n?i dung tr? l?i...">${escapeHtml(r.reply || "")}</textarea>
+                                <div class="flex justify-end gap-2 mt-3">
+                                    <button class="px-4 py-2 rounded-xl font-bold text-slate-200 border border-slate-700 hover:bg-slate-800/40 transition" data-support-action="cancel" data-id="${rawId}">H?y</button>
+                                    <button class="px-4 py-2 rounded-xl font-bold text-white bg-green-600 hover:bg-green-500 transition" data-support-action="confirm" data-id="${rawId}">X�c nh?n g?i</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+            tbody.querySelectorAll("[data-support-action]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    const action = btn.getAttribute("data-support-action");
+                    const id = btn.getAttribute("data-id");
+                    if (!id) return;
+                    const row = document.getElementById(`support-reply-row-${id}`);
+                    if (action === "toggle") { if (row) row.classList.toggle("hidden"); return; }
+                    if (action === "cancel") { if (row) row.classList.add("hidden"); return; }
+                    if (action === "confirm") {
+                        const input = document.getElementById(`support-reply-input-${id}`);
+                        const reply = (input?.value || "").trim();
+                        if (!reply) { alert("Vui l�ng nh?p n?i dung ph?n h?i."); return; }
+                        try {
+                            await fetchJson(`${API_BASE}/support/reply`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    id: String(id).trim(),
+                                    reply: reply
+                                })
+                            });
+                            await renderSupportTable();
+                        } catch (err) {
+                            alert(`Ph?n h?i th?t b?i: ${err.message}`);
+                        }
+                    };
+                });
+            }); 
         }
+    
 
         // 3. Đánh Giá (Feedback)
         async function loadFeedbacks() {
             const tbody = document.getElementById("feedback-tbody");
             if (!tbody) return;
             try {
-                const feedbacks = await fetchJson(`${API_BASE}/feedback/list`);
-                if (feedbacks.length === 0) {
-                    setTableMessage("feedback-tbody", 5, "Chưa có đánh giá nào.");
+                feedbacks = await fetchJson(`${API_BASE}/feedback/list`);
+            } catch (err) {
+                setTableMessage("feedback-tbody", 5, `Kh�ng t?i du?c d�nh gi�: ${err.message}`);
+                return;
+            }
+            if (feedbacks.length === 0) {
+                setTableMessage("feedback-tbody", 5, "Chua c� d? li?u d�nh gi�.");
+                return;
+            }
+            tbody.innerHTML = feedbacks.map((f) => {
+                const starCount = Number(f.rating || 0);
+                const stars = "?".repeat(starCount) + "?".repeat(Math.max(0, 5 - starCount));
+                return `
+                    <tr>
+                        <td class="p-4 font-mono text-slate-300">${escapeHtml(f.id || "")}</td>
+                        <td class="p-4 text-slate-200">${escapeHtml(f.email || "")}</td>
+                        <td class="p-4 text-amber-300 font-extrabold tracking-wide">${escapeHtml(stars)}</td>
+                        <td class="p-4 text-slate-400">${escapeHtml(f.comment || "")}</td>
+                        <td class="p-4 text-slate-400">${escapeHtml(formatDateTime(f.createdAt))}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        async function renderReportsStaff(staffName) {
+            const tbody = document.getElementById("reports-staff-tbody");
+            if (!tbody) return;
+            let reports = [];
+            try {
+                reports = await fetchJson(`${API_BASE}/report/list`);
+            } catch (err) {
+                setTableMessage("reports-staff-tbody", 4, `Kh�ng t?i du?c b�o c�o: ${err.message}`);
+                return;
+            }
+            reports = reports.filter(r => (r.staffName || "") === staffName);
+            if (reports.length === 0) {
+                setTableMessage("reports-staff-tbody", 4, "Chua c� b�o c�o n�o.");
+                return;
+            }
+            tbody.innerHTML = reports.map((r) => {
+                const status = r.adminReply ? "�� ph?n h?i" : (r.status || "Ch? duy?t");
+                const statusHtml = r.adminReply
+                    ? `<span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">�� ph?n h?i</span>`
+                    : `<span class="px-2 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400">${escapeHtml(status)}</span>`;
+                return `
+                    <tr>
+                        <td class="p-4 text-slate-400">${escapeHtml(formatDateTime(r.createdAt))}</td>
+                        <td class="p-4 text-slate-200">${escapeHtml(r.content || "")}</td>
+                        <td class="p-4">${statusHtml}</td>
+                        <td class="p-4 text-slate-300">${escapeHtml(r.adminReply || "�")}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+        async function renderReportsAdmin() {
+            const tbody = document.getElementById("reports-admin-tbody");
+            if (!tbody) return;
+            let reports = [];
+            try {
+                reports = await fetchJson(`${API_BASE}/report/list`);
+            } catch (err) {
+                setTableMessage("reports-admin-tbody", 4, `Kh�ng t?i du?c b�o c�o: ${err.message}`);
+                return;
+            }
+            if (reports.length === 0) {
+                setTableMessage("reports-admin-tbody", 4, "Chua c� b�o c�o n�o.");
+                return;
+            }
+            tbody.innerHTML = reports.map((r) => {
+                const rawId = String(r.id || "");
+                const id = escapeHtml(rawId);
+                return `
+                    <tr>
+                        <td class="p-4 text-slate-200">${escapeHtml(r.staffName || "Staff")}</td>
+                        <td class="p-4 text-slate-400">${escapeHtml(formatDateTime(r.createdAt))}</td>
+                        <td class="p-4 text-slate-200">${escapeHtml(r.content || "")}</td>
+                        <td class="p-4">
+                            <textarea rows="3" class="w-72 max-w-full bg-slate-950/40 border border-slate-700 rounded-xl p-2 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="Nh?p ph?n h?i..." data-admin-reply="${rawId}">${escapeHtml(r.adminReply || "")}</textarea>
+                            <div class="mt-2 flex justify-end">
+                                <button class="px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 hover:bg-green-500 text-white transition" data-admin-reply-btn="${rawId}">Ph?n h?i</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+            tbody.querySelectorAll("[data-admin-reply-btn]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    const id = btn.getAttribute("data-admin-reply-btn");
+                    if (!id) return;
+                    const input = tbody.querySelector(`textarea[data-admin-reply="${id}"]`);
+                    const reply = (input?.value || "").trim();
+                    if (!reply) {
+                        alert("Vui l�ng nh?p n?i dung ph?n h?i.");
+                        return;
+                    }
+
+                    const originalLabel = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = "�ang g?i...";
+
+                    try {
+                        await fetchJson(`${API_BASE}/report/reply`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                id: String(id).trim(),
+                                adminReply: reply
+                            })
+                        });
+
+                        alert("Ph?n h?i b�o c�o th�nh c�ng!");
+                        if (input) {
+                            input.value = "";
+                            input.disabled = true;
+                        }
+                        await renderReportsAdmin();
+                    } catch (err) {
+                        alert(`Ph?n h?i th?t b?i: ${err.message}`);
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = originalLabel;
+                    }
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                const userRole = localStorage.getItem("userRole") || localStorage.getItem("user_role");
+                const userName = localStorage.getItem("user_name") || "User";
+
+                if (!userRole || (userRole !== "Admin" && userRole !== "Staff")) {
+                    alert("B?n kh�ng c� quy?n truy c?p khu v?c qu?n tr?!");
+                    window.location.href = "index.html";
                     return;
                 }
-                tbody.innerHTML = feedbacks.map((f) => {
-                    const stars = "★".repeat(Number(f.rating || 0)) + "☆".repeat(Math.max(0, 5 - Number(f.rating || 0)));
-                    return `
-                        <tr>
-                            <td class="p-4 font-mono text-slate-400">${escapeHtml(f.id || "—")}</td>
-                            <td class="p-4 text-slate-200">${escapeHtml(f.customerEmail || f.email || "Khách ẩn danh")}</td>
-                            <td class="p-4 text-amber-400 font-bold">${stars}</td>
-                            <td class="p-4 text-slate-300">${escapeHtml(f.comment || "—")}</td>
-                            <td class="p-4 text-slate-400">${formatDateTime(f.createdAt)}</td>
-                        </tr>
-                    `;
-                }).join("");
+
+                const nameEl = document.getElementById("currentUserName");
+                if (nameEl) nameEl.innerText = userName;
+
+                const badge = document.getElementById("roleBadge");
+                if (badge) {
+                    badge.textContent = userRole;
+                    badge.classList.remove("admin", "staff");
+                    badge.classList.add(userRole === "Admin" ? "admin" : "staff");
+                }
+
+                enforceRoleUi(userRole);
+                void loadCustomers();
+
+                document.querySelectorAll(".nav-item[data-section]").forEach((link) => {
+                    link.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        const sectionKey = link.dataset.section;
+                        const access = link.dataset.access;
+
+                        if (access === "admin" && userRole !== "Admin") {
+                            showBanner("B?n kh�ng c� quy?n truy c?p ch?c nang n�y.");
+                            return;
+                        }
+                        if (access === "staff" && userRole !== "Staff") {
+                            showBanner("B?n kh�ng c� quy?n truy c?p ch?c nang n�y.");
+                            return;
+                        }
+
+                        showSection(sectionKey);
+                        if (sectionKey === "support") void renderSupportTable();
+                        if (sectionKey === "feedback") void loadFeedbacks();
+                        if (sectionKey === "reports-staff") void renderReportsStaff(userName);
+                        if (sectionKey === "reports-admin") void renderReportsAdmin();
+                        if (sectionKey === "customers") void loadCustomers();
+                        if (sectionKey === "payments") void loadPaymentHistory();
+                        if (sectionKey === "revenue") void loadRevenueChart();
+                    });
+                });
+
+                const btnSendReport = document.getElementById("btnSendReport") || document.getElementById("btn-send-report");
+                if (btnSendReport && userRole === "Staff") {
+                    btnSendReport.addEventListener("click", async () => {
+                        const contentEl = document.getElementById("staff-report-content");
+                        const noiDung = (contentEl?.value || "").trim();
+                        if (!noiDung) { alert("Vui l�ng nh?p n?i dung b�o c�o."); return; }
+                        try {
+                            await fetchJson(`${API_BASE}/report/create`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    staffName: userName,
+                                    content: noiDung
+                                })
+                            });
+                            if (contentEl) contentEl.value = "";
+                            await renderReportsStaff(userName);
+                            alert("�� g?i b�o c�o l�n Admin.");
+                        } catch (err) {
+                            alert(`G?i b�o c�o th?t b?i: ${err.message}`);
+                        }
+                    });
+                }
+
+                const initial = (window.location.hash || "#content").replace("#", "");
+                showSection(initial);
+                void renderSupportTable();
+                void loadFeedbacks();
+                if (userRole === "Staff") void renderReportsStaff(userName);
+                if (userRole === "Admin") {
+                    void renderReportsAdmin();
+                    void loadPaymentHistory();
+                    void loadRevenueChart();
+                }
             } catch (err) {
                 setTableMessage("feedback-tbody", 5, `Lỗi hệ thống: ${err.message}`);
             }
+        });
+
+        let revenueChartInstance = null;
+
+        function formatVnd(amount) {
+            const n = Number(amount || 0);
+            return n.toLocaleString("vi-VN") + " VN�";
         }
 
         // 4. Staff Gửi Báo Cáo Công Việc lên Admin
@@ -679,21 +939,22 @@
             const tbody = document.getElementById("payments-tbody");
             if (!tbody) return;
             try {
-                const payments = await fetchJson(`${API_BASE}/admin/payments`);
-                if (payments.length === 0) {
-                    setTableMessage("payments-tbody", 5, "Chưa ghi nhận giao dịch nào.");
+                const rows = await fetchJson(`${API_BASE}/admin/payment-history`);
+                if (!Array.isArray(rows) || rows.length === 0) {
+                    tbody.innerHTML = `<tr><td class="p-4 text-slate-400" colspan="4">Chua c� giao d?ch n�o.</td></tr>`;
                     return;
                 }
                 tbody.innerHTML = payments.map(p => `
                     <tr>
-                        <td class="p-4 font-mono text-xs text-purple-400">${escapeHtml(p.transactionId || p.Id || "—")}</td>
-                        <td class="p-4 text-slate-200">${escapeHtml(p.email || p.Email || "—")}</td>
-                        <td class="p-4 text-green-400 font-semibold">${Number(p.amount || 0).toLocaleString("vi-VN")} đ</td>
-                        <td class="p-4 text-slate-400">${formatDateTime(p.createdAt || p.PaymentDate)}</td>
-                        <td class="p-4"><span class="px-2 py-0.5 rounded text-xs bg-green-500/10 text-green-400">Thành công</span></td>
+                        <td class="p-4 font-mono text-amber-400">${escapeHtml(p.transactionCode || "")}</td>
+                        <td class="p-4 text-slate-400">${escapeHtml(p.userEmail || "")}</td>
+                        <td class="p-4 text-green-400">${escapeHtml(formatVnd(p.amount))}</td>
+                        <td class="p-4"><span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">Ho�n t?t</span></td>
                     </tr>
                 `).join("");
-            } catch (e) { setTableMessage("payments-tbody", 5, `Lỗi kết nối lịch sử thanh toán: ${e.message}`); }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td class="p-4 text-red-400" colspan="4">L?i t?i d? li?u: ${escapeHtml(err.message)}</td></tr>`;
+            }
         }
 
         // 7. Admin Xem Biểu Đồ Doanh Thu (ChartJS)
@@ -709,17 +970,25 @@
                     data: {
                         labels: res.labels || ["T3", "T4", "T5", "T6", "T7", "T8"],
                         datasets: [{
-                            label: 'Doanh thu hệ thống (VNĐ)',
-                            data: res.data || [1200000, 4500000, 3200000, 8900000, 12000000, 17500000],
-                            borderColor: '#a855f7',
-                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            label: "Doanh thu (VN�)",
+                            data: amounts,
+                            borderColor: "#a855f7",
+                            backgroundColor: "rgba(168, 85, 247, 0.35)",
                             borderWidth: 2,
                             tension: 0.3,
                             fill: true
                         }]
                     },
                     options: {
-                        plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                        responsive: true,
+                        plugins: {
+                            legend: { labels: { color: "#94a3b8" } },
+                            title: {
+                                display: true,
+                                text: `T?ng doanh thu: ${formatVnd(stats.totalRevenue)} (${stats.transactionCount || 0} giao d?ch)`,
+                                color: "#e2e8f0"
+                            }
+                        },
                         scales: {
                             y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
                             x: { grid: { display: false }, ticks: { color: '#94a3b8' } }

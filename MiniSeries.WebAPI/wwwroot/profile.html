@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hồ Sơ Cá Nhân - EduGenAI</title>
+    <title>Hồ Sơ Cá Nhân - MiniSeries</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-white min-h-screen font-sans">
 
     <nav class="bg-slate-800 p-4 shadow-md flex justify-between items-center px-10">
-        <h1 class="text-2xl font-bold text-purple-400 tracking-wider">EduGenAI</h1>
+        <h1 class="text-2xl font-bold text-purple-400 tracking-wider">MiniSeries</h1>
         <div class="flex items-center gap-4">
             <span id="nav-name" class="text-gray-300 font-medium">Đang tải...</span>
             <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-1.5 rounded-lg text-sm transition font-semibold">Đăng xuất</button>
@@ -18,14 +18,14 @@
 
     <div class="max-w-4xl mx-auto mt-10 p-6 bg-slate-800 rounded-2xl shadow-xl">
         <h2 class="text-2xl font-bold border-b border-gray-700 pb-3 mb-6 text-purple-300">Quản lý hồ sơ cá nhân</h2>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="flex flex-col items-center bg-slate-850 p-6 rounded-xl border border-gray-700">
                 <img id="profile-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Khang" class="w-32 h-32 rounded-full border-4 border-purple-500 shadow-lg bg-slate-700 p-2 mb-4">
                 <span id="profile-tier" class="bg-gray-600 text-xs font-bold uppercase px-3 py-1 rounded-full text-white tracking-wide shadow">FREE USER</span>
-                
+
                 <button onclick="goToCheckout()" class="mt-6 w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-900 font-bold py-2 px-4 rounded-xl shadow transition-all duration-200 text-sm">
-                    ✨ Nâng cấp Premium
+                    Nâng cấp gói
                 </button>
             </div>
 
@@ -42,6 +42,20 @@
                     <label class="block text-sm font-semibold text-gray-400 mb-1">Số điện thoại</label>
                     <input type="text" id="profile-phone" placeholder="Chưa cập nhật số điện thoại" class="w-full bg-slate-900 border border-gray-700 rounded-xl px-4 py-2.5 focus:border-purple-500 focus:outline-none text-white">
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                    <div class="bg-slate-900 border border-gray-700 rounded-xl p-4">
+                        <p class="text-xs text-gray-400 mb-1">Gói hiện tại</p>
+                        <p id="profile-plan-name" class="text-lg font-bold text-purple-300">Free</p>
+                    </div>
+                    <div class="bg-slate-900 border border-gray-700 rounded-xl p-4">
+                        <p class="text-xs text-gray-400 mb-1">Lượt đã dùng</p>
+                        <p id="profile-used-count" class="text-lg font-bold text-amber-300">0/3</p>
+                    </div>
+                    <div class="bg-slate-900 border border-gray-700 rounded-xl p-4">
+                        <p class="text-xs text-gray-400 mb-1">Lượt còn lại</p>
+                        <p id="profile-remaining-count" class="text-lg font-bold text-emerald-300">3</p>
+                    </div>
+                </div>
 
                 <div class="pt-4">
                     <button onclick="saveProfile()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all">
@@ -55,28 +69,40 @@
     <script>
         const API_BASE = "http://localhost:5137/api";
         // Lấy Id người dùng đã lưu từ bước kích hoạt OTP thành công
-        const userId = localStorage.getItem("userId") || "3fa85f64-5717-4562-b3fc-2c963f66afa6"; 
+        const userId = localStorage.getItem("userId") || "3fa85f64-5717-4562-b3fc-2c963f66afa6";
 
         async function loadProfile() {
             try {
-                const res = await fetch(`${API_BASE}/profile/${userId}`);
+                const res = await fetch(`${API_BASE}/profile/${userId}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` } });
                 if (!res.ok) throw new Error("Không thể tải hồ sơ.");
-                
+
                 const user = await res.json();
-                
+
                 // Điền dữ liệu lên giao diện
                 document.getElementById("nav-name").innerText = `Xin chào, ${user.fullName}`;
                 document.getElementById("profile-email").value = user.email;
                 document.getElementById("profile-fullname").value = user.fullName;
                 document.getElementById("profile-phone").value = user.phoneNumber || "";
-                
+
+                const planName = user.planName || user.tier || "Free";
+                const usedCount = Number(user.usedGenerationCount || 0);
+                const limit = Number(user.monthlyGenerationLimit || 3);
+                const remaining = Number(user.remainingGenerationCount ?? Math.max(0, limit - usedCount));
+
+                document.getElementById("profile-plan-name").innerText = planName;
+                document.getElementById("profile-used-count").innerText = `${usedCount}/${limit}`;
+                document.getElementById("profile-remaining-count").innerText = remaining.toString();
+
                 // Hiển thị Badge gói tài khoản
                 const tierBadge = document.getElementById("profile-tier");
-                if(user.tier === "Premium") {
-                    tierBadge.innerText = "⭐ PREMIUM USER";
+                if(planName === "Premium") {
+                    tierBadge.innerText = "PREMIUM";
                     tierBadge.className = "bg-gradient-to-r from-yellow-500 to-amber-500 text-xs font-bold uppercase px-3 py-1 rounded-full text-slate-950 tracking-wide shadow";
+                } else if (planName === "Basic") {
+                    tierBadge.innerText = "BASIC";
+                    tierBadge.className = "bg-purple-600 text-xs font-bold uppercase px-3 py-1 rounded-full text-white tracking-wide shadow";
                 } else {
-                    tierBadge.innerText = "FREE USER";
+                    tierBadge.innerText = "FREE";
                     tierBadge.className = "bg-gray-600 text-xs font-bold uppercase px-3 py-1 rounded-full text-white tracking-wide";
                 }
             } catch (err) {
@@ -91,7 +117,7 @@
             try {
                 const res = await fetch(`${API_BASE}/profile/${userId}`, {
                     method: "PUT",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token") || ""}` },
                     body: JSON.stringify({ fullName, phoneNumber, avatarUrl: "" })
                 });
 
@@ -108,8 +134,7 @@
         }
 
         function goToCheckout() {
-            alert("Đang chuyển hướng đến trang thanh toán gói cước Premium...");
-            // Lát nữa ta làm file checkout.html thì đổi link ở đây
+            window.location.href = "pricing.html";
         }
 
         function logout() {

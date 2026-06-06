@@ -1,4 +1,6 @@
 using MiniSeries.Application.Common.Interfaces;
+using MiniSeries.Application.Common.Exceptions;
+using MiniSeries.Application.Lessons.Dtos;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Domain.Enums;
 using MediatR;
@@ -7,13 +9,17 @@ namespace MiniSeries.Application.Lessons.Commands.CreateLessonDraft;
 
 public sealed class CreateLessonDraftCommandHandler(
     ILLMService llmService,
-    ILessonStore lessonStore)
-    : IRequestHandler<CreateLessonDraftCommand, Lesson>
+    ILessonRepository lessonRepository)
+    : IRequestHandler<CreateLessonDraftCommand, LessonDto>
 {
-    public async Task<Lesson> Handle(CreateLessonDraftCommand request, CancellationToken cancellationToken)
+    public async Task<LessonDto> Handle(CreateLessonDraftCommand request, CancellationToken cancellationToken)
     {
+        Validate(request);
+
         var lesson = new Lesson
         {
+            UserId = request.UserId,
+            UserEmail = request.UserEmail?.Trim() ?? string.Empty,
             Title = request.Title,
             RawContent = request.RawContent,
             CreativeMode = request.CreativeMode,
@@ -42,14 +48,57 @@ public sealed class CreateLessonDraftCommandHandler(
             });
 
             CompleteJob(job, "Kịch bản tổng thể đã sẵn sàng để review.");
-            await lessonStore.SaveAsync(lesson);
-            return lesson;
+            await lessonRepository.SaveAsync(lesson);
+            return LessonDto.FromEntity(lesson);
         }
         catch (Exception ex)
         {
             FailJob(job, ex);
-            await lessonStore.SaveAsync(lesson);
+            await lessonRepository.SaveAsync(lesson);
             throw;
+        }
+    }
+
+    private static void Validate(CreateLessonDraftCommand request)
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            errors.Add("Title is required.");
+        }
+        else if (request.Title.Length > 200)
+        {
+            errors.Add("Title cannot exceed 200 characters.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.RawContent))
+        {
+            errors.Add("RawContent is required.");
+        }
+        else if (request.RawContent.Length > 20000)
+        {
+            errors.Add("RawContent cannot exceed 20000 characters.");
+        }
+
+        if (request.CreativeBrief?.Length > 2000)
+        {
+            errors.Add("CreativeBrief cannot exceed 2000 characters.");
+        }
+
+        if (request.CreativeMode == CreativeMode.Guided && string.IsNullOrWhiteSpace(request.CreativeBrief))
+        {
+            errors.Add("CreativeBrief is required when CreativeMode is Guided.");
+        }
+
+        if (request.UserId == Guid.Empty)
+        {
+            errors.Add("UserId is required.");
+        }
+
+        if (errors.Count > 0)
+        {
+            throw new AppValidationException(errors.ToArray());
         }
     }
 
