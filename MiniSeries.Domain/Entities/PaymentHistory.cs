@@ -8,19 +8,19 @@ public class PaymentHistory
     public int Id { get; set; }
 
     [Column("user_id")]
-    public string UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
 
     [Column("user_email")]
-    public string UserEmail { get; set; }
+    public string UserEmail { get; set; } = string.Empty;
 
     [Column("payment_code")]
-    public string PaymentCode { get; set; }
+    public string PaymentCode { get; set; } = string.Empty;
 
     [Column("amount")]
     public decimal Amount { get; set; }
 
     [Column("plan_name")]
-    public string PlanName { get; set; }
+    public string PlanName { get; set; } = string.Empty;
 
     [Column("tokens_received")]
     public int TokensReceived { get; set; }
