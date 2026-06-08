@@ -1,75 +1,429 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGenAI - H? Th?ng Qu?n Tr?</title>
+    <title>MSL - Hệ Thống Quản Trị</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0b0f19; }
-        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .nav-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; color: #94a3b8; font-size: 14px; font-weight: 500; transition: all 0.2s; cursor: pointer; text-decoration: none; }
-        .nav-item:hover { background: rgba(30, 41, 59, 0.6); color: #e2e8f0; }
-        .nav-item.active { background: #7c3aed; color: #fff; }
+        /* === COSMIC BASE === */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712;
+            background-image:
+                radial-gradient(ellipse 120% 80% at 50% -20%, rgba(99, 102, 241, 0.18) 0%, transparent 55%),
+                radial-gradient(ellipse 80% 50% at 100% 50%, rgba(124, 58, 237, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 0% 80%, rgba(6, 182, 212, 0.08) 0%, transparent 45%),
+                linear-gradient(180deg, #030712 0%, #0b0f19 45%, #020617 100%);
+            position: relative;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                radial-gradient(1px 1px at 20px 30px, rgba(255,255,255,0.35), transparent),
+                radial-gradient(1px 1px at 80px 120px, rgba(255,255,255,0.25), transparent),
+                radial-gradient(1.5px 1.5px at 160px 60px, rgba(167,139,250,0.4), transparent),
+                radial-gradient(1px 1px at 240px 180px, rgba(255,255,255,0.2), transparent),
+                radial-gradient(1px 1px at 320px 40px, rgba(56,189,248,0.35), transparent),
+                radial-gradient(1px 1px at 400px 140px, rgba(255,255,255,0.15), transparent);
+            background-size: 450px 220px;
+            opacity: 0.7;
+            animation: starDrift 120s linear infinite;
+        }
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 100%);
+        }
+        @keyframes starDrift {
+            from { transform: translateY(0); }
+            to { transform: translateY(-220px); }
+        }
+
+        /* === GLASSMORPHISM PHI THUYỀN === */
+        .glass {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+        .cyber-glass {
+            position: relative;
+            overflow: hidden;
+        }
+        .cyber-glass::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.6), rgba(124, 58, 237, 0.6), transparent);
+            pointer-events: none;
+        }
+
+        /* === NAV PLASMA === */
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid transparent;
+        }
+        .nav-item:hover {
+            background: rgba(30, 41, 59, 0.6);
+            color: #e2e8f0;
+            border-color: rgba(124, 58, 237, 0.15);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.08);
+        }
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.85) 0%, rgba(99, 102, 241, 0.75) 100%);
+            color: #fff;
+            border-color: rgba(167, 139, 250, 0.4);
+            box-shadow: 0 0 12px #7c3aed, 0 0 24px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+        }
         .nav-item.admin-only { border-left: 2px solid transparent; }
         .nav-item.admin-only.is-admin-visible { border-left-color: #f59e0b; }
-        .role-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 9999px; }
-        .role-badge.admin { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-        .role-badge.staff { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
-        .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+
+        /* === ROLE BADGES === */
+        .role-badge {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 8px;
+            border-radius: 9999px;
+        }
+        .role-badge.admin {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+        }
+        .role-badge.staff {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+        }
+
+        /* === STATUS PILLS NEON === */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
         .status-dot { width: 8px; height: 8px; border-radius: 9999px; display: inline-block; }
-        .status-online { background: rgba(34, 197, 94, 0.12); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.25); }
-        .status-online .status-dot { background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,0.12); }
-        .status-offline { background: rgba(148, 163, 184, 0.08); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
-        .status-offline .status-dot { background: #94a3b8; box-shadow: 0 0 0 4px rgba(148,163,184,0.12); }
+        .status-online {
+            background: rgba(34, 197, 94, 0.12);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.15);
+        }
+        .status-online .status-dot {
+            background: #22c55e;
+            box-shadow: 0 0 6px #22c55e, 0 0 0 4px rgba(34,197,94,0.12);
+        }
+        .status-offline {
+            background: rgba(148, 163, 184, 0.08);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            box-shadow: 0 0 8px rgba(148, 163, 184, 0.08);
+        }
+        .status-offline .status-dot {
+            background: #94a3b8;
+            box-shadow: 0 0 0 4px rgba(148,163,184,0.12);
+        }
+
+        /* === LOGOUT NÚT CẢNH BÁO HẠT NHÂN === */
+        #btnLogout {
+            animation: logoutPulse 2.5s ease-in-out infinite;
+        }
+        #btnLogout:hover {
+            animation: none;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.55), 0 0 40px rgba(239, 68, 68, 0.25);
+            color: #fca5a5 !important;
+            border-color: rgba(239, 68, 68, 0.8) !important;
+            text-shadow: 0 0 8px rgba(248, 113, 113, 0.8);
+        }
+        @keyframes logoutPulse {
+            0%, 100% { box-shadow: 0 0 6px rgba(239, 68, 68, 0.25); border-color: rgba(239, 68, 68, 0.35); }
+            50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.45), 0 0 28px rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.55); }
+        }
+
+        /* === CYBER BUTTONS === */
+        .cyber-btn-primary,
+        #btn-send-report,
+        button[data-admin-reply-btn],
+        button[data-support-action="confirm"],
+        button.bg-purple-600,
+        button.bg-green-600 {
+            background: linear-gradient(135deg, #06b6d4 0%, #7c3aed 100%) !important;
+            border: 1px solid rgba(6, 182, 212, 0.4) !important;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.25), 0 0 20px rgba(124, 58, 237, 0.15);
+            transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease !important;
+        }
+        .cyber-btn-primary:hover,
+        #btn-send-report:hover,
+        button[data-admin-reply-btn]:hover,
+        button[data-support-action="confirm"]:hover {
+            transform: scale(1.04);
+            filter: brightness(1.1);
+            box-shadow: 0 0 18px rgba(6, 182, 212, 0.45), 0 0 32px rgba(124, 58, 237, 0.35) !important;
+        }
+
+        /* === STAT CARDS HOLOGRAM === */
+        .stat-card .hologram-num,
+        .stat-card p[id$="-total"],
+        .stat-card p[id$="-online"],
+        .stat-card p[id$="-offline"],
+        .stat-card > p.text-2xl {
+            font-family: 'Orbitron', 'Inter', sans-serif;
+            text-shadow: 0 0 12px rgba(167, 139, 250, 0.45), 0 0 24px rgba(99, 102, 241, 0.2);
+        }
+
+        /* === TABLE CYBER LINE === */
+        .cyber-table tbody tr {
+            transition: background 0.2s ease, box-shadow 0.2s ease;
+        }
+        .cyber-table tbody tr:hover {
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.06) 0%, rgba(124, 58, 237, 0.08) 50%, rgba(6, 182, 212, 0.06) 100%);
+            box-shadow: inset 0 0 0 1px rgba(6, 182, 212, 0.12), 0 0 12px rgba(6, 182, 212, 0.06);
+        }
+        .cyber-table thead tr {
+            border-bottom: 1px solid rgba(124, 58, 237, 0.25) !important;
+        }
+
+        /* === TAG STATUS GLOW === */
+        .cyber-table span.rounded-full,
+        .cyber-table .px-2.py-1.text-xs.rounded-full {
+            border: 1px solid currentColor;
+            box-shadow: 0 0 8px currentColor;
+            opacity: 0.95;
+        }
+
+        /* === SIDEBAR & MAIN LAYER === */
+        aside, main { position: relative; z-index: 1; }
+        .cosmic-title span { text-shadow: 0 0 16px rgba(168, 85, 247, 0.6); }
+ @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@800;900&display=swap');
+
+/* ==========================================================================
+   A. BACKGROUND KHÔNG GIAN 3D ĐỘNG (BẮT BUỘC)
+   ========================================================================== */
+#space-matrix-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* Luôn nằm dưới cùng */
+    background: radial-gradient(circle at 50% 50%, #080616 0%, #020005 100%);
+    pointer-events: none;
+}
+
+/* Biến các mảng khối thành kính mờ để thấy hiệu ứng sao bay phía sau */
+body {
+    background: transparent !important;
+}
+aside, .main-content, main {
+    background: rgba(10, 8, 24, 0.45) !important;
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(147, 51, 234, 0.15) !important;
+}
+
+/* ==========================================================================
+   B. ĐIỀU CHỈNH KÍCH THƯỚC LOGO (FIX LỖI QUÁ TO/DÀI)
+   ========================================================================== */
+.cyber-logo-hud {
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 1.15rem !important; /* Giảm size từ 2xl xuống để vừa khít Sidebar w-72 */
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1.5px; /* Giảm khoảng cách chữ để bớt dài bẹt */
+    line-height: 1.4;      /* Tăng khoảng cách dòng để chữ Learning không đè lên Mini Series */
+    color: #e2e8f0;
+    display: block;        /* Chuyển thành khối để tự bẻ hàng chuẩn */
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    
+    /* Đổ bóng 3D thu nhỏ tinh tế hơn */
+    text-shadow: 
+        1px 1px 0px #334155,
+        0px 0px 6px rgba(226, 232, 240, 0.2);
+}
+
+/* Chữ Learning dòng dưới */
+.cyber-logo-hud .purple-text {
+    color: #c084fc; 
+    display: inline-block;
+    text-shadow: 
+        1px 1px 0px #581c87,
+        0px 0px 6px rgba(192, 132, 252, 0.3);
+}
+
+/* 3 lõi năng lượng M - S - L thu gọn */
+.cyber-logo-hud .core-node {
+    color: #00f2fe !important; 
+    font-weight: 900;
+    text-shadow: 
+        1px 1px 0px #005662,
+        0px 0px 10px rgba(0, 242, 254, 0.8) !important;
+}
+
+/* Tia quét năng lượng thanh thoát hơn */
+.cyber-logo-hud::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 30%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.4), transparent);
+    transform: skewX(-30deg);
+    animation: radarScan 4s infinite linear;
+}
+
+@keyframes radarScan {
+    0% { left: -100%; }
+    25%, 100% { left: 150%; }
+}
     </style>
 </head>
-<body class="text-slate-200 flex min-h-screen">
+<body class="text-slate-200 flex min-h-screen relative overflow-x-hidden cosmic-bg">
+    <canvas id="space-matrix-bg"></canvas>
+    <script>
+        const canvas = document.getElementById('space-matrix-bg');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            const numStars = 100; // Số lượng sao (chạy siêu mượt, không lo lag máy)
+            let speed = 0.8;      // Tốc độ di chuyển của tàu vũ trụ
 
-    <aside class="w-72 glass border-r border-slate-800 p-6 flex flex-col justify-between shrink-0">
+            function initCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                stars = [];
+                for (let i = 0; i < numStars; i++) {
+                    stars.push({
+                        x: Math.random() * canvas.width - canvas.width / 2,
+                        y: Math.random() * canvas.height - canvas.height / 2,
+                        z: Math.random() * canvas.width,
+                        // Tỷ lệ sinh ra sao màu Xanh Plasma hoặc Tím Nebula
+                        color: Math.random() > 0.3 ? 'rgba(0, 242, 254,' : 'rgba(147, 51, 234,' 
+                    });
+                }
+            }
+
+            function drawStars() {
+                // Tạo hiệu ứng đuôi sao kéo dài (motion blur) bằng lớp phủ trong suốt
+                ctx.fillStyle = 'rgba(4, 2, 14, 0.2)'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+
+                for (let i = 0; i < numStars; i++) {
+                    let star = stars[i];
+                    star.z -= speed; 
+
+                    // Nếu sao bay qua khỏi camera, hồi sinh nó lại ở đằng xa
+                    if (star.z <= 0) {
+                        star.z = canvas.width;
+                        star.x = Math.random() * canvas.width - cx;
+                        star.y = Math.random() * canvas.height - cy;
+                    }
+
+                    // Công thức toán học chiếu tọa độ 3D không gian ra màn hình 2D
+                    const px = (star.x / star.z) * cx + cx;
+                    const py = (star.y / star.z) * cy + cy;
+
+                    if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
+                        const size = (1 - star.z / canvas.width) * 2.5; // Càng gần càng to
+                        const alpha = (1 - star.z / canvas.width);      // Càng gần càng sáng
+
+                        ctx.beginPath();
+                        ctx.arc(px, py, size > 0 ? size : 0.5, 0, Math.PI * 2);
+                        ctx.fillStyle = `${star.color} ${alpha})`;
+                        ctx.fill();
+                    }
+                }
+                requestAnimationFrame(drawStars);
+            }
+
+            window.addEventListener('resize', initCanvas);
+            initCanvas();
+            drawStars();
+        }
+    </script>
+
+    <aside class="w-72 glass cyber-glass border-r border-slate-800/80 border-purple-500/10 p-6 flex flex-col justify-between shrink-0 shadow-[0_0_30px_rgba(99,102,241,0.08)]">
         <div>
-            <div class="text-2xl font-bold tracking-wider text-white mb-1">
-                Edu<span class="text-purple-500">Admin</span>
-            </div>
-            <p class="text-xs text-slate-500 mb-6">B?ng di?u khi?n n?i b?</p>
+            <div class="text-2xl font-bold tracking-wider mb-1 cyber-logo-hud" onclick="window.location.reload()">
+    <span class="core-node">M</span>ini 
+    <span class="core-node">S</span>eries<span class="purple-text">
+    <span class="core-node">L</span>earning</span>
+</div>
+            <p class="text-xs text-slate-500 mb-6">Bảng điều khiển nội bộ</p>
 
             <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2 px-2">Chung</p>
             <nav class="space-y-1 mb-6" id="nav-common">
                 <a href="#content" class="nav-item active" data-section="content" data-access="common">
-                    <span>??</span> Qu?n l� n?i dung
+                    <span>📚</span> Quản lý nội dung
                 </a>
                 <a href="#customers" class="nav-item" data-section="customers" data-access="common" id="menu-customers">
-                    <span>??</span> Qu?n l� Kh�ch h�ng
+                    <span>👥</span> Quản lý Khách hàng
                 </a>
                 <a href="#tokens" class="nav-item" data-section="tokens" data-access="common">
-                    <span>?</span> Qu?n l� Token
+                    <span>🪙</span> Quản lý Token
                 </a>
                 <a href="#support" class="nav-item" data-section="support" data-access="common">
-                    <span>??</span> H? tr? kh�ch h�ng
+                    <span>💬</span> Hỗ trợ khách hàng
                 </a>
                 <a href="#feedback" class="nav-item" data-section="feedback" data-access="common" id="menu-feedback">
-                    <span>?</span> Qu?n l� ��nh gi�
+                    <span>⭐</span> Quản lý Đánh giá
                 </a>
                 <a href="#reports-staff" class="nav-item staff-only" data-section="reports-staff" data-access="staff" id="menu-reports-staff">
-                    <span>??</span> B�o c�o c�ng vi?c
+                    <span>📋</span> Báo cáo công việc
                 </a>
             </nav>
 
-            <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2 px-2 admin-only-label">Qu?n tr? h? th?ng</p>
+            <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2 px-2 admin-only-label">Quản trị hệ thống</p>
             <nav class="space-y-1" id="nav-admin">
                 <a href="#payments" class="nav-item admin-only" data-section="payments" data-access="admin" id="menu-payments">
-                    <span>??</span> L?ch s? thanh to�n
+                    <span>💳</span> Lịch sử thanh toán
                 </a>
                 <a href="#revenue" class="nav-item admin-only" data-section="revenue" data-access="admin" id="menu-revenue">
-                    <span>??</span> Bi?u d? doanh thu
+                    <span>📈</span> Biểu đồ doanh thu
                 </a>
                 <a href="#staff" class="nav-item admin-only" data-section="staff" data-access="admin" id="menu-staff">
-                    <span>??</span> Qu?n l� Nh�n vi�n (Staff)
+                    <span>🛡️</span> Quản lý Nhân viên (Staff)
                 </a>
                 <a href="#reports-admin" class="nav-item admin-only" data-section="reports-admin" data-access="admin" id="menu-reports-admin">
-                    <span>??</span> Xem B�o c�o
+                    <span>📨</span> Xem Báo cáo
                 </a>
             </nav>
         </div>
@@ -79,275 +433,275 @@
                 <span id="roleBadge" class="role-badge staff">Staff</span>
             </div>
             <div class="text-xs text-slate-400 mb-3 px-1">
-                Xin ch�o, <span id="currentUserName" class="text-purple-400 font-bold">�</span>
+                Xin chào, <span id="currentUserName" class="text-purple-400 font-bold">—</span>
             </div>
-            <button type="button" id="btnLogout" class="w-full py-2 bg-red-950/40 text-red-400 border border-red-900 rounded-lg text-sm font-medium hover:bg-red-900/40 transition logout-btn" onclick="window.handleLogout(event)">
-                �ang xu?t
+            <button type="button" id="btnLogout" class="w-full py-2 bg-red-950/30 text-red-400 border border-red-500/50 rounded-lg text-sm font-medium hover:bg-red-900/50 transition logout-btn shadow-[0_0_10px_rgba(239,68,68,0.2)]" onclick="window.handleLogout(event)">
+                Đăng xuất
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 p-8 lg:p-10 overflow-y-auto">
+    <main class="flex-1 p-8 lg:p-10 overflow-y-auto relative z-[1]">
         <div id="access-denied-banner" class="hidden mb-6 p-4 rounded-xl border border-red-500/40 bg-red-950/30 text-red-300 text-sm font-medium"></div>
 
-        <!-- Qu?n l� n?i dung -->
+        <!-- Quản lý nội dung -->
         <section id="section-content" class="dashboard-section space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Qu?n l� n?i dung</h2>
-                <p class="text-slate-400 text-sm mt-1">Duy?t b�i h?c, truy?n Manga v� MiniSeries do ngu?i d�ng t?o.</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Quản lý nội dung</h2>
+                <p class="text-slate-400 text-sm mt-1">Duyệt bài học, truyền Manga và MiniSeries do người dùng tạo.</p>
             </header>
-            <div class="glass rounded-2xl border border-slate-800 p-6">
-                <p class="text-slate-300 text-sm">Danh s�ch n?i dung dang ch? duy?t: <strong class="text-purple-400">8</strong> m?c</p>
+            <div class="glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10 p-6">
+                <p class="text-slate-300 text-sm">Danh sách nội dung đang chờ duyệt: <strong class="text-purple-400">8</strong> mục</p>
             </div>
         </section>
 
-        <!-- Qu?n l� Kh�ch h�ng -->
+        <!-- Quản lý Khách hàng -->
         <section id="section-customers" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Qu?n l� Kh�ch h�ng</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh s�ch Customer v� tr?ng th�i Online/Offline realtime theo d? li?u API.</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Quản lý Khách hàng</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh sách Customer và trạng thái Online/Offline realtime theo dữ liệu API.</p>
             </header>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">T?ng s? kh�ch h�ng</p>
-                    <p class="text-2xl font-bold text-white mt-1" id="customers-total">�</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Tổng số khách hàng</p>
+                    <p class="text-2xl font-bold text-white mt-1 hologram-num" id="customers-total">—</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">�ang Online ??</p>
-                    <p class="text-2xl font-bold text-green-300 mt-1" id="customers-online">�</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Đang Online 🟢</p>
+                    <p class="text-2xl font-bold text-green-300 mt-1 hologram-num" id="customers-online">—</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Offline ?</p>
-                    <p class="text-2xl font-bold text-slate-300 mt-1" id="customers-offline">�</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Offline ⚪</p>
+                    <p class="text-2xl font-bold text-slate-300 mt-1 hologram-num" id="customers-offline">—</p>
                 </div>
             </div>
 
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
-                            <th class="p-4">T�n kh�ch h�ng</th>
+                            <th class="p-4">Tên khách hàng</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">Token s? h?u</th>
-                            <th class="p-4">Tr?ng th�i</th>
-                            <th class="p-4">Ng�y dang k�</th>
+                            <th class="p-4">Token sở hữu</th>
+                            <th class="p-4">Trạng thái</th>
+                            <th class="p-4">Ngày đăng ký</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="customers-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="6">�ang t?i d? li?u kh�ch h�ng...</td>
+                            <td class="p-4 text-slate-400" colspan="6">Đang tải dữ liệu khách hàng...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Qu?n l� Token -->
+        <!-- Quản lý Token -->
         <section id="section-tokens" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Qu?n l� Token</h2>
-                <p class="text-slate-400 text-sm mt-1">Theo d�i s? du Token v� g�i n?p c?a kh�ch h�ng.</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Quản lý Token</h2>
+                <p class="text-slate-400 text-sm mt-1">Theo dõi số dư Token và gói nạp của khách hàng.</p>
             </header>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Token d� ph�t h�nh</p>
-                    <p class="text-2xl font-bold text-white mt-1">2.4M</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Token đã phát hành</p>
+                    <p class="text-2xl font-bold text-white mt-1 hologram-num">2.4M</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">G�i Plus (150K)</p>
-                    <p class="text-2xl font-bold text-purple-400 mt-1">124</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Gói Plus (150K)</p>
+                    <p class="text-2xl font-bold text-purple-400 mt-1 hologram-num">124</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">G�i Pro Max (300K)</p>
-                    <p class="text-2xl font-bold text-amber-400 mt-1">47</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Gói Pro Max (300K)</p>
+                    <p class="text-2xl font-bold text-amber-400 mt-1 hologram-num">47</p>
                 </div>
             </div>
         </section>
 
-        <!-- H? tr? kh�ch h�ng -->
+        <!-- Hỗ trợ khách hàng -->
         <section id="section-support" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">H? tr? kh�ch h�ng</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh s�ch y�u c?u tu v?n t? Customer (luu tr�n Supabase PostgreSQL).</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Hỗ trợ khách hàng</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh sách yêu cầu tư vấn từ Customer.</p>
             </header>
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
-                            <th class="p-4">Email kh�ch</th>
-                            <th class="p-4">N?i dung</th>
-                            <th class="p-4">Ng�y g?i</th>
-                            <th class="p-4">Tr?ng th�i</th>
-                            <th class="p-4">Thao t�c</th>
+                            <th class="p-4">Email khách</th>
+                            <th class="p-4">Nội dung</th>
+                            <th class="p-4">Ngày gửi</th>
+                            <th class="p-4">Trạng thái</th>
+                            <th class="p-4">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="support-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="6">�ang t?i d? li?u y�u c?u...</td>
+                            <td class="p-4 text-slate-400" colspan="6">Đang tải dữ liệu yêu cầu...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Qu?n l� ��nh gi� -->
+        <!-- Quản lý Đánh giá -->
         <section id="section-feedback" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Qu?n l� ��nh gi�</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh s�ch feedback kh�ch h�ng (luu tr�n Supabase PostgreSQL).</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Quản lý Đánh giá</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh sách feedback khách hàng.</p>
             </header>
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">S? sao</th>
-                            <th class="p-4">B�nh lu?n</th>
-                            <th class="p-4">Ng�y g?i</th>
+                            <th class="p-4">Số sao</th>
+                            <th class="p-4">Bình luận</th>
+                            <th class="p-4">Ngày gửi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="feedback-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="5">Chua c� d? li?u d�nh gi�.</td>
+                            <td class="p-4 text-slate-400" colspan="5">Chưa có dữ liệu đánh giá.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Staff: B�o c�o c�ng vi?c -->
+        <!-- Staff: Báo cáo công việc -->
         <section id="section-reports-staff" class="dashboard-section hidden space-y-6" data-access="staff">
             <header>
-                <h2 class="text-2xl font-bold text-white">B�o c�o c�ng vi?c</h2>
-                <p class="text-slate-400 text-sm mt-1">Staff g?i b�o c�o l�n Admin (luu tr�n Supabase PostgreSQL).</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Báo cáo công việc</h2>
+                <p class="text-slate-400 text-sm mt-1">Staff gửi báo cáo lên Admin.</p>
             </header>
-            <div class="glass rounded-2xl border border-slate-800 p-6 space-y-3">
-                <label class="text-sm font-semibold text-slate-200">N?i dung b�o c�o</label>
-                <textarea id="staff-report-content" rows="5" class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="V� d?: H�m nay d� x? l� 8 ticket h? tr?, 2 ticket c?n Admin duy?t ho�n ti?n..."></textarea>
+            <div class="glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10 p-6 space-y-3">
+                <label class="text-sm font-semibold text-slate-200">Nội dung báo cáo</label>
+                <textarea id="staff-report-content" rows="5" class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500 focus:shadow-[0_0_12px_rgba(124,58,237,0.25)]" placeholder="Ví dụ: Hôm nay đã xử lý 8 ticket hỗ trợ, 2 ticket cần Admin duyệt hoàn tiền..."></textarea>
                 <div class="flex justify-end">
-                    <button id="btn-send-report" class="px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition">G?i l�n Admin</button>
+                    <button id="btn-send-report" class="cyber-btn-primary px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition">Gửi lên Admin</button>
                 </div>
             </div>
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
-                            <th class="p-4">Ng�y g?i</th>
-                            <th class="p-4">N?i dung</th>
-                            <th class="p-4">Tr?ng th�i</th>
-                            <th class="p-4">Ph?n h?i Admin</th>
+                            <th class="p-4">Ngày gửi</th>
+                            <th class="p-4">Nội dung</th>
+                            <th class="p-4">Trạng thái</th>
+                            <th class="p-4">Phản hồi Admin</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="reports-staff-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="4">Chua c� b�o c�o n�o.</td>
+                            <td class="p-4 text-slate-400" colspan="4">Chưa có báo cáo nào.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Admin: Xem B�o c�o -->
+        <!-- Admin: Xem Báo cáo -->
         <section id="section-reports-admin" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">Xem B�o c�o</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh s�ch b�o c�o do Staff g?i (luu tr�n Supabase PostgreSQL).</p>
+                <h2 class="text-2xl font-bold text-white">Xem Báo cáo</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh sách báo cáo do Staff gửi.</p>
             </header>
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">Staff</th>
-                            <th class="p-4">Ng�y g?i</th>
-                            <th class="p-4">N?i dung</th>
+                            <th class="p-4">Ngày gửi</th>
+                            <th class="p-4">Nội dung</th>
                             <th class="p-4">Reply</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="reports-admin-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="4">Chua c� b�o c�o n�o.</td>
+                            <td class="p-4 text-slate-400" colspan="4">Chưa có báo cáo nào.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Admin: L?ch s? thanh to�n -->
+        <!-- Admin: Lịch sử thanh toán -->
         <section id="section-payments" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">L?ch s? thanh to�n</h2>
-                <p class="text-slate-400 text-sm mt-1">To�n b? giao d?ch n?p Token qua c?ng thanh to�n.</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Lịch sử thanh toán</h2>
+                <p class="text-slate-400 text-sm mt-1">Toàn bộ giao dịch nạp Token qua cổng thanh toán.</p>
             </header>
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
-                            <th class="p-4">M� GD</th>
+                            <th class="p-4">Mã GD</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">S? ti?n</th>
-                            <th class="p-4">Tr?ng th�i</th>
+                            <th class="p-4">Số tiền</th>
+                            <th class="p-4">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="payments-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="4">�ang t?i l?ch s? thanh to�n...</td>
+                            <td class="p-4 text-slate-400" colspan="4">Đang tải lịch sử thanh toán...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Admin: Bi?u d? doanh thu -->
+        <!-- Admin: Biểu đồ doanh thu -->
         <section id="section-revenue" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">Bi?u d? doanh thu</h2>
-                <p class="text-slate-400 text-sm mt-1">Ph�n t�ch doanh thu theo th�ng (ch? Admin).</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Biểu đồ doanh thu</h2>
+                <p class="text-slate-400 text-sm mt-1">Phân tích doanh thu theo tháng.</p>
             </header>
-            <div class="p-6 glass rounded-2xl border border-slate-800 max-w-4xl">
+            <div class="p-6 glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10 max-w-4xl shadow-[0_0_20px_rgba(99,102,241,0.08)]">
                 <canvas id="revenueChart" height="120"></canvas>
             </div>
         </section>
 
-        <!-- Admin: Qu?n l� Nh�n vi�n (Staff) -->
+        <!-- Admin: Quản lý Nhân viên (Staff) -->
         <section id="section-staff" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">Qu?n l� Nh�n vi�n (Staff)</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh s�ch Staff, tr?ng th�i Online/Offline v� ng�y tham gia.</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Quản lý Nhân viên (Staff)</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh sách Staff, trạng thái Online/Offline và ngày tham gia.</p>
             </header>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">T?ng Staff</p>
-                    <p class="text-2xl font-bold text-white mt-1" id="staff-total">�</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Tổng Staff</p>
+                    <p class="text-2xl font-bold text-white mt-1 hologram-num" id="staff-total">—</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">�ang Online ??</p>
-                    <p class="text-2xl font-bold text-green-300 mt-1" id="staff-online">�</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Đang Online 🟢</p>
+                    <p class="text-2xl font-bold text-green-300 mt-1 hologram-num" id="staff-online">—</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Offline ?</p>
-                    <p class="text-2xl font-bold text-slate-300 mt-1" id="staff-offline">�</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Offline ⚪</p>
+                    <p class="text-2xl font-bold text-slate-300 mt-1 hologram-num" id="staff-offline">—</p>
                 </div>
             </div>
 
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
-                            <th class="p-4">T�n nh�n vi�n</th>
+                            <th class="p-4">Tên nhân viên</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">Vai tr�</th>
-                            <th class="p-4">Tr?ng th�i</th>
-                            <th class="p-4">Ng�y tham gia</th>
+                            <th class="p-4">Vai trò</th>
+                            <th class="p-4">Trạng thái</th>
+                            <th class="p-4">Ngày tham gia</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="staff-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="6">�ang t?i d? li?u nh�n vi�n...</td>
+                            <td class="p-4 text-slate-400" colspan="6">Đang tải dữ liệu nhân viên...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -362,7 +716,7 @@
                 e.preventDefault();
                 e.stopPropagation();
             }
-            if (!confirm("B?n c� ch?c ch?n mu?n dang xu?t kh�ng?")) return;
+            if (!confirm("Bạn có chắc chắn muốn đăng xuất không?")) return;
             localStorage.removeItem("userId");
             localStorage.removeItem("userRole");
             localStorage.removeItem("user_role");
@@ -396,9 +750,9 @@
             return data;
         }
         function formatDateTime(value) {
-            if (!value) return "�";
+            if (!value) return "—";
             const d = new Date(value);
-            if (Number.isNaN(d.getTime())) return "�";
+            if (Number.isNaN(d.getTime())) return "—";
             return d.toLocaleString("vi-VN");
         }
         function showBanner(message) {
@@ -451,7 +805,7 @@
             try {
                 customers = await fetchJson(`${API_BASE}/admin/customers`);
             } catch (err) {
-                setTableMessage("customers-tbody", 6, `Kh�ng t?i du?c danh s�ch kh�ch h�ng: ${err.message}`);
+                setTableMessage("customers-tbody", 6, `Không tải được danh sách khách hàng: ${err.message}`);
                 return;
             }
 
@@ -468,21 +822,21 @@
             if (offlineEl) offlineEl.textContent = String(offlineCount);
 
             if (total === 0) {
-                setTableMessage("customers-tbody", 6, "Chua c� kh�ch h�ng (Role = Customer) tr�n Supabase.");
+                setTableMessage("customers-tbody", 6, "Chưa có khách hàng (Role = Customer) trên Supabase.");
                 return;
             }
 
             tbody.innerHTML = customers.map((c) => {
                 const id = escapeHtml(String(c.id || ""));
-                const name = escapeHtml(c.fullName || c.FullName || "�");
-                const email = escapeHtml(c.email || c.Email || "�");
+                const name = escapeHtml(c.fullName || c.FullName || "—");
+                const email = escapeHtml(c.email || c.Email || "—");
                 const created = escapeHtml(formatDateTime(c.createdAt || c.CreatedAt));
                 return `
                     <tr>
                         <td class="p-4 font-mono text-xs text-slate-400">${id}</td>
                         <td class="p-4 text-slate-200">${name}</td>
                         <td class="p-4 text-slate-300">${email}</td>
-                        <td class="p-4 text-amber-300">�</td>
+                        <td class="p-4 text-amber-300">—</td>
                         <td class="p-4"><span class="px-2 py-1 text-xs rounded-full bg-slate-500/10 text-slate-400">Offline</span></td>
                         <td class="p-4 text-slate-400">${created}</td>
                     </tr>
@@ -497,24 +851,24 @@
             try {
                 requests = await fetchJson(`${API_BASE}/support/list`);
             } catch (err) {
-                setTableMessage("support-tbody", 6, `Kh�ng t?i du?c y�u c?u tu v?n: ${err.message}`);
+                setTableMessage("support-tbody", 6, `Không tải được yêu cầu tư vấn: ${err.message}`);
                 return;
             }
             if (requests.length === 0) {
-                setTableMessage("support-tbody", 6, "Chua c� y�u c?u tu v?n n�o.");
+                setTableMessage("support-tbody", 6, "Chưa có yêu cầu tư vấn nào.");
                 return;
             }
             tbody.innerHTML = requests.map((r) => {
-                const status = r.status || "Ch? tr? l?i";
-                const statusHtml = status === "�� tr? l?i"
-                    ? `<span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">�� tr? l?i</span>`
-                    : `<span class="px-2 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400">Ch? tr? l?i</span>`;
+                const status = r.status || "Chưa trả lời";
+                const statusHtml = status === "Đã trả lời"
+                    ? `<span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">Đã trả lời</span>`
+                    : `<span class="px-2 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400">Chưa trả lời</span>`;
                 const rawId = String(r.id || "");
                 const id = escapeHtml(rawId);
                 const email = escapeHtml(r.customerEmail || "");
                 const noiDung = escapeHtml(r.content || "");
                 const ngayGui = escapeHtml(formatDateTime(r.createdAt));
-                const btnLabel = status === "�� tr? l?i" ? "Xem" : "Tr? l?i";
+                const btnLabel = status === "Đã trả lời" ? "Xem" : "Trả lời";
                 return `
                     <tr>
                         <td class="p-4 font-mono text-slate-300">${id}</td>
@@ -529,11 +883,11 @@
                     <tr class="hidden" id="support-reply-row-${rawId}">
                         <td class="p-4" colspan="6">
                             <div class="glass border border-slate-800 rounded-xl p-4">
-                                <div class="text-sm text-slate-300 font-semibold mb-2">Ph?n h?i cho: <span class="font-mono text-slate-200">${email}</span></div>
-                                <textarea class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" rows="4" id="support-reply-input-${rawId}" placeholder="Nh?p n?i dung tr? l?i...">${escapeHtml(r.reply || "")}</textarea>
+                                <div class="text-sm text-slate-300 font-semibold mb-2">Phản hồi cho: <span class="font-mono text-slate-200">${email}</span></div>
+                                <textarea class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" rows="4" id="support-reply-input-${rawId}" placeholder="Nhập nội dung trả lời...">${escapeHtml(r.reply || "")}</textarea>
                                 <div class="flex justify-end gap-2 mt-3">
-                                    <button class="px-4 py-2 rounded-xl font-bold text-slate-200 border border-slate-700 hover:bg-slate-800/40 transition" data-support-action="cancel" data-id="${rawId}">H?y</button>
-                                    <button class="px-4 py-2 rounded-xl font-bold text-white bg-green-600 hover:bg-green-500 transition" data-support-action="confirm" data-id="${rawId}">X�c nh?n g?i</button>
+                                    <button class="px-4 py-2 rounded-xl font-bold text-slate-200 border border-slate-700 hover:bg-slate-800/40 transition" data-support-action="cancel" data-id="${rawId}">Hủy</button>
+                                    <button class="px-4 py-2 rounded-xl font-bold text-white bg-green-600 hover:bg-green-500 transition" data-support-action="confirm" data-id="${rawId}">Xác nhận gửi</button>
                                 </div>
                             </div>
                         </td>
@@ -551,7 +905,7 @@
                     if (action === "confirm") {
                         const input = document.getElementById(`support-reply-input-${id}`);
                         const reply = (input?.value || "").trim();
-                        if (!reply) { alert("Vui l�ng nh?p n?i dung ph?n h?i."); return; }
+                        if (!reply) { alert("Vui lòng nhập nội dung phản hồi."); return; }
                         try {
                             await fetchJson(`${API_BASE}/support/reply`, {
                                 method: "POST",
@@ -563,11 +917,16 @@
                             });
                             await renderSupportTable();
                         } catch (err) {
-                            alert(`Ph?n h?i th?t b?i: ${err.message}`);
+                            alert(`Phản hồi thất bại: ${err.message}`);
                         }
                     }
                 });
             });
+        }
+
+        function renderStarRating(rating) {
+            const count = Math.max(0, Math.min(5, Number(rating) || 0));
+            return "⭐".repeat(count) + "☆".repeat(5 - count);
         }
 
         async function loadFeedbacks() {
@@ -577,23 +936,70 @@
             try {
                 feedbacks = await fetchJson(`${API_BASE}/feedback/list`);
             } catch (err) {
-                setTableMessage("feedback-tbody", 5, `Kh�ng t?i du?c d�nh gi�: ${err.message}`);
+                setTableMessage("feedback-tbody", 5, `Không thể tải được đánh giá: ${err.message}`);
                 return;
             }
             if (feedbacks.length === 0) {
-                setTableMessage("feedback-tbody", 5, "Chua c� d? li?u d�nh gi�.");
+                setTableMessage("feedback-tbody", 5, "Chưa có dữ liệu đánh giá.");
                 return;
             }
             tbody.innerHTML = feedbacks.map((f) => {
-                const starCount = Number(f.rating || 0);
-                const stars = "?".repeat(starCount) + "?".repeat(Math.max(0, 5 - starCount));
+                const stars = renderStarRating(f.rating);
                 return `
                     <tr>
                         <td class="p-4 font-mono text-slate-300">${escapeHtml(f.id || "")}</td>
                         <td class="p-4 text-slate-200">${escapeHtml(f.email || "")}</td>
-                        <td class="p-4 text-amber-300 font-extrabold tracking-wide">${escapeHtml(stars)}</td>
+                        <td class="p-4 text-amber-300 font-extrabold tracking-wide" title="${Number(f.rating || 0)}/5">${stars}</td>
                         <td class="p-4 text-slate-400">${escapeHtml(f.comment || "")}</td>
                         <td class="p-4 text-slate-400">${escapeHtml(formatDateTime(f.createdAt))}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        async function loadStaffs() {
+            const tbody = document.getElementById("staff-tbody");
+            if (!tbody) return;
+
+            let staffs = [];
+            try {
+                staffs = await fetchJson(`${API_BASE}/admin/staffs`);
+            } catch (err) {
+                setTableMessage("staff-tbody", 6, `Không tải được danh sách nhân viên: ${err.message}`);
+                return;
+            }
+
+            const totalEl = document.getElementById("staff-total");
+            const onlineEl = document.getElementById("staff-online");
+            const offlineEl = document.getElementById("staff-offline");
+
+            const total = staffs.length;
+            const onlineCount = 0;
+            const offlineCount = total;
+
+            if (totalEl) totalEl.textContent = String(total);
+            if (onlineEl) onlineEl.textContent = String(onlineCount);
+            if (offlineEl) offlineEl.textContent = String(offlineCount);
+
+            if (total === 0) {
+                setTableMessage("staff-tbody", 6, "Chưa có nhân viên (Role = Staff) trên Supabase. Hãy cập nhật Role trong bảng UserProfiles.");
+                return;
+            }
+
+            tbody.innerHTML = staffs.map((s) => {
+                const id = escapeHtml(String(s.id || s.Id || ""));
+                const name = escapeHtml(s.fullName || s.FullName || "—");
+                const email = escapeHtml(s.email || s.Email || "—");
+                const role = escapeHtml(s.role || s.Role || "Staff");
+                const created = escapeHtml(formatDateTime(s.createdAt || s.CreatedAt));
+                return `
+                    <tr>
+                        <td class="p-4 font-mono text-xs text-slate-400">${id}</td>
+                        <td class="p-4 text-slate-200">${name}</td>
+                        <td class="p-4 text-slate-300">${email}</td>
+                        <td class="p-4 text-cyan-300">${role}</td>
+                        <td class="p-4"><span class="px-2 py-1 text-xs rounded-full bg-slate-500/10 text-slate-400 border border-slate-500/30">Offline</span></td>
+                        <td class="p-4 text-slate-400">${created}</td>
                     </tr>
                 `;
             }).join("");
@@ -606,25 +1012,25 @@
             try {
                 reports = await fetchJson(`${API_BASE}/report/list`);
             } catch (err) {
-                setTableMessage("reports-staff-tbody", 4, `Kh�ng t?i du?c b�o c�o: ${err.message}`);
+                setTableMessage("reports-staff-tbody", 4, `Không thể tải được báo cáo: ${err.message}`);
                 return;
             }
             reports = reports.filter(r => (r.staffName || "") === staffName);
             if (reports.length === 0) {
-                setTableMessage("reports-staff-tbody", 4, "Chua c� b�o c�o n�o.");
+                setTableMessage("reports-staff-tbody", 4, "Chưa có báo cáo nào.");
                 return;
             }
             tbody.innerHTML = reports.map((r) => {
-                const status = r.adminReply ? "�� ph?n h?i" : (r.status || "Ch? duy?t");
+                const status = r.adminReply ? "Đã phản hồi" : (r.status || "Chưa duyệt");
                 const statusHtml = r.adminReply
-                    ? `<span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">�� ph?n h?i</span>`
+                    ? `<span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">Đã phản hồi</span>`
                     : `<span class="px-2 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400">${escapeHtml(status)}</span>`;
                 return `
                     <tr>
                         <td class="p-4 text-slate-400">${escapeHtml(formatDateTime(r.createdAt))}</td>
                         <td class="p-4 text-slate-200">${escapeHtml(r.content || "")}</td>
                         <td class="p-4">${statusHtml}</td>
-                        <td class="p-4 text-slate-300">${escapeHtml(r.adminReply || "�")}</td>
+                        <td class="p-4 text-slate-300">${escapeHtml(r.adminReply || "—")}</td>
                     </tr>
                 `;
             }).join("");
@@ -636,11 +1042,11 @@
             try {
                 reports = await fetchJson(`${API_BASE}/report/list`);
             } catch (err) {
-                setTableMessage("reports-admin-tbody", 4, `Kh�ng t?i du?c b�o c�o: ${err.message}`);
+                setTableMessage("reports-admin-tbody", 4, `Không thể tải được báo cáo: ${err.message}`);
                 return;
             }
             if (reports.length === 0) {
-                setTableMessage("reports-admin-tbody", 4, "Chua c� b�o c�o n�o.");
+                setTableMessage("reports-admin-tbody", 4, "Chưa có báo cáo nào.");
                 return;
             }
             tbody.innerHTML = reports.map((r) => {
@@ -652,9 +1058,9 @@
                         <td class="p-4 text-slate-400">${escapeHtml(formatDateTime(r.createdAt))}</td>
                         <td class="p-4 text-slate-200">${escapeHtml(r.content || "")}</td>
                         <td class="p-4">
-                            <textarea rows="3" class="w-72 max-w-full bg-slate-950/40 border border-slate-700 rounded-xl p-2 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="Nh?p ph?n h?i..." data-admin-reply="${rawId}">${escapeHtml(r.adminReply || "")}</textarea>
+                            <textarea rows="3" class="w-72 max-w-full bg-slate-950/40 border border-slate-700 rounded-xl p-2 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="Nhập phản hồi..." data-admin-reply="${rawId}">${escapeHtml(r.adminReply || "")}</textarea>
                             <div class="mt-2 flex justify-end">
-                                <button class="px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 hover:bg-green-500 text-white transition" data-admin-reply-btn="${rawId}">Ph?n h?i</button>
+                                <button class="px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 hover:bg-green-500 text-white transition" data-admin-reply-btn="${rawId}">Phản hồi</button>
                             </div>
                         </td>
                     </tr>
@@ -667,13 +1073,13 @@
                     const input = tbody.querySelector(`textarea[data-admin-reply="${id}"]`);
                     const reply = (input?.value || "").trim();
                     if (!reply) {
-                        alert("Vui l�ng nh?p n?i dung ph?n h?i.");
+                        alert("Vui lòng nhập nội dung phản hồi.");
                         return;
                     }
 
                     const originalLabel = btn.textContent;
                     btn.disabled = true;
-                    btn.textContent = "�ang g?i...";
+                    btn.textContent = "Đang gửi...";
 
                     try {
                         await fetchJson(`${API_BASE}/report/reply`, {
@@ -685,14 +1091,14 @@
                             })
                         });
 
-                        alert("Ph?n h?i b�o c�o th�nh c�ng!");
+                        alert("Phản hồi báo cáo thành công!");
                         if (input) {
                             input.value = "";
                             input.disabled = true;
                         }
                         await renderReportsAdmin();
                     } catch (err) {
-                        alert(`Ph?n h?i th?t b?i: ${err.message}`);
+                        alert(`Phản hồi thất bại: ${err.message}`);
                     } finally {
                         btn.disabled = false;
                         btn.textContent = originalLabel;
@@ -707,7 +1113,7 @@
                 const userName = localStorage.getItem("user_name") || "User";
 
                 if (!userRole || (userRole !== "Admin" && userRole !== "Staff")) {
-                    alert("B?n kh�ng c� quy?n truy c?p khu v?c qu?n tr?!");
+                    alert("Bạn không có quyền truy cập khu vực quản trị!");
                     window.location.href = "index.html";
                     return;
                 }
@@ -732,11 +1138,11 @@
                         const access = link.dataset.access;
 
                         if (access === "admin" && userRole !== "Admin") {
-                            showBanner("B?n kh�ng c� quy?n truy c?p ch?c nang n�y.");
+                            showBanner("Bạn không có quyền truy cập chức năng này.");
                             return;
                         }
                         if (access === "staff" && userRole !== "Staff") {
-                            showBanner("B?n kh�ng c� quy?n truy c?p ch?c nang n�y.");
+                            showBanner("Bạn không có quyền truy cập chức năng này.");
                             return;
                         }
 
@@ -746,6 +1152,7 @@
                         if (sectionKey === "reports-staff") void renderReportsStaff(userName);
                         if (sectionKey === "reports-admin") void renderReportsAdmin();
                         if (sectionKey === "customers") void loadCustomers();
+                        if (sectionKey === "staff") void loadStaffs();
                         if (sectionKey === "payments") void loadPaymentHistory();
                         if (sectionKey === "revenue") void loadRevenueChart();
                     });
@@ -756,7 +1163,7 @@
                     btnSendReport.addEventListener("click", async () => {
                         const contentEl = document.getElementById("staff-report-content");
                         const noiDung = (contentEl?.value || "").trim();
-                        if (!noiDung) { alert("Vui l�ng nh?p n?i dung b�o c�o."); return; }
+                        if (!noiDung) { alert("Vui lòng nhập nội dung báo cáo."); return; }
                         try {
                             await fetchJson(`${API_BASE}/report/create`, {
                                 method: "POST",
@@ -768,9 +1175,9 @@
                             });
                             if (contentEl) contentEl.value = "";
                             await renderReportsStaff(userName);
-                            alert("�� g?i b�o c�o l�n Admin.");
+                            alert("Đã gửi báo cáo lên Admin.");
                         } catch (err) {
-                            alert(`G?i b�o c�o th?t b?i: ${err.message}`);
+                            alert(`Gửi báo cáo thất bại: ${err.message}`);
                         }
                     });
                 }
@@ -782,6 +1189,7 @@
                 if (userRole === "Staff") void renderReportsStaff(userName);
                 if (userRole === "Admin") {
                     void renderReportsAdmin();
+                    void loadStaffs();
                     void loadPaymentHistory();
                     void loadRevenueChart();
                 }
@@ -794,7 +1202,7 @@
 
         function formatVnd(amount) {
             const n = Number(amount || 0);
-            return n.toLocaleString("vi-VN") + " VN�";
+            return n.toLocaleString("vi-VN") + " VNĐ";
         }
 
         async function loadPaymentHistory() {
@@ -803,7 +1211,7 @@
             try {
                 const rows = await fetchJson(`${API_BASE}/admin/payment-history`);
                 if (!Array.isArray(rows) || rows.length === 0) {
-                    tbody.innerHTML = `<tr><td class="p-4 text-slate-400" colspan="4">Chua c� giao d?ch n�o.</td></tr>`;
+                    tbody.innerHTML = `<tr><td class="p-4 text-slate-400" colspan="4">Chưa có giao dịch nào.</td></tr>`;
                     return;
                 }
                 tbody.innerHTML = rows.map((p) => `
@@ -811,11 +1219,11 @@
                         <td class="p-4 font-mono text-amber-400">${escapeHtml(p.transactionCode || "")}</td>
                         <td class="p-4 text-slate-400">${escapeHtml(p.userEmail || "")}</td>
                         <td class="p-4 text-green-400">${escapeHtml(formatVnd(p.amount))}</td>
-                        <td class="p-4"><span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">Ho�n t?t</span></td>
+                        <td class="p-4"><span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">Hoàn tất</span></td>
                     </tr>
                 `).join("");
             } catch (err) {
-                tbody.innerHTML = `<tr><td class="p-4 text-red-400" colspan="4">L?i t?i d? li?u: ${escapeHtml(err.message)}</td></tr>`;
+                tbody.innerHTML = `<tr><td class="p-4 text-red-400" colspan="4">Lỗi tải dữ liệu: ${escapeHtml(err.message)}</td></tr>`;
             }
         }
 
@@ -836,7 +1244,7 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: "Doanh thu (VN�)",
+                            label: "Doanh thu (VNĐ)",
                             data: amounts,
                             borderColor: "#a855f7",
                             backgroundColor: "rgba(168, 85, 247, 0.35)",
@@ -851,7 +1259,7 @@
                             legend: { labels: { color: "#94a3b8" } },
                             title: {
                                 display: true,
-                                text: `T?ng doanh thu: ${formatVnd(stats.totalRevenue)} (${stats.transactionCount || 0} giao d?ch)`,
+                                text: `Tổng doanh thu: ${formatVnd(stats.totalRevenue)} (${stats.transactionCount || 0} giao dịch)`,
                                 color: "#e2e8f0"
                             }
                         },

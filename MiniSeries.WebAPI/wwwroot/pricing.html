@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng Giá - MiniSeries</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="customer-scifi.css">
     <style>
         body {
-            background-color: #0f172a;
+            background-color: #0c0a1a; /* Đổi nhẹ mã màu tối để hòa hợp với không gian vũ trụ */
             color: #ffffff;
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -15,7 +16,28 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+            box-sizing: border-box;
         }
+        
+        /* PHẦN CANVAS NỀN HỆ MẶT TRỜI 3D KHÔNG ẢNH HƯỞNG ĐẾN LAYOUT */
+        #solar-system-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .pricing-shell, .header, .pricing-container {
+            position: relative;
+            z-index: 5; /* Đẩy các phần tử giao diện lên trên lớp canvas */
+        }
+
         .header {
             text-align: center;
             margin-bottom: 42px;
@@ -40,7 +62,9 @@
             flex-wrap: wrap;
         }
         .card {
-            background-color: #1e293b;
+            background-color: rgba(30, 41, 59, 0.7); /* Thêm chút alpha opacity để nhìn xuyên thấu nền 3D sang trọng */
+            backdrop-filter: blur(12px); /* Hiệu ứng kính mờ scifi */
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid #334155;
             border-radius: 18px;
             padding: 30px;
@@ -118,14 +142,24 @@
         .btn-premium:hover { background-color: #9333ea; }
     </style>
 </head>
-<body>
+<body class="cosmic-customer-page">
+
+    <canvas id="solar-system-bg"></canvas>
+
+    <div class="pricing-shell pricing-top-bar">
+        <a href="home.html" class="cyber-back-btn" id="btnBackHome">
+            <span class="cyber-back-arrow">←</span>
+            Quay về Trang chủ
+        </a>
+    </div>
+
     <div class="header">
         <h1>Chọn gói MiniSeries</h1>
         <p>Mỗi gói cấp số lượt generate trong 1 tháng. Một lượt được tính khi bạn phê duyệt script để hệ thống tạo media và quiz hoàn chỉnh.</p>
     </div>
 
     <div class="pricing-container">
-        <div class="card">
+        <div class="card cyber-glass">
             <div>
                 <h3 class="plan-name" style="color: #94a3b8;">Free</h3>
                 <div class="price">0đ <span>/ tháng</span></div>
@@ -139,7 +173,7 @@
             <button class="btn-buy btn-free" disabled>Gói mặc định</button>
         </div>
 
-        <div class="card popular">
+        <div class="card popular cyber-glass">
             <span class="badge">Phổ biến</span>
             <div>
                 <h3 class="plan-name" style="color: #c084fc;">Basic</h3>
@@ -154,7 +188,7 @@
             <button class="btn-buy btn-premium" onclick="goToPayment('Basic', 150000, 30)">Mua gói Basic</button>
         </div>
 
-        <div class="card">
+        <div class="card cyber-glass">
             <div>
                 <h3 class="plan-name" style="color: #fbbf24;">Premium</h3>
                 <div class="price">300.000đ <span>/ tháng</span></div>
@@ -219,6 +253,114 @@
                 console.error("Lỗi kết nối API:", error);
                 alert("Server đang bảo trì hoặc chưa được bật.");
             }
+        }
+
+        /* MECHANICAL CANVAS ANIMATION: 3D-LIKE ORBITING SOLAR SYSTEM */
+        const canvas = document.getElementById('solar-system-bg');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            let planets = [];
+            
+            // Cấu hình các thuộc tính hệ mặt trời
+            const sun = { x: 0, y: 0, radius: 28, color: '#ec4899', glow: '#a855f7' }; // Mặt trời hồng tím theo màu UI của bạn
+
+            function initBackground() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                // Khởi tạo nền sao lấp lánh tĩnh phía sau
+                stars = [];
+                for (let i = 0; i < 150; i++) {
+                    stars.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        radius: Math.random() * 1.2,
+                        alpha: Math.random()
+                    });
+                }
+
+                // Thiết lập bán kính quỹ đạo co giãn theo chiều rộng màn hình để không bị lấp sau các Card
+                const baseOrbit = Math.min(canvas.width, canvas.height) * 0.35;
+                
+                planets = [
+                    { radius: 7, orbitX: baseOrbit * 0.7, orbitY: baseOrbit * 0.22, speed: 0.009, angle: 0, color: '#60a5fa' },   // Hành tinh xanh dương khí
+                    { radius: 11, orbitX: baseOrbit * 1.2, orbitY: baseOrbit * 0.38, speed: 0.005, angle: 2.3, color: '#a78bfa' }, // Hành tinh tím giống UI cột Basic
+                    { radius: 9, orbitX: baseOrbit * 1.7, orbitY: baseOrbit * 0.52, speed: 0.003, angle: 4.1, color: '#fbbf24' }   // Hành tinh vàng hổ phách ứng với cột Premium
+                ];
+            }
+
+            function drawSystem() {
+                // Xoá màn hình và vẽ không gian tối sâu thẳm
+                ctx.fillStyle = '#0a0817';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Điểm tâm vị trí Hệ mặt trời nằm khuất nhẹ sau phần tiêu đề chính giữa
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height * 0.45;
+
+                // 1. Vẽ các vì sao
+                stars.forEach(star => {
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                    ctx.fill();
+                    
+                    // Tạo hiệu ứng lấp lánh ngẫu nhiên
+                    star.alpha += (Math.random() - 0.5) * 0.04;
+                    if (star.alpha < 0.1) star.alpha = 0.1;
+                    if (star.alpha > 0.9) star.alpha = 0.9;
+                });
+
+                // 2. Vẽ đường quỹ đạo hình elip dẹt tạo góc nhìn không gian 3D nghiêng
+                planets.forEach(planet => {
+                    ctx.beginPath();
+                    ctx.ellipse(centerX, centerY, planet.orbitX, planet.orbitY, 0, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(168, 85, 247, 0.07)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                });
+
+                // 3. Vẽ Mặt Trời trung tâm phát sáng cực đại
+                ctx.save();
+                ctx.shadowBlur = 40;
+                ctx.shadowColor = sun.glow;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, sun.radius, 0, Math.PI * 2);
+                ctx.fillStyle = sun.color;
+                ctx.fill();
+                ctx.restore();
+
+                // 4. Cập nhật vị trí và vẽ cấu trúc dịch chuyển của các hành tinh xoay quanh
+                planets.forEach(planet => {
+                    // Tính toán tọa độ vị trí dựa vào phương trình Elip toán học mô phỏng 3D góc nghiêng
+                    const posX = centerX + Math.cos(planet.angle) * planet.orbitX;
+                    const posY = centerY + Math.sin(planet.angle) * planet.orbitY;
+
+                    // Thay đổi kích thước hành tinh động theo vị trí quỹ đạo (ở gần thì to, ở xa thì nhỏ hơn)
+                    const factor = (Math.sin(planet.angle) + 1.5) / 2.5; // Tỷ lệ góc nhìn xa gần
+                    const dynamicRadius = planet.radius * (0.7 + factor * 0.5);
+
+                    // Vẽ hành tinh phát sáng nhẹ
+                    ctx.save();
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = planet.color;
+                    ctx.beginPath();
+                    ctx.arc(posX, posY, dynamicRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = planet.color;
+                    ctx.fill();
+                    ctx.restore();
+
+                    // Tăng góc xoay để hành tinh di chuyển liên tục tuần hoàn
+                    planet.angle += planet.speed;
+                });
+
+                requestAnimationFrame(drawSystem);
+            }
+
+            window.addEventListener('resize', initBackground);
+            initBackground();
+            drawSystem();
         }
     </script>
 </body>
