@@ -88,7 +88,7 @@
     </div>
 
     <script>
-        const BACKEND_API = "http://localhost:5137/api";
+        const BACKEND_API = "/api";
         function authHeaders(headers = {}) {
             const token = localStorage.getItem("token");
             return token ? { ...headers, Authorization: `Bearer ${token}` } : headers;

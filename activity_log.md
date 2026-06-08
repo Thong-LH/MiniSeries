@@ -392,3 +392,28 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
    - Login customer thanh cong.
    - Profile Basic tra `manga 1/30`, `video 0/10`, tong con 39.
    - Tao invoice Basic tra `mangaMonthlyLimit = 30`, `videoMonthlyLimit = 10`, `monthlyGenerationLimit = 40`.
+
+## [2026-06-04] - Tao FE API handoff
+
+### Da hoan thanh:
+1. Them `docs/FE_API_HANDOFF.md` de ban FE co the noi API nhanh.
+2. Tai lieu gom:
+   - Auth register/verify/login.
+   - Profile quota manga/video.
+   - Draft/approve lesson generation.
+   - Response chapter manga/video va quiz.
+   - Loi het quota `402`.
+   - Payment create invoice/check status.
+3. Ghi chu ro FE nen dung `remainingMangaCount` va `remainingVideoCount` thay vi chi dung tong quota.
+
+## [2026-06-08] - Sua FE static de test local on dinh
+
+### Da hoan thanh:
+1. Doi cac URL frontend hardcode `http://localhost:5137/api` sang relative path `/api` hoac current origin.
+2. Sua `auth.js` de expose `window.handleRegister` dung voi cach `index.html` goi khi dang ky.
+3. Them cache-bust cho `auth.js` trong `index.html` de tranh browser dung file JS cu.
+4. Kiem tra server local `http://localhost:5088`:
+   - `index.html` load dung `auth.js` moi.
+   - `auth.js` co `window.handleRegister`.
+   - Khong con hardcode `localhost:5137`.
+5. Build solution thanh cong (`0 warning`, `0 error`).
