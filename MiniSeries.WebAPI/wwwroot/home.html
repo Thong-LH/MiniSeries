@@ -1,145 +1,150 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini Series Learning - Tương Lai Của Giáo Dục</title>
-    <!-- Ví dụ nhúng font tương thích 100% tiếng Việt -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2">
     <link rel="stylesheet" href="customer-scifi.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        /* Toàn bộ nội dung trang */
         body {
             background-color: #030712;
             color: #ffffff;
             font-family: 'Inter', sans-serif;
             margin: 0;
-            padding: 0; /* Đưa padding về 0 để không ép thanh điều hướng thụt lề */
+            padding: 0;
             overflow-x: hidden;
         }
 
-        /* Khung chứa background bao phủ toàn màn hình */
+
         .cyber-space-bg {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          z-index: -1;
-          background: radial-gradient(circle at 50% 55%, #080c14 0%, #020408 100%);
-          overflow: hidden;
-          pointer-events: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 55%, #080c14 0%, #020408 100%);
+            overflow: hidden;
+            pointer-events: none;
         }
 
-        /* Lớp tinh vân Nebula phát sáng huyền ảo */
+
         .nebula-glow {
-          position: absolute;
-          width: 600px;
-          height: 600px;
-          background: radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, transparent 70%);
-          top: 10%;
-          left: 20%;
-          animation: nebulaFloat 20s ease-in-out infinite alternate;
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, transparent 70%);
+            top: 10%;
+            left: 20%;
+            animation: nebulaFloat 20s ease-in-out infinite alternate;
         }
 
         .nebula-glow::after {
-          content: '';
-          position: absolute;
-          width: 500px;
-          height: 500px;
-          background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
-          bottom: 10%;
-          right: -20%;
-          animation: nebulaFloat 25s ease-in-out infinite alternate-reverse;
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
+            bottom: 10%;
+            right: -20%;
+            animation: nebulaFloat 25s ease-in-out infinite alternate-reverse;
         }
 
-        /* Lớp sao nhỏ nhấp nháy */
+
         .stars-layer-1 {
-          position: absolute;
-          width: 2px;
-          height: 2px;
-          background: white;
-          box-shadow: 10vw 20vh #fff, 30vw 50vh rgba(255,255,255,0.5), 70vw 15vh #fff, 85vw 75vh rgba(255,255,255,0.8), 50vw 80vh #fff, 15vw 85vh rgba(255,255,255,0.3);
-          top: 0; left: 0; bottom: 0; right: 0;
-          animation: starsTwinkle 4s ease-in-out infinite alternate;
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            box-shadow: 10vw 20vh #fff, 30vw 50vh rgba(255, 255, 255, 0.5), 70vw 15vh #fff, 85vw 75vh rgba(255, 255, 255, 0.8), 50vw 80vh #fff, 15vw 85vh rgba(255, 255, 255, 0.3);
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            animation: starsTwinkle 4s ease-in-out infinite alternate;
         }
 
-        /* Lớp sao băng/sao hạt to hơn di chuyển chậm */
+
         .stars-layer-2 {
-          position: absolute;
-          width: 3px;
-          height: 3px;
-          background: #22d3ee;
-          box-shadow: 20vw 10vh rgba(34,211,238,0.4), 60vw 40vh rgba(168,85,247,0.5), 45vw 65vh rgba(34,211,238,0.6), 90vw 25vh rgba(168,85,247,0.4);
-          top: 0; left: 0; bottom: 0; right: 0;
-          animation: starsTwinkle 6s ease-in-out infinite alternate-reverse;
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #22d3ee;
+            box-shadow: 20vw 10vh rgba(34, 211, 238, 0.4), 60vw 40vh rgba(168, 85, 247, 0.5), 45vw 65vh rgba(34, 211, 238, 0.6), 90vw 25vh rgba(168, 85, 247, 0.4);
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            animation: starsTwinkle 6s ease-in-out infinite alternate-reverse;
         }
 
-        /* --- Tạo hình các Hành tinh tương lai --- */
+
         .planet-cyan {
-          position: absolute;
-          width: 120px;
-          height: 120px;
-          background: radial-gradient(circle at 30% 30%, #06b6d4 0%, #082f49 70%, #020617 100%);
-          border-radius: 50%;
-          top: 15%;
-          right: 8%;
-          box-shadow: 0 0 30px rgba(6, 182, 212, 0.25), inset -10px -10px 20px rgba(0,0,0,0.8);
-          opacity: 0.7;
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 30% 30%, #06b6d4 0%, #082f49 70%, #020617 100%);
+            border-radius: 50%;
+            top: 15%;
+            right: 8%;
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.25), inset -10px -10px 20px rgba(0, 0, 0, 0.8);
+            opacity: 0.7;
         }
 
         .planet-purple {
-          position: absolute;
-          width: 60px;
-          height: 60px;
-          background: radial-gradient(circle at 30% 30%, #a855f7 0%, #4c1d95 70%, #020617 100%);
-          border-radius: 50%;
-          bottom: 20%;
-          left: 5%;
-          box-shadow: 0 0 20px rgba(168, 85, 247, 0.2), inset -5px -5px 10px rgba(0,0,0,0.8);
-          opacity: 0.6;
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle at 30% 30%, #a855f7 0%, #4c1d95 70%, #020617 100%);
+            border-radius: 50%;
+            bottom: 20%;
+            left: 5%;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.2), inset -5px -5px 10px rgba(0, 0, 0, 0.8);
+            opacity: 0.6;
         }
 
-        /* Phi thuyền 1: Bay chéo màn hình */
+
         .spaceship-1 {
-          position: absolute;
-          font-size: 24px;
-          top: 30%;
-          left: -50px;
-          transform: rotate(15deg);
-          filter: drop-shadow(0 0 8px #22d3ee);
-          opacity: 0;
-          animation: flyAcrossFaster 28s linear infinite;
+            position: absolute;
+            font-size: 24px;
+            top: 30%;
+            left: -50px;
+            transform: rotate(15deg);
+            filter: drop-shadow(0 0 8px #22d3ee);
+            opacity: 0;
+            animation: flyAcrossFaster 28s linear infinite;
         }
 
-        /* Tàu vũ trụ 2: Bay hướng ngược lại sâu hơn */
+
         .spaceship-2 {
-          position: absolute;
-          font-size: 18px;
-          bottom: 15%;
-          right: -50px;
-          transform: scaleX(-1) rotate(-10deg);
-          filter: drop-shadow(0 0 8px #a855f7);
-          opacity: 0;
-          animation: flyAcrossSlower 42s linear infinite;
-          animation-delay: 10s;
+            position: absolute;
+            font-size: 18px;
+            bottom: 15%;
+            right: -50px;
+            transform: scaleX(-1) rotate(-10deg);
+            filter: drop-shadow(0 0 8px #a855f7);
+            opacity: 0;
+            animation: flyAcrossSlower 42s linear infinite;
+            animation-delay: 10s;
         }
 
-        /* Vệ tinh công nghệ: Bay quỹ đạo lơ lửng tại chỗ */
+
         .satellite {
-          position: absolute;
-          font-size: 28px;
-          top: 60%;
-          right: 15%;
-          filter: drop-shadow(0 0 5px rgba(255,255,255,0.4));
-          animation: satelliteFloat 12s ease-in-out infinite alternate;
-          opacity: 0.5;
+            position: absolute;
+            font-size: 28px;
+            top: 60%;
+            right: 15%;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4));
+            animation: satelliteFloat 12s ease-in-out infinite alternate;
+            opacity: 0.5;
         }
 
         main {
-            padding: 120px 40px 40px 40px; /* Thêm padding riêng cho nội dung chính để tránh bị đè dưới thanh Nav */
+            padding: 120px 40px 40px 40px;
         }
 
         .hero {
@@ -147,7 +152,7 @@
             padding: 40px 20px;
         }
 
-        /* XỬ LÝ TIÊU ĐỀ H1 */
+
         .hero h1 {
             font-family: 'Inter', sans-serif;
             font-size: 3.5rem;
@@ -157,20 +162,19 @@
             color: #ffffff;
             transform: scaleX(0.9);
             display: inline-block;
-            text-shadow: 
+            text-shadow:
                 1px 1px 0px rgba(0, 0, 0, 0.8),
                 0 0 15px rgba(0, 212, 255, 0.3);
             margin-bottom: 20px;
         }
 
-        /* HIỆU ỨNG NEON RỰC RỠ CHO CHỮ "TRẢI NGHIỆM" */
+
         .hero h1 .neon-text {
             background: linear-gradient(45deg, #00d4ff, #ff007f) !important;
             -webkit-background-clip: text !important;
             -webkit-text-fill-color: transparent !important;
             display: inline-block;
-            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6)) 
-                    drop-shadow(0 0 20px rgba(255, 0, 127, 0.8));
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6)) drop-shadow(0 0 20px rgba(255, 0, 127, 0.8));
         }
 
         .hero .sub-title {
@@ -194,8 +198,8 @@
             margin: 0;
             display: inline-block;
             position: relative;
-            color: #c084fc; 
-            text-shadow: 
+            color: #c084fc;
+            text-shadow:
                 1px 1px 0px #581c87,
                 2px 2px 0px #581c87,
                 3px 3px 0px #581c87,
@@ -205,9 +209,9 @@
         }
 
         .cyber-logo-container .highlight-letter {
-            color: #00f2fe; 
+            color: #00f2fe;
             position: relative;
-            text-shadow: 
+            text-shadow:
                 1px 1px 0px #00667a,
                 2px 2px 0px #00667a,
                 3px 3px 0px #00667a,
@@ -219,7 +223,7 @@
         .cyber-logo-container:hover {
             transform: translateY(-2px) scale(1.02);
             color: #e9d5ff;
-            text-shadow: 
+            text-shadow:
                 1px 1px 0px #6b21a8,
                 2px 2px 0px #6b21a8,
                 0px 0px 15px rgba(192, 132, 252, 0.8),
@@ -228,7 +232,7 @@
 
         .cyber-logo-container:hover .highlight-letter {
             color: #ffffff;
-            text-shadow: 
+            text-shadow:
                 1px 1px 0px #008fa7,
                 2px 2px 0px #008fa7,
                 0px 0px 20px rgba(0, 242, 254, 1),
@@ -236,42 +240,96 @@
         }
 
         @keyframes nebulaFloat {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(40px, 30px) scale(1.15); }
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(40px, 30px) scale(1.15);
+            }
         }
 
         @keyframes starsTwinkle {
-          0%, 100% { opacity: 0.3; transform: scale(0.9); }
-          50% { opacity: 1; transform: scale(1.2); }
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(0.9);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
         }
 
         @keyframes satelliteFloat {
-          0% { transform: translateY(0) rotate(0deg); }
-          100% { transform: translateY(-20px) rotate(15deg); }
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(-20px) rotate(15deg);
+            }
         }
 
         @keyframes flyAcrossFaster {
-          0% { left: -50px; top: 30%; opacity: 0; transform: rotate(15deg) scale(0.7); }
-          5% { opacity: 0.8; }
-          90% { opacity: 0.8; }
-          100% { left: 105vw; top: 15%; opacity: 0; transform: rotate(15deg) scale(0.7); }
+            0% {
+                left: -50px;
+                top: 30%;
+                opacity: 0;
+                transform: rotate(15deg) scale(0.7);
+            }
+
+            5% {
+                opacity: 0.8;
+            }
+
+            90% {
+                opacity: 0.8;
+            }
+
+            100% {
+                left: 105vw;
+                top: 15%;
+                opacity: 0;
+                transform: rotate(15deg) scale(0.7);
+            }
         }
 
         @keyframes flyAcrossSlower {
-          0% { right: -50px; bottom: 15%; opacity: 0; transform: scaleX(-1) rotate(-10deg) scale(0.5); }
-          5% { opacity: 0.6; }
-          95% { opacity: 0.6; }
-          100% { right: 105vw; bottom: 40%; opacity: 0; transform: scaleX(-1) rotate(-10deg) scale(0.5); }
+            0% {
+                right: -50px;
+                bottom: 15%;
+                opacity: 0;
+                transform: scaleX(-1) rotate(-10deg) scale(0.5);
+            }
+
+            5% {
+                opacity: 0.6;
+            }
+
+            95% {
+                opacity: 0.6;
+            }
+
+            100% {
+                right: 105vw;
+                bottom: 40%;
+                opacity: 0;
+                transform: scaleX(-1) rotate(-10deg) scale(0.5);
+            }
         }
     </style>
 </head>
 
 <body class="cosmic-customer-page">
+    <script src="session-router.js?v=20260608-router"></script>
     <script>
         const checkUserId = localStorage.getItem('userId');
-        if (!checkUserId && localStorage.getItem('user_role') !== 'Customer') {
+        if (!window.SessionRouter && !checkUserId && localStorage.getItem('user_role') !== 'Customer') {
             alert('Vui lòng đăng nhập để sử dụng tính năng này!');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
         }
     </script>
 
@@ -290,7 +348,8 @@
 
     <div class="background-blobs"></div>
 
-    <nav class="bg-slate-900/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50 border-b border-slate-800 cyber-nav-glass" style="
+    <nav class="bg-slate-900/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50 border-b border-slate-800 cyber-nav-glass"
+        style="
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
@@ -299,8 +358,8 @@
         height: 70px !important;
     ">
         <h1 class="cyber-logo-container" onclick="window.location.reload()">
-            <span class="highlight-letter">M</span>ini 
-            <span class="highlight-letter">S</span>eries 
+            <span class="highlight-letter">M</span>ini
+            <span class="highlight-letter">S</span>eries
             <span class="highlight-letter">L</span>earning
         </h1>
 
@@ -312,13 +371,12 @@
             margin: 0;
             padding: 0;
         ">
-            <a href="home.html" class="text-gray-300 hover:text-purple-400 transition font-medium cyber-nav-link" style="text-decoration: none; white-space: nowrap;">Trang chủ</a>
-            <a href="tu-van.html" class="text-gray-300 hover:text-purple-400 transition font-medium cyber-nav-link" style="text-decoration: none; white-space: nowrap;">Tư vấn</a>
-            <a href="pricing.html" class="text-gray-300 hover:text-purple-400 transition font-medium cyber-nav-link" style="text-decoration: none; white-space: nowrap;">Bảng giá</a>
-            <button id="btnOpenFeedback" class="cyber-feedback-btn" style="background: none; border: 1px solid rgba(168,85,247,0.35); color: #cbd5e1; padding: 6px 12px; border-radius: 9999px; cursor: pointer; font-weight: 600; white-space: nowrap;" onmouseover="this.style.borderColor='#a855f7'; this.style.color='#ffffff'" onmouseout="this.style.borderColor='rgba(168,85,247,0.35)'; this.style.color='#cbd5e1'">
-                ⭐ Đánh giá
-            </button>
-
+            <a href="home.html" class="text-gray-300 hover:text-purple-400 transition font-medium cyber-nav-link"
+                style="text-decoration: none; white-space: nowrap;">Trang chủ</a>
+            <a href="tu-van.html" class="text-gray-300 hover:text-purple-400 transition font-medium cyber-nav-link"
+                style="text-decoration: none; white-space: nowrap;">Tư vấn</a>
+            <a href="pricing.html" class="text-gray-300 hover:text-purple-400 transition font-medium cyber-nav-link"
+                style="text-decoration: none; white-space: nowrap;">Bảng giá</a>
             <div id="user-header-zone" style="display: flex !important; align-items: center !important;">
                 <div class="animate-pulse bg-slate-800 h-9 w-28 rounded-full"></div>
             </div>
@@ -340,66 +398,59 @@
         z-index: 99999;
         font-family: 'Inter', sans-serif;
     ">
-        <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 12px;">
-            <img id="dropdown-avatar" src="" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #a855f7; padding: 2px; background-color: #334155;">
+        <div
+            style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 12px;">
+            <img id="dropdown-avatar" src=""
+                style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #a855f7; padding: 2px; background-color: #334155;">
             <div style="overflow: hidden; text-align: left;">
-                <h4 id="dropdown-fullname" style="margin: 0; font-size: 14px; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Đang tải...</h4>
-                <p id="dropdown-email" style="margin: 2px 0 0 0; font-size: 12px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Đang tải...</p>
+                <h4 id="dropdown-fullname"
+                    style="margin: 0; font-size: 14px; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    Đang tải...</h4>
+                <p id="dropdown-email"
+                    style="margin: 2px 0 0 0; font-size: 12px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    Đang tải...</p>
             </div>
         </div>
 
-        <div style="background-color: rgba(15, 23, 42, 0.6); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div
+            style="background-color: rgba(15, 23, 42, 0.6); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
             <div style="text-align: left;">
                 <p style="margin: 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Tài khoản</p>
                 <span id="dropdown-tier" style="font-size: 12px; color: #fbbf24; font-weight: 700;">PREMIUM</span>
             </div>
             <div style="text-align: right;">
-                <p style="margin: 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Lượt còn lại</p>
-                <span id="dropdown-tokens" style="font-size: 14px; color: #c084fc; font-weight: 700; font-family: monospace;">0 lượt</span>
+                <p style="margin: 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Quota còn lại</p>
+                <span id="dropdown-manga-tokens"
+                    style="display:block; font-size: 13px; color: #22d3ee; font-weight: 800; font-family: monospace;">Truyện
+                    0/0</span>
+                <span id="dropdown-video-tokens"
+                    style="display:block; margin-top: 2px; font-size: 13px; color: #c084fc; font-weight: 800; font-family: monospace;">Video
+                    0/0</span>
             </div>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px;">
-            <button onclick="alert('Đang mở danh sách Series truyện tranh yêu thích của bạn...')" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #cbd5e1; font-size: 13px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(51,65,85,0.5)'" onmouseout="this.style.backgroundColor='transparent'">
-                💖 Series yêu thích
+            <button onclick="alert('?ang m? danh s?ch Series yêu thích c?a b?n...')"
+                style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #cbd5e1; font-size: 13px; cursor: pointer; transition: background 0.2s;"
+                onmouseover="this.style.backgroundColor='rgba(51,65,85,0.5)'"
+                onmouseout="this.style.backgroundColor='transparent'">
+                Series yêu thích
             </button>
-            <button onclick="window.location.href='pricing.html'" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #fbbf24; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(51,65,85,0.5)'" onmouseout="this.style.backgroundColor='transparent'">
+            <button onclick="window.location.href='pricing.html'"
+                style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #fbbf24; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+                onmouseover="this.style.backgroundColor='rgba(51,65,85,0.5)'"
+                onmouseout="this.style.backgroundColor='transparent'">
                 Mua thêm lượt / Gói
             </button>
             <hr style="border: 0; border-top: 1px solid #334155; margin: 6px 0;">
-            <button onclick="handleLogout()" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #f87171; font-size: 13px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(239,68,68,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
-                🚪 Đăng xuất tài khoản
+            <button onclick="handleLogout()"
+                style="width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 8px; color: #f87171; font-size: 13px; cursor: pointer; transition: background 0.2s;"
+                onmouseover="this.style.backgroundColor='rgba(239,68,68,0.1)'"
+                onmouseout="this.style.backgroundColor='transparent'">
+                Đăng xuất tài khoản
             </button>
         </div>
     </div>
-
-    <div id="feedback-overlay" style="display:none; position:fixed; inset:0; background: rgba(0,0,0,0.75); z-index: 100000;"></div>
-    <div id="feedback-panel" class="cyber-feedback-panel" style="display:none; position:fixed; top:50%; left:50%; transform: translate(-50%, -50%); width: 520px; max-width: 92vw; background:#1e293b; border: 1px solid #334155; border-radius: 18px; padding: 22px; z-index: 100001; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);">
-        <div style="display:flex; justify-content:space-between; gap: 10px; align-items:center;">
-            <h3 style="margin:0; font-size: 18px; font-weight: 800; color:#c084fc;">Đánh giá dịch vụ</h3>
-            <button id="btnCloseFeedback" style="background: transparent; border: 1px solid #475569; color: #cbd5e1; border-radius: 10px; padding: 6px 10px; cursor:pointer;">Đóng</button>
-        </div>
-        <p style="margin: 8px 0 14px 0; font-size: 13px; color:#94a3b8;">Chọn số sao và để lại bình luận để giúp MiniSeries cải thiện tốt hơn.</p>
-
-        <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 10px;">
-            <span style="font-size: 13px; color:#e2e8f0; font-weight:700;">Số sao:</span>
-            <div id="stars" style="display:flex; gap: 6px;">
-                <button class="star-btn" data-star="1" type="button" style="background:none; border:none; font-size: 22px; cursor:pointer; color:#64748b;">★</button>
-                <button class="star-btn" data-star="2" type="button" style="background:none; border:none; font-size: 22px; cursor:pointer; color:#64748b;">★</button>
-                <button class="star-btn" data-star="3" type="button" style="background:none; border:none; font-size: 22px; cursor:pointer; color:#64748b;">★</button>
-                <button class="star-btn" data-star="4" type="button" style="background:none; border:none; font-size: 22px; cursor:pointer; color:#64748b;">★</button>
-                <button class="star-btn" data-star="5" type="button" style="background:none; border:none; font-size: 22px; cursor:pointer; color:#64748b;">★</button>
-            </div>
-            <span id="starLabel" style="font-size: 12px; color:#94a3b8;">(chưa chọn)</span>
-        </div>
-
-        <textarea id="feedbackComment" rows="4" style="width:100%; resize:vertical; background: rgba(15,23,42,0.7); border: 1px solid #334155; color:#e2e8f0; border-radius: 14px; padding: 12px; outline:none;" placeholder="Bạn thấy trải nghiệm thế nào?"></textarea>
-
-        <div style="display:flex; justify-content:flex-end; gap: 10px; margin-top: 14px;">
-            <button id="btnSubmitFeedback" class="cyber-btn-plasma" style="background: linear-gradient(to right, #9333ea, #7c3aed); border:none; color:#fff; padding: 10px 14px; border-radius: 12px; cursor:pointer; font-weight: 800;">✨ Gửi đánh giá</button>
-        </div>
-    </div>
-
     <main>
         <section class="hero">
             <h1>Biến bài học thành <span class="neon-text">Trải nghiệm</span></h1>
@@ -426,7 +477,8 @@
                     </label>
                     <span>Video (Cao cấp)</span>
                 </div>
-                <button id="generateBtn" class="btn-primary cyber-btn-plasma">🚀 Bắt đầu tạo <span class="sparkle">✨</span></button>
+                <button id="generateBtn" class="btn-primary cyber-btn-plasma">Bắt đầu tạo <span
+                        class="sparkle"></span></button>
             </div>
         </section>
 
@@ -441,30 +493,27 @@
                     <h2>Kịch bản bài học (Draft Script)</h2>
                     <div id="scriptContent" class="script-content"></div>
                     <div class="review-actions">
-                        <button id="approveBtn" class="btn-success">Phê duyệt & Tạo Media (Approve) ✅</button>
+                        <button id="approveBtn" class="btn-success">Phê duyệt & Tạo Media</button>
                     </div>
                 </div>
 
                 <div id="mediaSection" class="media-section hidden">
-                    <div class="character-anchor">
-                        <h2>Nhân vật chủ đạo (Anchor)</h2>
-                        <div class="anchor-image-wrapper glass cyber-glass">
-                            <img id="anchorImage" src="" alt="Anchor Character">
+                    <div class="chapter-reader glass cyber-glass">
+                        <div class="chapter-reader-header">
+                            <div>
+                                <p class="reader-kicker">Poll AI Output</p>
+                                <h2>Trình đọc chapter</h2>
+                            </div>
+                            <div class="chapter-nav">
+                                <button id="prevChapterBtn" type="button" class="chapter-nav-btn">Trước</button>
+                                <span id="chapterCounter" class="chapter-counter">0 / 0</span>
+                                <button id="nextChapterBtn" type="button" class="chapter-nav-btn">Tiếp</button>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="chapters-grid">
-                        <h2>Các chương</h2>
-                        <div id="chaptersList" class="chapters-list"></div>
+                        <div id="chapterStage" class="chapter-stage"></div>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <section class="glass cyber-glass" style="max-width: 1100px; margin: 30px auto 0 auto; padding: 22px; border-radius: 18px;">
-            <h2 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 800; color:#e2e8f0;">Ý kiến khách hàng</h2>
-            <p style="margin:0 0 14px 0; color:#94a3b8; font-size: 13px;">Các đánh giá mới nhất.</p>
-            <div id="feedbackList" style="display:flex; flex-direction:column; gap: 10px;"></div>
         </section>
     </main>
 
@@ -472,7 +521,7 @@
         <p>&copy; 2026 MiniSeries. Powered by Pollinations API.</p>
     </footer>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=20260609-draft-reader-ui"></script>
 
     <script>
         const BACKEND_API = "/api";
@@ -486,7 +535,10 @@
             let defaultUser = {
                 fullName: "Nguyễn Khang",
                 email: "annkang040704@gmail.com",
-                tokens: 3,
+                mangaTokens: 3,
+                videoTokens: 1,
+                mangaLimit: 3,
+                videoLimit: 1,
                 tier: "Free",
                 avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Khang"
             };
@@ -498,13 +550,15 @@
                         const apiData = await response.json();
                         defaultUser.fullName = apiData.fullName || defaultUser.fullName;
                         defaultUser.email = apiData.email || defaultUser.email;
-                        if (apiData.remainingGenerationCount !== undefined) defaultUser.tokens = apiData.remainingGenerationCount;
-                        else if (apiData.tokens !== undefined) defaultUser.tokens = apiData.tokens;
+                        if (apiData.remainingMangaCount !== undefined) defaultUser.mangaTokens = apiData.remainingMangaCount;
+                        if (apiData.remainingVideoCount !== undefined) defaultUser.videoTokens = apiData.remainingVideoCount;
+                        if (apiData.mangaMonthlyLimit !== undefined) defaultUser.mangaLimit = apiData.mangaMonthlyLimit;
+                        if (apiData.videoMonthlyLimit !== undefined) defaultUser.videoLimit = apiData.videoMonthlyLimit;
                         if (apiData.planName) defaultUser.tier = apiData.planName;
                         else if (apiData.tier) defaultUser.tier = apiData.tier;
                     }
                 } catch (error) {
-                    console.log("Đang hiển thị dữ liệu tài khoản cục bộ.");
+                    console.log("?ang hi?n th? d? li?u Tài khoản c?c b?.");
                 }
             }
 
@@ -525,16 +579,8 @@
                     transition: all 0.2s ease;
                 " onmouseover="this.style.borderColor='#a855f7'" onmouseout="this.style.borderColor='#334155'">
 
-                    <span style="
-                        background-color: rgba(168, 85, 247, 0.2);
-                        color: #c084fc;
-                        font-weight: bold;
-                        font-size: 11px;
-                        padding: 1px 6px;
-                        border-radius: 9999px;
-                        border: 1px solid rgba(168, 85, 247, 0.3);
-                        white-space: nowrap;
-                    ">${defaultUser.tokens} lượt</span>
+                    <span class="quota-pill manga">Truyện ${defaultUser.mangaTokens}/${defaultUser.mangaLimit}</span>
+                    <span class="quota-pill video">Video ${defaultUser.videoTokens}/${defaultUser.videoLimit}</span>
 
                     <span style="
                         color: #e2e8f0;
@@ -564,7 +610,8 @@
                 document.getElementById("dropdown-avatar").src = defaultUser.avatarUrl;
                 document.getElementById("dropdown-fullname").innerText = defaultUser.fullName;
                 document.getElementById("dropdown-email").innerText = defaultUser.email;
-                document.getElementById("dropdown-tokens").innerText = `${defaultUser.tokens} lượt`;
+                document.getElementById("dropdown-manga-tokens").innerText = `Truyện ${defaultUser.mangaTokens}/${defaultUser.mangaLimit}`;
+                document.getElementById("dropdown-video-tokens").innerText = `Video ${defaultUser.videoTokens}/${defaultUser.videoLimit}`;
                 document.getElementById("dropdown-tier").innerText = defaultUser.tier.toUpperCase();
             }
 
@@ -592,128 +639,18 @@
         });
 
         function handleLogout() {
+            if (window.SessionRouter) {
+                window.SessionRouter.logout();
+                return;
+            }
+
             localStorage.clear();
-            alert("Đã đăng xuất tài khoản thành công!");
-            window.location.href = "index.html";
+            alert("?? dang xu?t Tài khoản th?nh c?ng!");
+            window.location.replace("index.html");
         }
 
         window.addEventListener("DOMContentLoaded", fetchAndRenderHeaderProfile);
     </script>
-
-    <script>
-        const FEEDBACK_API = "/api/feedback";
-        function escapeHtml(value) {
-            return String(value ?? '')
-                .replaceAll('&', '&amp;')
-                .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
-                .replaceAll('"', '&quot;')
-                .replaceAll("'", '&#039;');
-        }
-
-        function renderFeedbackList() {
-            const listEl = document.getElementById('feedbackList');
-            if (!listEl) return;
-            fetch(`${FEEDBACK_API}/public-list`)
-                .then(async (res) => {
-                    const text = await res.text();
-                    const items = text ? JSON.parse(text) : [];
-                    if (!Array.isArray(items) || items.length === 0) {
-                        listEl.innerHTML = `<div style="color:#94a3b8; font-size: 13px;">Chưa có đánh giá nào. Hãy là người đầu tiên gửi đánh giá.</div>`;
-                        return;
-                    }
-
-                    listEl.innerHTML = items.slice(0, 20).map((f) => {
-                        const rating = Number(f.rating || f.stars || 0);
-                        const stars = '★'.repeat(Math.max(0, Math.min(5, rating))) + '☆'.repeat(Math.max(0, 5 - Math.max(0, Math.min(5, rating))));
-                        const email = escapeHtml(f.email || f.emailKhach || 'unknown');
-                        const comment = escapeHtml(f.comment || '');
-                        const when = f.createdAt || f.ngayGui ? new Date(f.createdAt || f.ngayGui).toLocaleString('vi-VN') : '';
-                        return `
-                            <div style="background: rgba(15,23,42,0.55); border: 1px solid #334155; border-radius: 14px; padding: 12px;">
-                                <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
-                                    <div style="font-weight:800; color:#fbbf24; letter-spacing: 0.5px;">${stars}</div>
-                                    <div style="font-size: 12px; color:#94a3b8;">${escapeHtml(when)}</div>
-                                </div>
-                                <div style="margin-top:6px; font-size: 13px; color:#e2e8f0;">${comment}</div>
-                                <div style="margin-top:8px; font-size: 12px; color:#94a3b8;">${email}</div>
-                            </div>`;
-                    }).join('');
-                })
-                .catch(() => {
-                    listEl.innerHTML = `<div style="color:#94a3b8; font-size: 13px;">Không tải được danh sách đánh giá từ hệ thống.</div>`;
-                });
-        }
-
-        (function initFeedbackUi() {
-            let selectedStars = 0;
-            const overlay = document.getElementById('feedback-overlay');
-            const panel = document.getElementById('feedback-panel');
-            const openBtn = document.getElementById('btnOpenFeedback');
-            const closeBtn = document.getElementById('btnCloseFeedback');
-            const submitBtn = document.getElementById('btnSubmitFeedback');
-            const commentEl = document.getElementById('feedbackComment');
-            const starLabel = document.getElementById('starLabel');
-            const starButtons = Array.from(document.querySelectorAll('.star-btn'));
-
-            function setStars(n) {
-                selectedStars = n;
-                starButtons.forEach((btn) => {
-                    const s = Number(btn.dataset.star || '0');
-                    btn.style.color = s <= selectedStars ? '#fbbf24' : '#64748b';
-                });
-                if (starLabel) starLabel.innerText = selectedStars ? `(${selectedStars}/5)` : '(chưa chọn)';
-            }
-
-            function openModal() {
-                if (overlay) overlay.style.display = 'block';
-                if (panel) panel.style.display = 'block';
-            }
-            function closeModal() {
-                if (overlay) overlay.style.display = 'none';
-                if (panel) panel.style.display = 'none';
-            }
-
-            starButtons.forEach((btn) => btn.addEventListener('click', () => setStars(Number(btn.dataset.star || '0'))));
-            if (openBtn) openBtn.addEventListener('click', openModal);
-            if (closeBtn) closeBtn.addEventListener('click', closeModal);
-            if (overlay) overlay.addEventListener('click', closeModal);
-
-            if (submitBtn) {
-                submitBtn.addEventListener('click', () => {
-                    const comment = (commentEl?.value || '').trim();
-                    if (!selectedStars) {
-                        alert('Vui lòng chọn số sao (1-5).');
-                        return;
-                    }
-                    if (!comment) {
-                        alert('Vui lòng nhập bình luận.');
-                        return;
-                    }
-                    const emailKhach = localStorage.getItem('user_email') || 'unknown@customer.local';
-                    fetch(`${FEEDBACK_API}/create`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ rating: selectedStars, comment: comment, emailKhach: emailKhach })
-                    })
-                    .then(async (res) => {
-                        if (res.ok) {
-                            alert('Cảm ơn bạn đã gửi đánh giá thành công!');
-                            closeModal();
-                            if (commentEl) commentEl.value = '';
-                            setStars(0);
-                            renderFeedbackList();
-                        } else {
-                            alert('Không gửi được đánh giá. Vui lòng thử lại sau.');
-                        }
-                    })
-                    .catch(() => {
-                        alert('Lỗi kết nối server hệ thống.');
-                    });
-                });
-            }
-            renderFeedbackList();
-        })();
-    </script>
 </body>
+
 </html>

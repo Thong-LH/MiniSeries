@@ -143,6 +143,7 @@
     </style>
 </head>
 <body class="cosmic-customer-page">
+    <script src="session-router.js?v=20260608-router"></script>
 
     <canvas id="solar-system-bg"></canvas>
 
@@ -205,13 +206,15 @@
 
     <script>
         async function goToPayment(planName, amount, generations) {
+            if (window.SessionRouter && !window.SessionRouter.guard()) return;
+
             const token = (localStorage.getItem("token") || "").trim();
             const userId = (localStorage.getItem("userId") || "").trim();
             const userEmail = (localStorage.getItem("user_email") || "").trim().toLowerCase();
 
             if (!token || (!userId && !userEmail)) {
                 alert("Vui lòng đăng nhập trước khi mua gói.");
-                window.location.href = "index.html";
+                window.location.replace("login.html");
                 return;
             }
 

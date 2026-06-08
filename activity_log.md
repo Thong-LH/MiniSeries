@@ -417,3 +417,101 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
    - `auth.js` co `window.handleRegister`.
    - Khong con hardcode `localhost:5137`.
 5. Build solution thanh cong (`0 warning`, `0 error`).
+
+## [2026-06-08] - Them session router cho auth FE
+
+### Da hoan thanh:
+1. Them `MiniSeries.WebAPI/wwwroot/session-router.js` de quan ly route guard chung.
+2. Chan cac case:
+   - Da login nhung back ve `index.html`.
+   - Da logout nhung back ve `home.html`, `profile.html`, `pricing.html`, `checkout.html`, `tu-van.html`.
+   - Customer vao `dashboard.html`.
+   - Staff/Admin vao nham trang customer.
+3. Doi login/logout sang dung `location.replace()` thong qua `SessionRouter` de tranh giu trang cu trong browser history.
+4. Them guard vao `app.js` de generate flow cung di qua session router.
+5. Kiem tra `node --check` cho `session-router.js`, `auth.js`, `app.js` thanh cong.
+6. Build solution thanh cong (`0 warning`, `0 error`).
+
+## [2026-06-08] - Them landing page public
+
+### Da hoan thanh:
+1. Chuyen trang dang nhap/dang ky hien tai sang `MiniSeries.WebAPI/wwwroot/login.html`.
+2. Tao moi `MiniSeries.WebAPI/wwwroot/index.html` thanh landing page public cho MiniSeries Learning.
+3. Landing page co:
+   - Hero MiniSeries Learning.
+   - Canvas background interactive.
+   - CTA `Dang nhap` va `Vao ung dung`.
+   - Tom tat flow nhap bai hoc -> review script -> media/quiz.
+4. Cap nhat `session-router.js`:
+   - `index.html` la public landing.
+   - `login.html` la guest-only auth page.
+   - Trang can auth redirect ve `login.html`.
+5. Kiem tra local:
+   - `http://localhost:5088/index.html` tra landing moi.
+   - `http://localhost:5088/login.html` tra form auth cu.
+6. Build solution thanh cong (`0 warning`, `0 error`).
+
+## [2026-06-09] - Thiet ke lai Customer workspace home
+
+### Da hoan thanh:
+1. Bo UI feedback tren `home.html`:
+   - Bo nut feedback tren nav.
+   - Bo modal feedback.
+   - Bo section danh sach feedback.
+   - Bo script goi `/api/feedback` tren trang home.
+2. Cap nhat header/dropdown de hien thi ro quota rieng:
+   - `Truyen remainingMangaCount/mangaMonthlyLimit`.
+   - `Video remainingVideoCount/videoMonthlyLimit`.
+3. Thiet ke lai khung review script:
+   - Hien script trong panel doc rieng.
+   - Them panel thong tin chapter/output/nhan vat.
+   - Nut approve ro hon.
+4. Doi output chapter tu grid sang reader co nut:
+   - `Truoc`.
+   - counter chapter.
+   - `Tiep`.
+5. Doi quiz tu text thuong sang quiz tuong tac:
+   - Chon dap an A/B/C/D.
+   - Highlight dung/sai.
+   - Hien explanation sau khi chon.
+6. Kiem tra:
+   - `node --check` cho JS chinh thanh cong.
+   - `dotnet build MiniSeries.sln` thanh cong (`0 warning`, `0 error`).
+   - Local `home.html` co `chapterStage`, co quota manga, va khong con `btnOpenFeedback`.
+
+## [2026-06-09] - Fix render output sau approve
+
+### Da hoan thanh:
+1. Kiem tra backend/API:
+   - `dotnet build MiniSeries.sln --no-restore` thanh cong.
+   - Login API test thanh cong voi account customer.
+   - `GET /api/lessons/my` va `GET /api/lessons/{id}` tra du lesson da generated, co `anchorImageUrl`, `chapters`, media URL va quiz.
+2. Cap nhat `app.js`:
+   - `renderMedia()` khong fail im lang khi thieu optional DOM/anchor.
+   - `renderCurrentChapter()` hien panel thong bao neu API khong tra chapter thay vi de trang trong.
+   - Them placeholder ro rang neu chapter thieu video/manga URL.
+   - Them status approve dang cho theo thoi gian de user biet request generate co the lau.
+3. Cap nhat `home.html`:
+   - Them cache-busting cho `app.js?v=20260609-output-render` de browser khong dung JS cu.
+4. Kiem tra:
+   - `node --check MiniSeries.WebAPI/wwwroot/app.js` thanh cong.
+   - Mock render bang Node cho lesson co video + quiz thanh cong.
+
+## [2026-06-09] - Chinh UI draft va chapter reader
+
+### Da hoan thanh:
+1. Bo anchor image tren `home.html`:
+   - User khong con thay block "Nhan vat chu dao/Anchor".
+   - FE van co the dung anchor trong backend de generate, nhung khong hien ra UI.
+2. Chinh draft review:
+   - Khung draft chi hien noi dung kich ban.
+   - Bo thong tin chapter/output/nhan vat trong khung draft vi khong can cho user.
+3. Chinh CSS:
+   - Lam lai khung draft gon hon, de doc hon.
+   - Lam lai nut `Truoc` / `Tiep` cua chapter reader.
+   - Lam lai quiz option, selected/correct/wrong state.
+4. Kiem tra:
+   - `node --check MiniSeries.WebAPI/wwwroot/app.js` thanh cong.
+   - `dotnet build MiniSeries.sln --no-restore` thanh cong.
+   - Mock render xac nhan draft khong con side panel, chapter image va quiz van render dung.
+   - Don lai `app.js` thanh mot ban render duy nhat, khong con ham cu bi override.

@@ -96,6 +96,7 @@
     </style>
 </head>
 <body class="cosmic-customer-page">
+    <script src="session-router.js?v=20260608-router"></script>
 
     <canvas id="space-station-canvas"></canvas>
     <div class="station-grid-floor"></div>
@@ -103,9 +104,9 @@
 
     <script>
         const checkUserId = localStorage.getItem('userId');
-        if (!checkUserId && localStorage.getItem('user_role') !== 'Customer') {
+        if (!window.SessionRouter && !checkUserId && localStorage.getItem('user_role') !== 'Customer') {
             alert('Vui lòng đăng nhập để sử dụng tính năng này!');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
         }
     </script>
 

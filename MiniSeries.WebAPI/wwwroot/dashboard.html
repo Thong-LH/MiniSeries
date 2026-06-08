@@ -314,6 +314,7 @@ aside, .main-content, main {
     </style>
 </head>
 <body class="text-slate-200 flex min-h-screen relative overflow-x-hidden cosmic-bg">
+    <script src="session-router.js?v=20260608-router"></script>
     <canvas id="space-matrix-bg"></canvas>
     <script>
         const canvas = document.getElementById('space-matrix-bg');
@@ -717,13 +718,18 @@ aside, .main-content, main {
                 e.stopPropagation();
             }
             if (!confirm("Bạn có chắc chắn muốn đăng xuất không?")) return;
+            if (window.SessionRouter) {
+                window.SessionRouter.logout();
+                return;
+            }
+
             localStorage.removeItem("userId");
             localStorage.removeItem("userRole");
             localStorage.removeItem("user_role");
             localStorage.removeItem("user_name");
             localStorage.removeItem("user_email");
             localStorage.removeItem("token");
-            window.location.href = "index.html";
+            window.location.replace("index.html");
         };
 
         const API_BASE = "/api";
@@ -1109,12 +1115,14 @@ aside, .main-content, main {
 
         document.addEventListener("DOMContentLoaded", () => {
             try {
+                if (window.SessionRouter && !window.SessionRouter.guard()) return;
+
                 const userRole = localStorage.getItem("userRole") || localStorage.getItem("user_role");
                 const userName = localStorage.getItem("user_name") || "User";
 
                 if (!userRole || (userRole !== "Admin" && userRole !== "Staff")) {
                     alert("Bạn không có quyền truy cập khu vực quản trị!");
-                    window.location.href = "index.html";
+                    window.location.href = "login.html";
                     return;
                 }
 

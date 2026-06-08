@@ -1,10 +1,52 @@
 const API_BASE_URL = window.location.origin;
 
+let tempRegisterData = null;
+
+function setFormMode(mode) {
+    const loginFormSection = document.getElementById("loginFormSection");
+    const registerFormSection = document.getElementById("registerFormSection");
+    const formSubtitle = document.getElementById("formSubtitle");
+
+    if (!loginFormSection || !registerFormSection || !formSubtitle) return;
+
+    if (mode === "register") {
+        loginFormSection.classList.add("hidden");
+        registerFormSection.classList.remove("hidden");
+        formSubtitle.innerText = "Dang ky tai khoan moi de trai nghiem he thong";
+        return;
+    }
+
+    registerFormSection.classList.add("hidden");
+    loginFormSection.classList.remove("hidden");
+    formSubtitle.innerText = "Dang nhap de bat dau chuyen doi bai hoc";
+}
+
+function setButtonLoading(button, isLoading, loadingText) {
+    if (!button) return;
+
+    if (isLoading) {
+        if (!button.dataset.originalText) {
+            button.dataset.originalText = button.innerHTML;
+        }
+        button.disabled = true;
+        button.classList.add("opacity-70", "cursor-not-allowed");
+        button.innerHTML = loadingText;
+        return;
+    }
+
+    button.disabled = false;
+    button.classList.remove("opacity-70", "cursor-not-allowed");
+    if (button.dataset.originalText) {
+        button.innerHTML = button.dataset.originalText;
+    }
+}
+
 async function parseResponseSafe(response) {
     const text = await response.text();
     if (!text) {
-        return { message: `Máy chủ trả về rỗng (HTTP ${response.status}).` };
+        return { message: `May chu tra ve rong (HTTP ${response.status}).` };
     }
+
     try {
         return JSON.parse(text);
     } catch {
@@ -12,148 +54,151 @@ async function parseResponseSafe(response) {
     }
 }
 
-/** Chỉ lấy message từ backend — không gán thông báo mặc định sai lệch. */
 function getApiErrorMessage(response, data) {
-    if (!data) return `Lỗi HTTP ${response.status}`;
-    if (typeof data === 'string' && data.trim()) return data.trim();
+    if (!data) return `Loi HTTP ${response.status}`;
+    if (typeof data === "string" && data.trim()) return data.trim();
     if (data.message) return String(data.message);
     if (data.error_description) return String(data.error_description);
     if (data.msg) return String(data.msg);
     if (data.title) return String(data.title);
     if (Array.isArray(data.errors)) {
-        const parts = data.errors.map((e) => e?.message || JSON.stringify(e)).filter(Boolean);
-        if (parts.length) return parts.join('; ');
+        const parts = data.errors
+            .map((error) => error?.message || JSON.stringify(error))
+            .filter(Boolean);
+        if (parts.length) return parts.join("; ");
     }
-    return `Lỗi HTTP ${response.status}`;
+    return `Loi HTTP ${response.status}`;
 }
 
-const loginFormSection = document.getElementById('loginFormSection');
-const registerFormSection = document.getElementById('registerFormSection');
-const formSubtitle = document.getElementById('formSubtitle');
-
-document.getElementById('toRegisterLink')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    loginFormSection.classList.add('hidden');
-    registerFormSection.classList.remove('hidden');
-    formSubtitle.innerText = 'Đăng ký tài khoản mới để trải nghiệm dịch vụ';
-});
-
-document.getElementById('toLoginLink')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    registerFormSection.classList.add('hidden');
-    loginFormSection.classList.remove('hidden');
-    formSubtitle.innerText = 'Đăng nhập để bắt đầu chuyển đổi bài học';
-});
-
-let tempRegisterData = null;
-
 function generateUUID() {
-    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
-        (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (char) =>
+        (char ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (char / 4)))).toString(16)
     );
 }
 
 function redirectAfterLogin(targetPage) {
+    if (window.SessionRouter) {
+        window.SessionRouter.redirectAfterLogin(localStorage.getItem("userRole") || localStorage.getItem("user_role"));
+        return;
+    }
+
     const currentUrl = window.location.href;
-    if (currentUrl.includes('index.html')) {
-        window.location.href = currentUrl.replace('index.html', targetPage);
-        return;
+    for (const page of ["index.html", "pricing.html", "login.html"]) {
+        if (currentUrl.includes(page)) {
+            window.location.replace(currentUrl.replace(page, targetPage));
+            return;
+        }
     }
-    if (currentUrl.includes('pricing.html')) {
-        window.location.href = currentUrl.replace('pricing.html', targetPage);
-        return;
-    }
-    if (currentUrl.includes('login.html')) {
-        window.location.href = currentUrl.replace('login.html', targetPage);
-        return;
-    }
-    window.location.href = targetPage;
+    window.location.replace(targetPage);
 }
 
 function saveSessionFromAuth(data) {
     const userId = data.userId ?? data.id ?? data.Id;
-    const role = data.role ?? data.Role ?? 'Customer';
+    const role = data.role ?? data.Role ?? "Customer";
+
     if (!userId) {
-        throw new Error('Backend không trả về userId.');
+        throw new Error("Backend khong tra ve userId.");
     }
-    localStorage.setItem('userId', userId);
-    localStorage.setItem('userRole', role);
-    localStorage.setItem('user_role', role);
-    localStorage.setItem('user_name', data.fullName ?? data.FullName ?? 'User');
-    localStorage.setItem('user_email', data.email ?? data.Email ?? '');
+
+    localStorage.setItem("userId", userId);
+    localStorage.setItem("userRole", role);
+    localStorage.setItem("user_role", role);
+    localStorage.setItem("user_name", data.fullName ?? data.FullName ?? "User");
+    localStorage.setItem("user_email", data.email ?? data.Email ?? "");
+
     if (data.accessToken) {
-        localStorage.setItem('token', data.accessToken);
+        localStorage.setItem("token", data.accessToken);
     }
 }
 
-// Giai đoạn 1: Gửi OTP qua Gmail (chưa tạo Supabase Auth)
 async function handleRegister(email, password, fullName) {
-    fullName = (fullName || '').trim();
-    email = (email || '').trim().toLowerCase();
-    password = password || '';
+    const registerButton = document.getElementById("registerBtn");
+    const registerFormSection = document.getElementById("registerFormSection");
+    const formSubtitle = document.getElementById("formSubtitle");
 
-    if (!fullName || !email || !password) {
-        alert('Vui lòng điền đầy đủ thông tin!');
+    const cleanFullName = (fullName || "").trim();
+    const cleanEmail = (email || "").trim().toLowerCase();
+    const cleanPassword = password || "";
+
+    if (!cleanFullName || !cleanEmail || !cleanPassword) {
+        alert("Vui long dien day du thong tin.");
         return;
     }
-    if (password.length < 6) {
-        alert('Mật khẩu tối thiểu 6 ký tự.');
+
+    if (cleanPassword.length < 6) {
+        alert("Mat khau toi thieu 6 ky tu.");
         return;
     }
 
-    const uniqueUserId = generateUUID();
+    const userId = generateUUID();
     const payload = {
-        supabaseUserId: uniqueUserId,
-        email,
-        fullName,
-        password,
-        role: 'Customer'
+        supabaseUserId: userId,
+        email: cleanEmail,
+        fullName: cleanFullName,
+        password: cleanPassword,
+        role: "Customer"
     };
 
     try {
+        setButtonLoading(registerButton, true, "Dang gui ma OTP...");
+
         const response = await fetch(`${API_BASE_URL}/api/auth/register-profile`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
 
-        const resData = await parseResponseSafe(response);
+        const data = await parseResponseSafe(response);
         if (!response.ok) {
-            throw new Error(getApiErrorMessage(response, resData));
+            throw new Error(getApiErrorMessage(response, data));
         }
 
-        tempRegisterData = { userId: uniqueUserId, fullName, email, password };
+        tempRegisterData = {
+            userId,
+            fullName: cleanFullName,
+            email: cleanEmail,
+            password: cleanPassword
+        };
 
-        registerFormSection.innerHTML = `
-            <div class="space-y-4">
-                <div class="p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl text-center">
-                    <p class="text-sm text-purple-400">${resData.message || 'Mã OTP đã được gửi! Kiểm tra hộp thư email của bạn.'}</p>
+        if (registerFormSection) {
+            registerFormSection.innerHTML = `
+                <div class="space-y-4">
+                    <div class="p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl text-center">
+                        <p class="text-sm text-purple-400">${data.message || "Ma OTP da duoc gui. Kiem tra email cua ban."}</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Nhap ma xac nhan OTP</label>
+                        <input type="text" id="otpInput" maxlength="6" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-center text-2xl font-bold tracking-widest text-white transition" placeholder="000000">
+                    </div>
+                    <button id="verifyOtpBtn" type="button" class="w-full py-3 mt-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold rounded-xl transition shadow-lg flex justify-center items-center">
+                        Xac nhan kich hoat
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Nhập mã xác nhận (OTP)</label>
-                    <input type="text" id="otpInput" maxlength="6" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-center text-2xl font-bold tracking-widest text-white transition" placeholder="000000">
-                </div>
-                <button id="verifyOtpBtn" type="button" class="w-full py-3 mt-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold rounded-xl transition shadow-lg flex justify-center items-center">
-                    Xác nhận kích hoạt
-                </button>
-            </div>
-        `;
-        formSubtitle.innerText = 'Xác thực Email tài khoản';
-        document.getElementById('verifyOtpBtn').addEventListener('click', handleVerifyOtp);
-    } catch (err) {
-        alert('Lỗi đăng ký: ' + (err.message || 'Không xác định'));
+            `;
+        }
+
+        if (formSubtitle) {
+            formSubtitle.innerText = "Xac thuc Email tai khoan";
+        }
+
+        document.getElementById("verifyOtpBtn")?.addEventListener("click", handleVerifyOtp);
+    } catch (error) {
+        alert("Loi dang ky: " + (error.message || "Khong xac dinh"));
+        setButtonLoading(registerButton, false);
     }
 }
 
-// Giai đoạn 2: Xác thực OTP → Backend tạo Supabase Auth + UserProfiles
 async function handleVerifyOtp() {
-    const otpCode = document.getElementById('otpInput')?.value.trim() || '';
+    const verifyButton = document.getElementById("verifyOtpBtn");
+    const otpCode = document.getElementById("otpInput")?.value.trim() || "";
+
     if (otpCode.length !== 6) {
-        alert('Vui lòng nhập đủ mã xác nhận gồm 6 chữ số!');
+        alert("Vui long nhap du ma xac nhan gom 6 chu so.");
         return;
     }
+
     if (!tempRegisterData) {
-        alert('Phiên đăng ký không hợp lệ. Vui lòng tải lại trang và đăng ký lại.');
+        alert("Phien dang ky khong hop le. Vui long tai lai trang va dang ky lai.");
         return;
     }
 
@@ -165,40 +210,44 @@ async function handleVerifyOtp() {
     };
 
     try {
+        setButtonLoading(verifyButton, true, "Dang xac thuc...");
+
         const response = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
 
-        const resData = await parseResponseSafe(response);
+        const data = await parseResponseSafe(response);
         if (!response.ok) {
-            throw new Error(getApiErrorMessage(response, resData));
+            throw new Error(getApiErrorMessage(response, data));
         }
 
-        alert(resData.message || 'Xác thực hoàn tất! Bạn có thể đăng nhập.');
+        alert(data.message || "Xac thuc hoan tat. Ban co the dang nhap.");
         window.location.reload();
-    } catch (err) {
-        alert('Lỗi xác thực: ' + (err.message || 'Không xác định'));
+    } catch (error) {
+        alert("Loi xac thuc: " + (error.message || "Khong xac dinh"));
+        setButtonLoading(verifyButton, false);
     }
 }
 
 async function handleLogin(email, password) {
-    const cleanEmail = (email || '').trim().toLowerCase();
-    const cleanPassword = password || '';
+    const loginButton = document.getElementById("loginBtn");
+    const cleanEmail = (email || "").trim().toLowerCase();
+    const cleanPassword = password || "";
 
     if (!cleanEmail || !cleanPassword) {
-        alert('Vui lòng điền đầy đủ Email và Mật khẩu!');
+        alert("Vui long dien day du Email va Mat khau.");
         return;
     }
 
-    const payload = { email: cleanEmail, password: cleanPassword };
-
     try {
+        setButtonLoading(loginButton, true, "Dang dang nhap...");
+
         const response = await fetch(`${API_BASE_URL}/api/auth/login-profile`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: cleanEmail, password: cleanPassword })
         });
 
         const data = await parseResponseSafe(response);
@@ -208,13 +257,24 @@ async function handleLogin(email, password) {
 
         saveSessionFromAuth(data);
 
-        const role = data.role ?? data.Role ?? 'Customer';
-        const targetPage = role === 'Admin' || role === 'Staff' ? 'dashboard.html' : 'home.html';
+        const role = data.role ?? data.Role ?? "Customer";
+        const targetPage = role === "Admin" || role === "Staff" ? "dashboard.html" : "home.html";
         redirectAfterLogin(targetPage);
-    } catch (err) {
-        alert('Đăng nhập thất bại: ' + (err.message || 'Không xác định'));
+    } catch (error) {
+        alert("Dang nhap that bai: " + (error.message || "Khong xac dinh"));
+        setButtonLoading(loginButton, false);
     }
 }
+
+document.getElementById("toRegisterLink")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    setFormMode("register");
+});
+
+document.getElementById("toLoginLink")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    setFormMode("login");
+});
 
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;

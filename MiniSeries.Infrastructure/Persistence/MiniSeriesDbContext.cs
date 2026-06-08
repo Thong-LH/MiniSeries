@@ -16,8 +16,6 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
     public DbSet<SupportRequest> SupportRequests => Set<SupportRequest>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<StaffReport> StaffReports => Set<StaffReport>();
-    
-    // Đã chuyển các DbSet bị khai báo thừa/trùng của nhánh kia về đúng vị trí trong Class
     public DbSet<PaymentHistory> PaymentHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -170,5 +168,5 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.Status).HasMaxLength(50);
             entity.HasIndex(x => x.CreatedAt);
         });
-    } // Đóng hàm OnModelCreating
-} // Đóng class MiniSeriesDbContext
+    }
+}

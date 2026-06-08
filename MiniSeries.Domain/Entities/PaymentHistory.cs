@@ -1,8 +1,9 @@
-using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
+namespace MiniSeries.Domain.Entities;
+
 [Table("payment_histories")]
-public class PaymentHistory
+public sealed class PaymentHistory
 {
     [Column("id")]
     public int Id { get; set; }
@@ -29,5 +30,5 @@ public class PaymentHistory
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [Column("status")]
-    public string Status { get; set; } = "Thành công";
+    public string Status { get; set; } = "Success";
 }

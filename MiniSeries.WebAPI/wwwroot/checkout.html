@@ -206,6 +206,7 @@
     </style>
 </head>
 <body class="cosmic-customer-page cyber-checkout-page">
+    <script src="session-router.js?v=20260608-router"></script>
 
     <canvas id="cosmic-space-canvas"></canvas>
     <div class="scifi-ship-grid"></div>
@@ -396,6 +397,7 @@
             }, 3000);
         }
 
+        const isRouteAllowed = !window.SessionRouter || window.SessionRouter.guard();
         const planName = localStorage.getItem("selectedPlan");
         const amount = localStorage.getItem("paymentAmount");
         const generationsToReceive = localStorage.getItem("targetGenerations") || localStorage.getItem("targetTokens");
@@ -403,7 +405,8 @@
         const paymentCode = localStorage.getItem("paymentCode");
         const formattedAmount = parseInt(amount || "0", 10).toLocaleString("vi-VN") + " VNĐ";
 
-        if (!userId || !amount || !paymentCode) {
+        if (!isRouteAllowed) {
+        } else if (!userId || !amount || !paymentCode) {
             alert("Thông tin không hợp lệ, vui lòng thử lại!");
             navigateToPage("pricing.html");
         } else {
