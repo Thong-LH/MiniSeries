@@ -16,23 +16,12 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
     public DbSet<SupportRequest> SupportRequests => Set<SupportRequest>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<StaffReport> StaffReports => Set<StaffReport>();
+    
+    // Đã chuyển các DbSet bị khai báo thừa/trùng của nhánh kia về đúng vị trí trong Class
+    public DbSet<PaymentHistory> PaymentHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public DbSet<Lesson> Lessons => Set<Lesson>();
-        public DbSet<Chapter> Chapters => Set<Chapter>();
-        public DbSet<LlmJson> LlmJsons => Set<LlmJson>();
-        public DbSet<GenerationJob> GenerationJobs => Set<GenerationJob>();
-        public DbSet<GenerationLog> GenerationLogs => Set<GenerationLog>();
-        public DbSet<UserProfile> UserProfiles { get; set; }
-        public DbSet<PaymentOrder> PaymentOrders { get; set; }
-        public DbSet<SupportRequest> SupportRequests { get; set; }
-        public DbSet<Feedback> Feedbacks { get; set; }
-        public DbSet<StaffReport> StaffReports { get; set; }
-        public DbSet<PaymentHistory> PaymentHistories { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
         modelBuilder.Entity<Lesson>(entity =>
         {
             entity.HasKey(x => x.Id);
@@ -181,6 +170,5 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.Status).HasMaxLength(50);
             entity.HasIndex(x => x.CreatedAt);
         });
-        }
-    }
-}
+    } // Đóng hàm OnModelCreating
+} // Đóng class MiniSeriesDbContext

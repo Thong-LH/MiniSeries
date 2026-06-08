@@ -15,12 +15,13 @@
     box-sizing: border-box;
 }
 
+/* KHỐI BODY CHUẨN ĐÃ ĐƯỢC HỢP NHẤT - KHÔNG CÓ PADDING 40PX */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
-    overflow-x: hidden;
-    min-height: 100vh;
+    background-color: #030712;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif; /* Chuyển sang Font tròn này để fix full lỗi dấu */
+    margin: 0;
+    padding: 40px;
 }
 
 .background-blobs {
@@ -38,7 +39,8 @@ nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 2rem 10%;
+    padding: 1.5rem 2rem; /* Giảm padding hai bên xuống để thanh headbar tràn rộng ra sát mép */
+    width: 100%;          /* Đảm bảo chiếm toàn bộ chiều ngang màn hình */
 }
 
 .logo {
@@ -69,29 +71,52 @@ main {
     padding: 4rem 2rem;
 }
 
-.hero {
+ .hero {
     text-align: center;
-    margin-bottom: 4rem;
+    padding: 60px 20px;
 }
 
+/* XỬ LÝ TIÊU ĐỀ H1: KHÔNG DÙNG FONT SCI-FI, DÙNG CSS ĐỂ LÀM SCI-FI */
 .hero h1 {
-    font-size: 4rem;
-    font-weight: 800;
-    margin-bottom: 1rem;
-    line-height: 1.1;
+    font-family: 'Inter', sans-serif; /* Đảm bảo h1 dùng font Inter cực đậm */
+    font-size: 3.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em; /* Khoảng cách chữ rất rộng cho chất HUD */
+    color: #e2e8f0;
+    
+    /* ĐỔI SHAPE: Làm cho chữ hiện đại hơn, bớt tròn trịa */
+    transform: scaleX(0.9); /* Làm chữ hẹp lại một chút cho mạnh mẽ */
+    display: inline-block; /* Bắt buộc để biến đổi scale hoạt động */
+    
+    /* HIỆU ỨNG CHIỀU SÂU VÀ VIỀN */
+    text-shadow: 
+        1px 1px 0px rgba(0, 0, 0, 0.8), /* Viền đen mỏng cho rõ nét */
+        0 0 10px rgba(0, 212, 255, 0.3); /* Phát sáng nhẹ cho phần chữ trắng */
+    
+    margin-bottom: 20px;
 }
 
-.hero h1 span {
-    background: linear-gradient(90deg, var(--primary), var(--secondary));
+/* HIỆU ỨNG NEON CHO CHỮ "TRẢI NGHIỆM" */
+.hero h1 .neon-text {
+    background: linear-gradient(45deg, #00d4ff, #ff007f);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    
+    /* PHÁT SÁNG MẠNH: Tạo hào quang neon */
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5)) 
+            drop-shadow(0 0 20px rgba(255, 0, 127, 0.7));
 }
 
-.hero p {
-    color: var(--text-muted);
-    font-size: 1.25rem;
+.hero .sub-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2rem;
+    color: #94a3b8;
     max-width: 600px;
     margin: 0 auto;
+    letter-spacing: 0.05em;
+    opacity: 0.9;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
 }
 
 .glass {
@@ -341,7 +366,7 @@ footer {
 .manga-page {
     grid-column: 1 / -1;
     display: flex;
-    flex-direction: column; /* Chuyển sang dọc */
+    flex-direction: column;
     align-items: center;
     gap: 2rem;
     padding: 3rem;
@@ -352,7 +377,7 @@ footer {
 
 .page-media {
     width: 100%;
-    max-width: 900px; /* Giới hạn để không quá to trên màn hình lớn */
+    max-width: 900px;
     height: auto;
     border-radius: 20px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.6);
@@ -425,4 +450,149 @@ footer {
     color: #a5b4fc;
     display: block;
     word-break: break-all;
+}
+
+/* ==========================================
+   CYBERPUNK SPACE DYNAMIC BACKGROUND
+   ========================================== */
+.cyber-space-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background: radial-gradient(circle at 50% 55%, #080c14 0%, #020408 100%);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.nebula-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, transparent 70%);
+  top: 10%;
+  left: 20%;
+  animation: nebulaFloat 20s ease-in-out infinite alternate;
+}
+
+.nebula-glow::after {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
+  bottom: 10%;
+  right: -20%;
+  animation: nebulaFloat 25s ease-in-out infinite alternate-reverse;
+}
+
+.stars-layer-1 {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  box-shadow: 10vw 20vh #fff, 30vw 50vh rgba(255,255,255,0.5), 70vw 15vh #fff, 85vw 75vh rgba(255,255,255,0.8), 50vw 80vh #fff, 15vw 85vh rgba(255,255,255,0.3);
+  top: 0; left: 0; bottom: 0; right: 0;
+  animation: starsTwinkle 4s ease-in-out infinite alternate;
+}
+
+.stars-layer-2 {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #22d3ee;
+  box-shadow: 20vw 10vh rgba(34,211,238,0.4), 60vw 40vh rgba(168,85,247,0.5), 45vw 65vh rgba(34,211,238,0.6), 90vw 25vh rgba(168,85,247,0.4);
+  top: 0; left: 0; bottom: 0; right: 0;
+  animation: starsTwinkle 6s ease-in-out infinite alternate-reverse;
+}
+
+.planet-cyan {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle at 30% 30%, #06b6d4 0%, #082f49 70%, #020617 100%);
+  border-radius: 50%;
+  top: 15%;
+  right: 8%;
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.25), inset -10px -10px 20px rgba(0,0,0,0.8);
+  opacity: 0.7;
+}
+
+.planet-purple {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle at 30% 30%, #a855f7 0%, #4c1d95 70%, #020617 100%);
+  border-radius: 50%;
+  bottom: 20%;
+  left: 5%;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.2), inset -5px -5px 10px rgba(0,0,0,0.8);
+  opacity: 0.6;
+}
+
+.spaceship-1 {
+  position: absolute;
+  font-size: 24px;
+  top: 30%;
+  left: -50px;
+  transform: rotate(15deg);
+  filter: drop-shadow(0 0 8px #22d3ee);
+  opacity: 0;
+  animation: flyAcrossFaster 28s linear infinite;
+}
+
+.spaceship-2 {
+  position: absolute;
+  font-size: 18px;
+  bottom: 15%;
+  right: -50px;
+  transform: scaleX(-1) rotate(-10deg);
+  filter: drop-shadow(0 0 8px #a855f7);
+  opacity: 0;
+  animation: flyAcrossSlower 42s linear infinite;
+  animation-delay: 10s;
+}
+
+.satellite {
+  position: absolute;
+  font-size: 28px;
+  top: 60%;
+  right: 15%;
+  filter: drop-shadow(0 0 5px rgba(255,255,255,0.4));
+  animation: satelliteFloat 12s ease-in-out infinite alternate;
+  opacity: 0.5;
+}
+
+/* ==========================================
+   HỆ THỐNG KIỂU HOẠT HỌA (ANIMATIONS)
+   ========================================== */
+@keyframes nebulaFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(40px, 30px) scale(1.15); }
+}
+
+@keyframes starsTwinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes satelliteFloat {
+  0% { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(-20px) rotate(15deg); }
+}
+
+@keyframes flyAcrossFaster {
+  0% { left: -50px; top: 30%; opacity: 0; transform: rotate(15deg) scale(0.7); }
+  5% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { left: 105vw; top: 15%; opacity: 0; transform: rotate(15deg) scale(0.7); }
+}
+
+@keyframes flyAcrossSlower {
+  0% { right: -50px; bottom: 15%; opacity: 0; transform: scaleX(-1) rotate(-10deg) scale(0.5); }
+  5% { opacity: 0.6; }
+  95% { opacity: 0.6; }
+  100% { right: 105vw; bottom: 40%; opacity: 0; transform: scaleX(-1) rotate(-10deg) scale(0.5); }
 }

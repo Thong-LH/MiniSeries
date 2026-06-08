@@ -4,41 +4,231 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cổng Thanh Toán - MiniSeries</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="customer-scifi.css">
     <style>
-        body { background-color: #0f172a; color: #ffffff; font-family: 'Inter', sans-serif; margin: 0; padding: 40px; display: flex; justify-content: center; }
-        .payment-box { background-color: #1e293b; border: 1px solid #334155; border-radius: 24px; max-width: 800px; width: 100%; padding: 30px; display: flex; gap: 30px; }
+        /* ===== KHÔNG GIAN NỀN ĐỘNG VŨ TRỤ 3D CÔNG NGHỆ MỚI ===== */
+        body { 
+            background-color: #06040d; 
+            color: #ffffff; 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            padding: 40px; 
+            min-height: 100vh;
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; 
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Canvas dựng ma trận hạt phản vật chất di chuyển 3D */
+        #cosmic-space-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Lưới định vị sàn phi thuyền không gian mở */
+        .scifi-ship-grid {
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            bottom: -60%;
+            left: -50%;
+            z-index: 1;
+            background-image: 
+                linear-gradient(rgba(147, 51, 234, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+            background-size: 60px 60px;
+            transform: perspective(600px) rotateX(75deg);
+            animation: warpDrive 25s linear infinite;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @keyframes warpDrive {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 480px; }
+        }
+
+        /* Lõi năng lượng Plasma phát sáng đa chiều phía sau hộp thanh toán */
+        .plasma-reactor-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(147, 51, 234, 0.1) 0%, rgba(6, 182, 212, 0.03) 45%, transparent 70%);
+            z-index: 1;
+            pointer-events: none;
+            filter: blur(50px);
+            animation: reactorPulse 7s ease-in-out infinite alternate;
+        }
+
+        @keyframes reactorPulse {
+            0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+        }
+
+        /* Đảm bảo khối thanh toán nổi lên trên tầng hiệu ứng nền */
+        .payment-box, .hud-top-container, #confirm-panel, #success-panel {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===== ĐỊNH VỊ NÚT QUAY LẠI TRÊN GÓC MÀN HÌNH THEO PHONG CÁCH HUD ===== */
+        .hud-top-container {
+            width: 100%;
+            max-w: 800px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        /* Phím bấm công nghệ Sci-Fi Lục giác cắt vạt sắc sảo */
+        .cyber-hud-btn {
+            font-family: 'Orbitron', sans-serif;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 22px;
+            color: #00f2fe;
+            background: rgba(6, 182, 212, 0.06);
+            border: 1px solid rgba(0, 242, 254, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 0px;
+            clip-path: polygon(12px 0%, 100% 0%, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0% 100%, 0% 12px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.1), inset 0 0 8px rgba(0, 242, 254, 0.05);
+        }
+
+        /* Đường laser quét ngang nút tự động */
+        .cyber-hud-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 242, 254, 0.15) 50%, transparent 100%);
+            background-size: 100% 6px;
+            animation: buttonScan 4s linear infinite;
+            pointer-events: none;
+        }
+
+        .cyber-hud-btn:hover {
+            color: #ffffff;
+            background: rgba(0, 242, 254, 0.25);
+            border-color: #00f2fe;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.5), inset 0 0 12px rgba(0, 242, 254, 0.3);
+            transform: translateY(-2px);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes buttonScan {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 40px; }
+        }
+
+        /* ===== GIỮ NGUYÊN CSS GỐC VÀ CHỈ SỬA CẤU TRÚC ĐÈ ĐẸP HƠN ===== */
+        .payment-box { background-color: #1e293b; border: 1px solid #334155; border-radius: 24px; max-width: 800px; width: 100%; padding: 30px; display: flex; gap: 30px; box-sizing: border-box; }
         .left-info { flex: 1; text-align: left; }
-        .right-qr { width: 300px; background-color: #0f172a; border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #475569; }
+        .right-qr { width: 300px; background-color: #0f172a; border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #475569; box-sizing: border-box; }
         .select-bank { width: 100%; padding: 10px; background-color: #334155; color: white; border: 1px solid #475569; border-radius: 8px; margin-top: 8px; margin-bottom: 20px; }
         .qr-img { width: 220px; height: 220px; background-color: white; margin: 15px auto; padding: 10px; border-radius: 8px; }
         #success-panel { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e293b; border: 2px solid #22c55e; box-shadow: 0 25px 50px -12px rgba(34, 197, 94, 0.4); border-radius: 20px; padding: 40px; text-align: center; z-index: 100000; width: 360px; }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; }
-        #confirm-overlay { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100001; }
-        #confirm-panel { display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e293b; border: 2px solid #a855f7; box-shadow: 0 25px 50px -12px rgba(168, 85, 247, 0.35); border-radius: 20px; padding: 32px; text-align: center; z-index: 100002; width: 400px; max-width: 92vw; }
-        #confirm-panel h3 { margin: 0 0 16px 0; color: #c084fc; font-size: 20px; }
+        #confirm-overlay { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(4, 2, 10, 0.85); z-index: 100001; }
+        #confirm-panel { display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #110d21; border: 2px solid #a855f7; box-shadow: 0 0 35px rgba(168, 85, 247, 0.4); border-radius: 20px; padding: 32px; text-align: center; z-index: 100002; width: 400px; max-width: 92vw; backdrop-filter: blur(10px); }
+        #confirm-panel h3 { margin: 0 0 16px 0; color: #c084fc; font-size: 20px; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; }
         #confirm-panel .confirm-detail { text-align: left; background: rgba(15,23,42,0.6); border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 24px; font-size: 14px; color: #cbd5e1; }
         #confirm-panel .confirm-detail strong { color: #f8fafc; }
         #confirm-panel .confirm-actions { display: flex; flex-direction: column; gap: 10px; }
-        #btn-confirm-start { padding: 12px 20px; background: linear-gradient(to right, #9333ea, #7c3aed); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 15px; }
-        #btn-confirm-start:hover { filter: brightness(1.08); }
-        #btn-confirm-back { padding: 10px 20px; background: transparent; color: #94a3b8; border: 1px solid #475569; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
-        #btn-confirm-back:hover { color: #e2e8f0; border-color: #64748b; }
+        #btn-confirm-start { padding: 12px 20px; background: linear-gradient(to right, #9333ea, #7c3aed); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 15px; box-shadow: 0 0 15px rgba(147, 51, 234, 0.4); transition: all 0.2s; }
+        #btn-confirm-start:hover { filter: brightness(1.15); box-shadow: 0 0 25px rgba(147, 51, 234, 0.6); }
+        #btn-confirm-back { padding: 10px 20px; background: transparent; color: #94a3b8; border: 1px solid #475569; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        #btn-confirm-back:hover { color: #00f2fe; border-color: #00f2fe; box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
         .loader-mini { border: 2px solid #f3f3f3; border-top: 2px solid #a855f7; border-radius: 50%; width: 12px; height: 12px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 5px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ===== Checkout Sci-Fi overrides (logic-safe, visual only) ===== */
+        .cyber-checkout-page .cyber-payment-box {
+            background: rgba(13, 10, 28, 0.75) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(147, 51, 234, 0.35) !important;
+            box-shadow: 0 0 30px rgba(147, 51, 234, 0.15), 0 25px 60px rgba(0, 0, 0, 0.6) !important;
+        }
+        .cyber-checkout-page .cyber-payment-box .left-info h2 {
+            text-shadow: 0 0 16px rgba(192, 132, 252, 0.45);
+        }
+        .cyber-checkout-page .cyber-qr-panel {
+            border: 1px solid rgba(147, 51, 234, 0.4) !important;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.12), inset 0 0 16px rgba(124, 58, 237, 0.06);
+            background: rgba(5, 3, 13, 0.9) !important;
+        }
+        .cyber-checkout-page .cyber-glow-amount {
+            font-weight: 800 !important;
+            font-size: 20px !important;
+            color: #4ade80 !important;
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.85), 0 0 22px rgba(34, 197, 94, 0.55) !important;
+        }
+        .cyber-checkout-page .cyber-glow-quota {
+            font-weight: 800 !important;
+            color: #c084fc !important;
+            text-shadow: 0 0 10px rgba(192, 132, 252, 0.75), 0 0 18px rgba(168, 85, 247, 0.45) !important;
+        }
+        .cyber-checkout-page .cyber-polling-box {
+            border: 1px solid rgba(236, 72, 153, 0.45) !important;
+            background: rgba(15, 23, 42, 0.65) !important;
+            animation: cyberPollingPulse 2.2s ease-in-out infinite;
+        }
+        @keyframes cyberPollingPulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(124, 58, 237, 0.25), 0 0 0 rgba(236, 72, 153, 0); }
+            50% { box-shadow: 0 0 18px rgba(236, 72, 153, 0.45), 0 0 32px rgba(124, 58, 237, 0.25); }
+        }
+        .cyber-checkout-page .cyber-transfer-code {
+            border: 2px dashed rgba(251, 191, 36, 0.75) !important;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.35), inset 0 0 8px rgba(251, 191, 36, 0.08) !important;
+            color: #fde047 !important;
+            text-shadow: 0 0 8px rgba(253, 224, 71, 0.85), 0 0 16px rgba(245, 158, 11, 0.45) !important;
+            letter-spacing: 0.06em;
+        }
     </style>
 </head>
-<body>
+<body class="cosmic-customer-page cyber-checkout-page">
 
-    <div class="payment-box">
+    <canvas id="cosmic-space-canvas"></canvas>
+    <div class="scifi-ship-grid"></div>
+    <div class="plasma-reactor-glow"></div>
+
+    <div class="hud-top-container">
+        <a href="pricing.html" class="cyber-hud-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 14px; height: 14px; animation: pulse 1.5s infinite;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
+            </svg>
+            <span>Thay đổi gói cước</span>
+        </a>
+    </div>
+
+    <div class="payment-box cyber-payment-box">
         <div class="left-info">
             <h2 style="color: #c084fc; margin-top: 0;">Hóa Đơn Thanh Toán</h2>
             <hr style="border-color: #334155; margin-bottom: 20px;">
 
             <p><strong>Tài khoản người mua:</strong> <span id="user-nickname" style="color: #38bdf8;">Đang truy vấn...</span></p>
             <p><strong>Gói MiniSeries:</strong> <span id="info-plan" style="color: #fbbf24;">...</span></p>
-            <p><strong>Số tiền thực tế:</strong> <span id="info-amount" style="color: #22c55e; font-size: 18px; font-weight: bold;">0đ</span></p>
-            <p><strong>Quota nhận được:</strong> <span id="info-tokens" style="color: #a855f7; font-weight: bold;">0 lượt generate</span></p>
+            <p><strong>Số tiền thực tế:</strong> <span id="info-amount" class="cyber-glow-amount" style="color: #22c55e; font-size: 18px; font-weight: bold;">0đ</span></p>
+            <p><strong>Quota nhận được:</strong> <span id="info-tokens" class="cyber-glow-quota" style="color: #a855f7; font-weight: bold;">0 lượt generate</span></p>
 
             <label for="bankSelect"><strong>Chọn ngân hàng thanh toán:</strong></label>
             <select id="bankSelect" class="select-bank" onchange="generateRealQR()">
@@ -48,21 +238,21 @@
                 <option value="ACB">ACB</option>
             </select>
 
-            <div id="polling-status-box" style="background-color: rgba(30,41,59,0.5); padding: 15px; border-radius: 12px; font-size: 13px; color: #cbd5e1; border: 1px solid #a855f7;">
+            <div id="polling-status-box" class="cyber-polling-box" style="background-color: rgba(30,41,59,0.5); padding: 15px; border-radius: 12px; font-size: 13px; color: #cbd5e1; border: 1px solid #a855f7;">
                 <span class="loader-mini" id="polling-loader" style="display: none;"></span>
                 <span id="polling-status-text" style="color: #fbbf24; font-weight: 600;">Vui lòng xác nhận thông tin thanh toán trước khi quét mã.</span>
                 <p style="margin: 5px 0 0 0; font-size: 12px; color: #94a3b8;">Hệ thống đang quét dữ liệu trực tiếp từ trạm Webhook trung gian.</p>
             </div>
         </div>
 
-        <div class="right-qr">
+        <div class="right-qr cyber-qr-panel">
             <h4 style="margin: 0; color: #94a3b8;">MÃ QR THANH TOÁN THỰC</h4>
             <img id="qrCodeContainer" class="qr-img" src="" alt="Mã QR VietQR">
             <p style="font-size: 12px; color: #cbd5e1; margin: 5px 0;"><strong>Ngân Hàng:</strong> MB Bank</p>
             <p style="font-size: 12px; color: #cbd5e1; margin: 5px 0;"><strong>Số tài khoản:</strong> 00002409999</p>
             <p style="font-size: 12px; color: #cbd5e1; margin: 5px 0;"><strong>Chủ TK:</strong> Thousand Sunsilk Company</p>
             <p style="font-size: 11px; color: #ef4444; font-weight: bold; margin-bottom: 2px;">⚠️ SỬ DỤNG ĐÚNG NỘI DUNG CHUYỂN KHOẢN:</p>
-            <p style="font-size: 14px; color: #fbbf24; font-family: monospace; background: #1e293b; padding: 6px; border-radius: 4px; font-weight: bold; border: 1px dashed #fbbf24; margin: 0;" id="info-content">MINISERIES...</p>
+            <p style="font-size: 14px; color: #fbbf24; font-family: monospace; background: #1e293b; padding: 6px; border-radius: 4px; font-weight: bold; border: 1px dashed #fbbf24; margin: 0;" id="info-content" class="cyber-transfer-code">MINISERIES...</p>
         </div>
     </div>
 
@@ -147,12 +337,9 @@
             }
 
             const currentPaymentCode = (localStorage.getItem("paymentCode") || "").toUpperCase();
-            const currentPlan = localStorage.getItem("selectedPlan") || "Plus";
-            const currentAmount = localStorage.getItem("paymentAmount") || "0";
 
             try {
                 const initialResult = await fetchWebhookRequests();
-
                 let initialRequests = [];
                 if (initialResult && initialResult.data) {
                     initialRequests = initialResult.data;
@@ -161,11 +348,9 @@
                 }
 
                 if (initialRequests && initialRequests.length > 0) {
-                    // Ưu tiên lấy .uuid (chuỗi hash độc nhất), nếu không có thì lấy .id
                     latestOldRequestId = initialRequests[0].uuid || initialRequests[0].id;
                     console.log("📌 Đã khóa mốc giao dịch cũ thành công. ID mốc:", latestOldRequestId);
                 } else {
-                    console.log("Chưa có dữ liệu cũ trên webhook.site, đặt mốc bằng null");
                     latestOldRequestId = null;
                 }
             } catch (e) {
@@ -180,7 +365,6 @@
             webhookCheckInterval = setInterval(async () => {
                 try {
                     const result = await fetchWebhookRequests();
-
                     let requests = [];
                     if (result && result.data) {
                         requests = result.data;
@@ -192,21 +376,16 @@
 
                     for (let req of requests) {
                         const currentReqId = req.uuid || req.id;
-
                         if (latestOldRequestId && currentReqId === latestOldRequestId) {
                             break;
                         }
 
                         let fullText = JSON.stringify(req).toUpperCase();
-
                         if ((currentPaymentCode && fullText.includes(currentPaymentCode)) || fullText.includes("SEPAYTEST")) {
-                            console.log("🎉 Tuyệt vời! Phát hiện giao dịch MỚI TINH khớp mã đơn!");
-
-                            // Gọi ngầm về Backend kiểm tra & cập nhật Database
+                            console.log("🎉 Giao dịch thành công!");
                             try {
                                 await fetch(`${BACKEND_API}/payment/check-status?userId=${localStorage.getItem("userId")}&code=${currentPaymentCode}`, { headers: authHeaders() });
                             } catch(e){}
-
                             showPaymentSuccessPanel("Hệ thống xác nhận đã nhận đủ tiền từ webhook.site! Giao dịch hoàn tất thành công.");
                             break;
                         }
@@ -273,6 +452,66 @@
 
         function backToHome() {
             navigateToPage("home.html");
+        }
+
+        /* BANNER SCRIPT: ĐỘNG CƠ HẠT ENGINE 3D SIÊU MƯỢT */
+        const canvas = document.getElementById('cosmic-space-canvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            const maxStars = 150;
+            let speed = 1.5;
+
+            function initCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                stars = [];
+                for (let i = 0; i < maxStars; i++) {
+                    stars.push({
+                        x: Math.random() * canvas.width - canvas.width / 2,
+                        y: Math.random() * canvas.height - canvas.height / 2,
+                        z: Math.random() * canvas.width,
+                        color: Math.random() > 0.5 ? 'rgba(0, 242, 254,' : 'rgba(168, 85, 247,'
+                    });
+                }
+            }
+
+            function animateStars() {
+                ctx.fillStyle = 'rgba(6, 4, 13, 0.2)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                for (let i = 0; i < maxStars; i++) {
+                    let star = stars[i];
+                    star.z -= speed;
+
+                    if (star.z <= 0) {
+                        star.z = canvas.width;
+                        star.x = Math.random() * canvas.width - centerX;
+                        star.y = Math.random() * canvas.height - centerY;
+                    }
+
+                    const px = (star.x / star.z) * centerX + centerX;
+                    const py = (star.y / star.z) * centerY + centerY;
+
+                    if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
+                        const size = (1 - star.z / canvas.width) * 3;
+                        const opacity = (1 - star.z / canvas.width);
+
+                        ctx.beginPath();
+                        ctx.arc(px, py, size > 0.3 ? size : 0.3, 0, Math.PI * 2);
+                        ctx.fillStyle = `${star.color} ${opacity})`;
+                        ctx.fill();
+                    }
+                }
+                requestAnimationFrame(animateStars);
+            }
+
+            window.addEventListener('resize', initCanvas);
+            initCanvas();
+            animateStars();
         }
     </script>
 </body>
