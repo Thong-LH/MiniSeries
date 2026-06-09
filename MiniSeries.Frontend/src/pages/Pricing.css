@@ -1,0 +1,146 @@
+.pricing-page {
+  background-color: #0c0a1a;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 40px 20px;
+}
+
+#solar-system-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.pricing-shell, .pricing-header, .pricing-container {
+  position: relative;
+  z-index: 5;
+}
+
+.pricing-header {
+  text-align: center;
+  margin-bottom: 42px;
+  max-width: 720px;
+  margin-top: 40px;
+}
+
+.pricing-header h1 {
+  font-size: 36px;
+  color: #c084fc;
+  margin-bottom: 10px;
+}
+
+.pricing-header p {
+  color: #94a3b8;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.pricing-container {
+  display: flex;
+  gap: 30px;
+  max-width: 1200px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pricing-card {
+  background-color: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 30px;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.3s, border-color 0.3s;
+  position: relative;
+}
+
+.pricing-card.popular {
+  border-color: #a855f7;
+  box-shadow: 0 10px 25px -5px rgba(168, 85, 247, 0.3);
+}
+
+.pricing-card:hover {
+  transform: translateY(-5px);
+  border-color: #a855f7;
+}
+
+.pricing-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background-color: #a855f7;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.plan-name {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+}
+
+.price {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.price span {
+  font-size: 14px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.quota {
+  color: #c084fc;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 30px 0;
+  text-align: left;
+}
+
+.features li {
+  font-size: 14px;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-buy {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-free { background-color: #475569; color: #cbd5e1; }
+.btn-premium { background-color: #a855f7; color: white; }
+.btn-premium:hover { background-color: #9333ea; }

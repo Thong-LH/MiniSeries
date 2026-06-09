@@ -458,7 +458,7 @@
             <p class="sub-title">Tự động tạo Manga hoặc Video từ nội dung bài học của bạn chỉ trong vài giây.</p>
         </section>
 
-        <section class="input-container glass cyber-glass">
+        <section id="generationInputPanel" class="input-container glass cyber-glass">
             <div class="input-group">
                 <label for="title">Tiêu đề bài học</label>
                 <input type="text" id="title" placeholder="Ví dụ: Vòng đời của một con bướm">
@@ -486,11 +486,15 @@
         <section id="resultContainer" class="result-container hidden">
             <div id="loadingState" class="loading-state">
                 <div class="loader"></div>
+                <div class="generation-progress" aria-hidden="true">
+                    <div id="generationProgressBar" class="generation-progress-bar"></div>
+                </div>
                 <p id="statusText">Đang phân tích nội dung...</p>
             </div>
 
             <div id="lessonOutput" class="lesson-output hidden">
                 <div id="reviewSection" class="review-section glass cyber-glass">
+                    <button id="draftFloatToggle" class="draft-float-toggle" type="button" aria-label="Mở kịch bản nháp">✎</button>
                     <h2>Kịch bản bài học (Draft Script)</h2>
                     <div id="scriptContent" class="script-content"></div>
                     <div class="review-actions">
@@ -522,7 +526,7 @@
         <p>&copy; 2026 MiniSeries. Powered by Pollinations API.</p>
     </footer>
 
-    <script src="app.js?v=20260609-draft-reader-ui"></script>
+    <script src="app.js?v=20260609-editable-draft-flow"></script>
 
     <script>
         const BACKEND_API = "/api";

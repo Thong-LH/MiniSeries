@@ -4,7 +4,8 @@ const state = {
     currentLessonId: null,
     currentMediaLesson: null,
     currentChapterIndex: 0,
-    quizSelections: {}
+    quizSelections: {},
+    progressTimer: null
 };
 
 function getAuthHeaders() {
@@ -64,6 +65,10 @@ function normalizeCorrectOption(value) {
     return raw.charAt(0);
 }
 
+function getEditedScript() {
+    return (document.getElementById("scriptEditor")?.value || "").trim();
+}
+
 function renderScript(lesson) {
     const scriptContent = document.getElementById("scriptContent");
     if (!scriptContent) return;
@@ -72,9 +77,81 @@ function renderScript(lesson) {
     scriptContent.innerHTML = `
         <div class="review-script-main">
             <div class="review-label">Kịch bản nháp</div>
-            <pre>${escapeHtml(script)}</pre>
+            <textarea id="scriptEditor" class="script-editor" spellcheck="false">${escapeHtml(script)}</textarea>
         </div>
     `;
+}
+
+function showDraftInInputPosition() {
+    document.getElementById("generationInputPanel")?.classList.add("hidden");
+    document.getElementById("resultContainer")?.classList.remove("hidden");
+    document.getElementById("lessonOutput")?.classList.remove("hidden");
+    document.getElementById("reviewSection")?.classList.remove("draft-floating", "expanded");
+    document.getElementById("mediaSection")?.classList.add("hidden");
+
+    const resultContainer = document.getElementById("resultContainer");
+    if (resultContainer) {
+        resultContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+}
+
+function collapseDraftPanel() {
+    const reviewSection = document.getElementById("reviewSection");
+    if (!reviewSection) return;
+
+    reviewSection.classList.add("draft-floating");
+    reviewSection.classList.remove("expanded");
+}
+
+function toggleDraftPanel() {
+    const reviewSection = document.getElementById("reviewSection");
+    if (!reviewSection?.classList.contains("draft-floating")) return;
+
+    reviewSection.classList.toggle("expanded");
+}
+
+function startProgress(statusMessage) {
+    const loadingState = document.getElementById("loadingState");
+    const statusText = document.getElementById("statusText");
+    const progressBar = document.getElementById("generationProgressBar");
+
+    window.clearInterval(state.progressTimer);
+    loadingState?.classList.remove("hidden");
+    loadingState?.classList.add("media-loading");
+    if (statusText) statusText.innerText = statusMessage;
+    if (progressBar) progressBar.style.width = "8%";
+
+    let progress = 8;
+    state.progressTimer = window.setInterval(() => {
+        progress = Math.min(progress + Math.max(1, Math.floor((94 - progress) / 7)), 94);
+        if (progressBar) progressBar.style.width = `${progress}%`;
+    }, 1200);
+}
+
+function finishProgress(message) {
+    const loadingState = document.getElementById("loadingState");
+    const statusText = document.getElementById("statusText");
+    const progressBar = document.getElementById("generationProgressBar");
+
+    window.clearInterval(state.progressTimer);
+    if (progressBar) progressBar.style.width = "100%";
+    if (statusText) statusText.innerText = message;
+
+    window.setTimeout(() => {
+        loadingState?.classList.add("hidden");
+        loadingState?.classList.remove("media-loading");
+        if (progressBar) progressBar.style.width = "0%";
+    }, 450);
+}
+
+function stopProgressWithError(message) {
+    const loadingState = document.getElementById("loadingState");
+    const statusText = document.getElementById("statusText");
+
+    window.clearInterval(state.progressTimer);
+    if (statusText) statusText.innerText = `Lỗi: ${message}`;
+    loadingState?.classList.add("hidden");
+    loadingState?.classList.remove("media-loading");
 }
 
 function chapterMediaHtml(chapter, isVideo) {
@@ -231,12 +308,13 @@ document.getElementById("generateBtn")?.addEventListener("click", async () => {
     const loadingState = document.getElementById("loadingState");
     const lessonOutput = document.getElementById("lessonOutput");
     const mediaSection = document.getElementById("mediaSection");
+    const reviewSection = document.getElementById("reviewSection");
     const statusText = document.getElementById("statusText");
 
     resultContainer?.classList.remove("hidden");
     loadingState?.classList.remove("hidden");
     lessonOutput?.classList.add("hidden");
-    document.getElementById("reviewSection")?.classList.remove("hidden");
+    reviewSection?.classList.remove("draft-floating", "expanded");
     mediaSection?.classList.add("hidden");
     if (statusText) statusText.innerText = "Đang tạo draft script...";
 
@@ -257,9 +335,9 @@ document.getElementById("generateBtn")?.addEventListener("click", async () => {
         state.currentLessonId = lesson.id;
 
         renderScript(lesson);
+        showDraftInInputPosition();
         if (statusText) statusText.innerText = "Draft script đã sẵn sàng để review.";
         loadingState?.classList.add("hidden");
-        lessonOutput?.classList.remove("hidden");
     } catch (error) {
         console.error(error);
         if (statusText) statusText.innerText = `Lỗi: ${error.message}`;
@@ -274,28 +352,25 @@ document.getElementById("approveBtn")?.addEventListener("click", async (event) =
         return;
     }
 
+    const editedScript = getEditedScript();
+    if (!editedScript) {
+        alert("Kịch bản không được để trống.");
+        return;
+    }
+
     const btn = event.target;
     btn.disabled = true;
 
-    const loadingState = document.getElementById("loadingState");
-    const statusText = document.getElementById("statusText");
     const lessonOutput = document.getElementById("lessonOutput");
-
     lessonOutput?.classList.remove("hidden");
-    loadingState?.classList.remove("hidden");
-    if (statusText) statusText.innerText = "Đang approve và tạo media... Bước này có thể mất vài phút.";
-
-    const startedAt = Date.now();
-    const approveTimer = window.setInterval(() => {
-        if (!statusText) return;
-        const seconds = Math.floor((Date.now() - startedAt) / 1000);
-        statusText.innerText = `Đang tạo media... đã chờ ${seconds}s. Vui lòng giữ trang này mở.`;
-    }, 15000);
+    collapseDraftPanel();
+    startProgress("Đang approve và tạo media... Bước này có thể mất vài phút.");
 
     try {
         const response = await fetch(`${API_BASE}/lessons/${state.currentLessonId}/approve`, {
             method: "POST",
-            headers: getAuthHeaders()
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ overallScript: editedScript })
         });
 
         const payload = await readJsonResponse(response);
@@ -306,12 +381,10 @@ document.getElementById("approveBtn")?.addEventListener("click", async (event) =
 
         renderMedia(lesson);
         await refreshHeaderProfile();
-        if (statusText) statusText.innerText = "Hoàn tất generate.";
-        loadingState?.classList.add("hidden");
-        document.getElementById("reviewSection")?.classList.add("hidden");
+        finishProgress("Hoàn tất generate.");
     } catch (error) {
         console.error(error);
-        if (statusText) statusText.innerText = `Lỗi: ${error.message}`;
+        stopProgressWithError(error.message);
 
         if (error.status === 402 && error.details?.quota) {
             const quota = error.details.quota;
@@ -319,11 +392,14 @@ document.getElementById("approveBtn")?.addEventListener("click", async (event) =
         } else {
             alert(error.message);
         }
-        loadingState?.classList.add("hidden");
     } finally {
-        window.clearInterval(approveTimer);
         btn.disabled = false;
     }
+});
+
+document.getElementById("draftFloatToggle")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleDraftPanel();
 });
 
 document.getElementById("prevChapterBtn")?.addEventListener("click", () => {

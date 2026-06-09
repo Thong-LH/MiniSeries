@@ -31,6 +31,22 @@ public sealed class ApproveLessonScriptCommandHandler(
             throw new BusinessRuleException("Lesson can only be approved when it is awaiting review.");
         }
 
+        if (request.EditedOverallScript is not null)
+        {
+            var editedScript = request.EditedOverallScript.Trim();
+            if (string.IsNullOrWhiteSpace(editedScript))
+            {
+                throw new AppValidationException("OverallScript cannot be empty.");
+            }
+
+            if (editedScript.Length > 20000)
+            {
+                throw new AppValidationException("OverallScript cannot exceed 20000 characters.");
+            }
+
+            lesson.OverallScript = editedScript;
+        }
+
         lesson.ScriptStatus = ScriptStatus.Approved;
         lesson.ApprovedAt = DateTime.UtcNow;
         lesson.UpdatedAt = DateTime.UtcNow;

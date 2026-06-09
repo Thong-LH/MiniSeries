@@ -67,7 +67,7 @@ public sealed class LessonsController(
 
     [Authorize(Policy = "CustomerOnly")]
     [HttpPost("{lessonId:guid}/approve")]
-    public async Task<IActionResult> Approve(Guid lessonId)
+    public async Task<IActionResult> Approve(Guid lessonId, [FromBody] ApproveLessonScriptRequest? request = null)
     {
         var currentUserId = AuthUser.GetCurrentUserId(User);
         if (currentUserId is null)
@@ -96,7 +96,7 @@ public sealed class LessonsController(
 
         try
         {
-            var result = await mediator.Send(new ApproveLessonScriptCommand(lessonId));
+            var result = await mediator.Send(new ApproveLessonScriptCommand(lessonId, request?.OverallScript));
             var quota = await quotaService.GetSnapshotAsync(currentUserId.Value);
             return Ok(new
             {
