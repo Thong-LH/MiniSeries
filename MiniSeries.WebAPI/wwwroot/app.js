@@ -1,11 +1,7 @@
 const API_BASE = "/api";
 
 const state = {
-    currentLessonId: null,
-    currentMediaLesson: null,
-    currentChapterIndex: 0,
-    quizSelections: {},
-    progressTimer: null
+    currentLessonId: null
 };
 
 function getAuthHeaders() {
@@ -19,9 +15,8 @@ function getAuthHeaders() {
 async function readJsonResponse(response) {
     const text = await response.text();
     const data = text ? JSON.parse(text) : {};
-
     if (!response.ok) {
-        const message = data.detail || data.message || data.title || "Request failed.";
+        const message = data.message || data.title || "Request failed.";
         const error = new Error(message);
         error.status = response.status;
         error.details = data;
@@ -32,258 +27,65 @@ async function readJsonResponse(response) {
 }
 
 function requireLogin() {
-    if (window.SessionRouter && !window.SessionRouter.guard()) {
-        return false;
-    }
-
     if (!(localStorage.getItem("token") || "").trim()) {
-        alert("Vui lòng đăng nhập trước khi dùng tính năng generate.");
-        window.location.replace("login.html");
+        alert("Vui long dang nhap truoc khi dung tinh nang generate.");
+        window.location.href = "index.html";
         return false;
     }
 
     return true;
 }
 
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll("\"", "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-function normalizeCorrectOption(value) {
-    const raw = String(value || "").trim().toUpperCase();
-    if (!raw) return "";
-    if (["A", "B", "C", "D"].includes(raw)) return raw;
-    if (raw.includes("OPTIONA")) return "A";
-    if (raw.includes("OPTIONB")) return "B";
-    if (raw.includes("OPTIONC")) return "C";
-    if (raw.includes("OPTIOND")) return "D";
-    return raw.charAt(0);
-}
-
-function getEditedScript() {
-    return (document.getElementById("scriptEditor")?.value || "").trim();
-}
-
 function renderScript(lesson) {
     const scriptContent = document.getElementById("scriptContent");
     if (!scriptContent) return;
 
-    const script = lesson.overallScript || "Không có kịch bản.";
-    scriptContent.innerHTML = `
-        <div class="review-script-main">
-            <div class="review-label">Kịch bản nháp</div>
-            <textarea id="scriptEditor" class="script-editor" spellcheck="false">${escapeHtml(script)}</textarea>
-        </div>
-    `;
-}
-
-function showDraftInInputPosition() {
-    document.getElementById("generationInputPanel")?.classList.add("hidden");
-    document.getElementById("resultContainer")?.classList.remove("hidden");
-    document.getElementById("lessonOutput")?.classList.remove("hidden");
-    document.getElementById("reviewSection")?.classList.remove("draft-floating", "expanded");
-    document.getElementById("mediaSection")?.classList.add("hidden");
-
-    const resultContainer = document.getElementById("resultContainer");
-    if (resultContainer) {
-        resultContainer.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-}
-
-function collapseDraftPanel() {
-    const reviewSection = document.getElementById("reviewSection");
-    if (!reviewSection) return;
-
-    reviewSection.classList.add("draft-floating");
-    reviewSection.classList.remove("expanded");
-}
-
-function toggleDraftPanel() {
-    const reviewSection = document.getElementById("reviewSection");
-    if (!reviewSection?.classList.contains("draft-floating")) return;
-
-    reviewSection.classList.toggle("expanded");
-}
-
-function startProgress(statusMessage) {
-    const loadingState = document.getElementById("loadingState");
-    const statusText = document.getElementById("statusText");
-    const progressBar = document.getElementById("generationProgressBar");
-
-    window.clearInterval(state.progressTimer);
-    loadingState?.classList.remove("hidden");
-    loadingState?.classList.add("media-loading");
-    if (statusText) statusText.innerText = statusMessage;
-    if (progressBar) progressBar.style.width = "8%";
-
-    let progress = 8;
-    state.progressTimer = window.setInterval(() => {
-        progress = Math.min(progress + Math.max(1, Math.floor((94 - progress) / 7)), 94);
-        if (progressBar) progressBar.style.width = `${progress}%`;
-    }, 1200);
-}
-
-function finishProgress(message) {
-    const loadingState = document.getElementById("loadingState");
-    const statusText = document.getElementById("statusText");
-    const progressBar = document.getElementById("generationProgressBar");
-
-    window.clearInterval(state.progressTimer);
-    if (progressBar) progressBar.style.width = "100%";
-    if (statusText) statusText.innerText = message;
-
-    window.setTimeout(() => {
-        loadingState?.classList.add("hidden");
-        loadingState?.classList.remove("media-loading");
-        if (progressBar) progressBar.style.width = "0%";
-    }, 450);
-}
-
-function stopProgressWithError(message) {
-    const loadingState = document.getElementById("loadingState");
-    const statusText = document.getElementById("statusText");
-
-    window.clearInterval(state.progressTimer);
-    if (statusText) statusText.innerText = `Lỗi: ${message}`;
-    loadingState?.classList.add("hidden");
-    loadingState?.classList.remove("media-loading");
-}
-
-function chapterMediaHtml(chapter, isVideo) {
-    if (isVideo && chapter.videoUrl) {
-        return `<video src="${escapeHtml(chapter.videoUrl)}" class="chapter-media" controls autoplay loop muted playsinline></video>`;
-    }
-
-    if (!isVideo && chapter.mangaUrl) {
-        return `<img src="${escapeHtml(chapter.mangaUrl)}" class="chapter-media" alt="Chapter ${escapeHtml(chapter.order)}">`;
-    }
-
-    const mediaType = isVideo ? "video" : "ảnh manga";
-    return `
-        <div class="chapter-media chapter-media-empty">
-            Chưa có ${mediaType} cho chapter ${escapeHtml(chapter.order || "")}.
-        </div>
-    `;
-}
-
-function renderQuiz(chapter, chapterIndex) {
-    const quiz = chapter.quiz;
-    if (!quiz) {
-        return `<div class="quiz-panel empty">Chapter này chưa có quiz.</div>`;
-    }
-
-    const options = [
-        ["A", quiz.optionA],
-        ["B", quiz.optionB],
-        ["C", quiz.optionC],
-        ["D", quiz.optionD]
-    ];
-    const selected = state.quizSelections[chapterIndex] || "";
-    const correct = normalizeCorrectOption(quiz.correctOption);
-    const hasAnswer = Boolean(selected);
-
-    const optionHtml = options.map(([key, label]) => {
-        const isSelected = selected === key;
-        const isCorrect = hasAnswer && correct === key;
-        const isWrong = hasAnswer && isSelected && selected !== correct;
-        const classes = [
-            "quiz-option",
-            isSelected ? "selected" : "",
-            isCorrect ? "correct" : "",
-            isWrong ? "wrong" : ""
-        ].filter(Boolean).join(" ");
-
-        return `
-            <button type="button" class="${classes}" data-quiz-option="${key}">
-                <span class="quiz-option-key">${key}</span>
-                <span>${escapeHtml(label || "")}</span>
-            </button>
-        `;
-    }).join("");
-
-    const feedback = hasAnswer
-        ? `<div class="quiz-feedback ${selected === correct ? "correct" : "wrong"}">
-                <strong>${selected === correct ? "Đúng rồi." : `Chưa đúng. Đáp án đúng là ${escapeHtml(correct)}.`}</strong>
-                <p>${escapeHtml(quiz.explanation || "")}</p>
-           </div>`
-        : "";
-
-    return `
-        <div class="quiz-panel">
-            <div class="quiz-title">Quiz tương tác</div>
-            <p class="quiz-question">${escapeHtml(quiz.question || "")}</p>
-            <div class="quiz-options" data-chapter-index="${chapterIndex}">
-                ${optionHtml}
-            </div>
-            ${feedback}
-        </div>
-    `;
-}
-
-function renderCurrentChapter() {
-    const lesson = state.currentMediaLesson;
-    const chapters = [...(lesson?.chapters || [])].sort((a, b) => a.order - b.order);
-    const chapterStage = document.getElementById("chapterStage");
-    const chapterCounter = document.getElementById("chapterCounter");
-    const prevBtn = document.getElementById("prevChapterBtn");
-    const nextBtn = document.getElementById("nextChapterBtn");
-
-    if (!chapterStage) return;
-
-    if (!lesson || chapters.length === 0) {
-        if (chapterCounter) chapterCounter.innerText = "0 / 0";
-        if (prevBtn) prevBtn.disabled = true;
-        if (nextBtn) nextBtn.disabled = true;
-        chapterStage.innerHTML = `
-            <div class="empty-output-panel">
-                <h3>Chưa có chapter để hiển thị</h3>
-                <p>Backend chưa trả về danh sách chapter cho lesson này. Nếu Cloudinary đã có file, cần kiểm tra bước lưu database hoặc response của API approve.</p>
-            </div>
-        `;
-        return;
-    }
-
-    const maxIndex = chapters.length - 1;
-    state.currentChapterIndex = Math.min(Math.max(0, state.currentChapterIndex), maxIndex);
-    const chapter = chapters[state.currentChapterIndex];
-    const isVideo = lesson.outputMode === "Video" || lesson.outputMode === 1;
-
-    if (chapterCounter) {
-        chapterCounter.innerText = `${state.currentChapterIndex + 1} / ${chapters.length}`;
-    }
-    if (prevBtn) prevBtn.disabled = state.currentChapterIndex === 0;
-    if (nextBtn) nextBtn.disabled = state.currentChapterIndex === maxIndex;
-
-    chapterStage.innerHTML = `
-        <article class="chapter-reader-card">
-            <div class="chapter-media-panel">
-                ${chapterMediaHtml(chapter, isVideo)}
-            </div>
-            <div class="chapter-detail-panel">
-                <div class="chapter-kicker">Chapter ${escapeHtml(chapter.order || state.currentChapterIndex + 1)}</div>
-                <h3>${escapeHtml(chapter.title || `Chương ${chapter.order || state.currentChapterIndex + 1}`)}</h3>
-                <p class="chapter-summary">${escapeHtml(chapter.summary || "")}</p>
-                ${renderQuiz(chapter, state.currentChapterIndex)}
-            </div>
-        </article>
-    `;
+    scriptContent.innerText = lesson.overallScript || "Khong co kich ban.";
 }
 
 function renderMedia(lesson) {
     const mediaSection = document.getElementById("mediaSection");
-    if (!mediaSection) return;
+    const chaptersList = document.getElementById("chaptersList");
+    const anchorImage = document.getElementById("anchorImage");
 
-    state.currentMediaLesson = lesson;
-    state.currentChapterIndex = 0;
-    state.quizSelections = {};
+    if (!mediaSection || !chaptersList || !anchorImage) return;
+
+    anchorImage.src = lesson.anchorImageUrl || "";
+    chaptersList.innerHTML = "";
+
+    const chapters = [...(lesson.chapters || [])].sort((a, b) => a.order - b.order);
+    for (const chapter of chapters) {
+        const card = document.createElement("div");
+        card.className = "chapter-card glass";
+
+        const isVideo = lesson.outputMode === "Video" || lesson.outputMode === 1;
+        const mediaHtml = isVideo && chapter.videoUrl
+            ? `<video src="${chapter.videoUrl}" class="chapter-media" autoplay loop muted playsinline></video>`
+            : `<img src="${chapter.mangaUrl || ""}" class="chapter-media" alt="Chapter ${chapter.order}">`;
+
+        const quiz = chapter.quiz
+            ? `<div class="prompt-preview">
+                    <strong>Quiz:</strong>
+                    <p>${chapter.quiz.question || ""}</p>
+                    <p>A. ${chapter.quiz.optionA || ""}</p>
+                    <p>B. ${chapter.quiz.optionB || ""}</p>
+                    <p>C. ${chapter.quiz.optionC || ""}</p>
+                    <p>D. ${chapter.quiz.optionD || ""}</p>
+               </div>`
+            : "";
+
+        card.innerHTML = `
+            ${mediaHtml}
+            <div class="chapter-info">
+                <h3>Chapter ${chapter.order}</h3>
+                <p class="chapter-summary">${chapter.summary || ""}</p>
+                ${quiz}
+            </div>
+        `;
+        chaptersList.appendChild(card);
+    }
 
     mediaSection.classList.remove("hidden");
-    renderCurrentChapter();
 }
 
 async function refreshHeaderProfile() {
@@ -300,7 +102,7 @@ document.getElementById("generateBtn")?.addEventListener("click", async () => {
     const generateVideo = document.getElementById("generateVideo").checked;
 
     if (!title || !content) {
-        alert("Vui lòng nhập đầy đủ tiêu đề và nội dung bài học.");
+        alert("Vui long nhap day du tieu de va noi dung bai hoc.");
         return;
     }
 
@@ -308,15 +110,13 @@ document.getElementById("generateBtn")?.addEventListener("click", async () => {
     const loadingState = document.getElementById("loadingState");
     const lessonOutput = document.getElementById("lessonOutput");
     const mediaSection = document.getElementById("mediaSection");
-    const reviewSection = document.getElementById("reviewSection");
     const statusText = document.getElementById("statusText");
 
     resultContainer?.classList.remove("hidden");
     loadingState?.classList.remove("hidden");
     lessonOutput?.classList.add("hidden");
-    reviewSection?.classList.remove("draft-floating", "expanded");
     mediaSection?.classList.add("hidden");
-    if (statusText) statusText.innerText = "Đang tạo draft script...";
+    if (statusText) statusText.innerText = "Dang tao draft script...";
 
     try {
         const response = await fetch(`${API_BASE}/lessons/drafts`, {
@@ -335,87 +135,50 @@ document.getElementById("generateBtn")?.addEventListener("click", async () => {
         state.currentLessonId = lesson.id;
 
         renderScript(lesson);
-        showDraftInInputPosition();
-        if (statusText) statusText.innerText = "Draft script đã sẵn sàng để review.";
+        if (statusText) statusText.innerText = "Draft script da san sang de review.";
         loadingState?.classList.add("hidden");
+        lessonOutput?.classList.remove("hidden");
     } catch (error) {
         console.error(error);
-        if (statusText) statusText.innerText = `Lỗi: ${error.message}`;
+        if (statusText) statusText.innerText = `Loi: ${error.message}`;
         alert(error.message);
     }
 });
 
-document.getElementById("approveBtn")?.addEventListener("click", async (event) => {
+document.getElementById("approveBtn")?.addEventListener("click", async () => {
     if (!requireLogin()) return;
     if (!state.currentLessonId) {
-        alert("Chưa có lesson draft để approve.");
+        alert("Chua co lesson draft de approve.");
         return;
     }
 
-    const editedScript = getEditedScript();
-    if (!editedScript) {
-        alert("Kịch bản không được để trống.");
-        return;
-    }
+    const loadingState = document.getElementById("loadingState");
+    const statusText = document.getElementById("statusText");
 
-    const btn = event.target;
-    btn.disabled = true;
-
-    const lessonOutput = document.getElementById("lessonOutput");
-    lessonOutput?.classList.remove("hidden");
-    collapseDraftPanel();
-    startProgress("Đang approve và tạo media... Bước này có thể mất vài phút.");
+    loadingState?.classList.remove("hidden");
+    if (statusText) statusText.innerText = "Dang approve va tao media...";
 
     try {
         const response = await fetch(`${API_BASE}/lessons/${state.currentLessonId}/approve`, {
             method: "POST",
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ overallScript: editedScript })
+            headers: getAuthHeaders()
         });
 
         const payload = await readJsonResponse(response);
         const lesson = payload.lesson || payload;
-        if (!lesson || !lesson.id) {
-            throw new Error("API approve không trả về lesson hợp lệ.");
-        }
-
         renderMedia(lesson);
         await refreshHeaderProfile();
-        finishProgress("Hoàn tất generate.");
+        if (statusText) statusText.innerText = "Hoan tat generate.";
+        loadingState?.classList.add("hidden");
     } catch (error) {
         console.error(error);
-        stopProgressWithError(error.message);
-
+        if (statusText) statusText.innerText = `Loi: ${error.message}`;
         if (error.status === 402 && error.details?.quota) {
             const quota = error.details.quota;
-            alert(`${error.message}\nGói hiện tại: ${quota.planName}. Manga còn ${quota.remainingMangaCount ?? 0}, video còn ${quota.remainingVideoCount ?? 0}.`);
+            alert(`${error.message}\nGoi hien tai: ${quota.planName}. Da dung ${quota.usedGenerationCount}/${quota.monthlyGenerationLimit} luot.`);
         } else {
             alert(error.message);
         }
-    } finally {
-        btn.disabled = false;
+        loadingState?.classList.add("hidden");
     }
-});
-
-document.getElementById("draftFloatToggle")?.addEventListener("click", (event) => {
-    event.stopPropagation();
-    toggleDraftPanel();
-});
-
-document.getElementById("prevChapterBtn")?.addEventListener("click", () => {
-    state.currentChapterIndex -= 1;
-    renderCurrentChapter();
-});
-
-document.getElementById("nextChapterBtn")?.addEventListener("click", () => {
-    state.currentChapterIndex += 1;
-    renderCurrentChapter();
-});
-
-document.getElementById("chapterStage")?.addEventListener("click", (event) => {
-    const optionButton = event.target.closest("[data-quiz-option]");
-    if (!optionButton) return;
-
-    state.quizSelections[state.currentChapterIndex] = optionButton.dataset.quizOption;
-    renderCurrentChapter();
 });

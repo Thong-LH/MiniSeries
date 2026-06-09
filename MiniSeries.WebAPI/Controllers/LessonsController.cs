@@ -12,6 +12,8 @@ using MiniSeries.WebAPI.Security;
 
 namespace MiniSeries.WebAPI.Controllers;
 
+public sealed record ApproveRequest(string OverallScript);
+
 [ApiController]
 [Authorize(Policy = "AuthenticatedUser")]
 [Route("api/lessons")]
@@ -67,7 +69,7 @@ public sealed class LessonsController(
 
     [Authorize(Policy = "CustomerOnly")]
     [HttpPost("{lessonId:guid}/approve")]
-    public async Task<IActionResult> Approve(Guid lessonId, [FromBody] ApproveLessonScriptRequest? request = null)
+    public async Task<IActionResult> Approve(Guid lessonId, [FromBody] ApproveRequest request)
     {
         var currentUserId = AuthUser.GetCurrentUserId(User);
         if (currentUserId is null)
@@ -96,7 +98,7 @@ public sealed class LessonsController(
 
         try
         {
-            var result = await mediator.Send(new ApproveLessonScriptCommand(lessonId, request?.OverallScript));
+            var result = await mediator.Send(new ApproveLessonScriptCommand(lessonId, request.OverallScript));
             var quota = await quotaService.GetSnapshotAsync(currentUserId.Value);
             return Ok(new
             {
@@ -110,7 +112,6 @@ public sealed class LessonsController(
             throw;
         }
     }
-
     [HttpGet("{lessonId:guid}")]
     public async Task<IActionResult> GetById(Guid lessonId)
     {

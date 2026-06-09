@@ -54,11 +54,6 @@ CREATE TABLE IF NOT EXISTS "UserProfiles" (
     "CreatedAt" timestamp with time zone NOT NULL DEFAULT now()
 );
 
--- Sửa bản ghi cũ thiếu CreatedAt (chạy an toàn nhiều lần)
-UPDATE "UserProfiles" SET "CreatedAt" = now() WHERE "CreatedAt" IS NULL;
-ALTER TABLE "UserProfiles" ALTER COLUMN "CreatedAt" SET DEFAULT now();
-ALTER TABLE "UserProfiles" ALTER COLUMN "CreatedAt" SET NOT NULL;
-
 ALTER TABLE "UserProfiles" ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "anon_all_userprofiles" ON "UserProfiles";
 CREATE POLICY "anon_all_userprofiles" ON "UserProfiles" FOR ALL TO anon USING (true) WITH CHECK (true);

@@ -5,113 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EduGenAI - Tư vấn & Chăm sóc khách hàng</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="customer-scifi.css" />
     <style>
-        /* ===== KHÔNG GIAN NỀN ĐỘNG TRẠM VŨ TRỤ 3D ===== */
-        body { 
-            margin: 0; 
-            font-family: 'Inter', sans-serif; 
-            background: #06040d; 
-            color: #e2e8f0; 
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Canvas dựng ma trận sao bay tốc độ phi thuyền */
-        #space-station-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        /* Lưới điện cấu trúc kết cấu trạm không gian */
-        .station-grid-floor {
-            position: fixed;
-            width: 200%;
-            height: 200%;
-            bottom: -50%;
-            left: -50%;
-            z-index: 1;
-            background-image: 
-                linear-gradient(rgba(168, 85, 247, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(6, 182, 212, 0.04) 1px, transparent 1px);
-            background-size: 50px 50px;
-            transform: perspective(500px) rotateX(75deg);
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        /* Vòng năng lượng plasma phát sáng dịu phía sau thẻ tư vấn */
-        .station-reactor-glow {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, rgba(147, 51, 234, 0.08) 0%, rgba(6, 182, 212, 0.02) 50%, transparent 70%);
-            z-index: 1;
-            pointer-events: none;
-            filter: blur(40px);
-            animation: stationPulse 6s ease-in-out infinite alternate;
-        }
-
-        @keyframes stationPulse {
-            0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
-            100% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
-        }
-
-        /* Đảm bảo khối container giao diện nổi lên trên nền canvas */
-        .container { 
-            position: relative;
-            z-index: 10;
-            max-width: 920px; 
-            margin: 0 auto; 
-            padding: 36px 20px 60px; 
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        /* ===== GIỮ NGUYÊN CSS GỐC CỦA BẠN ===== */
-        .card { background: rgba(15, 12, 33, 0.75) !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(147, 51, 234, 0.3) !important; border-radius: 18px; padding: 22px; box-shadow: 0 0 25px rgba(147, 51, 234, 0.1); }
-        .title { font-size: 28px; font-weight: 800; margin: 0 0 6px 0; color: #c084fc; text-shadow: 0 0 12px rgba(192, 132, 252, 0.4); }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: #0b0f19; color: #e2e8f0; }
+        .container { max-width: 920px; margin: 0 auto; padding: 36px 20px 60px; }
+        .card { background: rgba(30, 41, 59, 0.75); border: 1px solid #334155; border-radius: 18px; padding: 22px; }
+        .title { font-size: 28px; font-weight: 800; margin: 0 0 6px 0; color: #c084fc; }
         .subtitle { margin: 0 0 18px 0; color: #94a3b8; font-size: 14px; line-height: 1.5; }
-        textarea { width: 100%; min-height: 180px; resize: vertical; background: rgba(15, 23, 42, 0.7); border: 1px solid #334155; color: #e2e8f0; border-radius: 14px; padding: 14px; font-size: 14px; outline: none; box-sizing: border-box; }
+        textarea { width: 100%; min-height: 180px; resize: vertical; background: rgba(15, 23, 42, 0.7); border: 1px solid #334155; color: #e2e8f0; border-radius: 14px; padding: 14px; font-size: 14px; outline: none; }
         textarea:focus { border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.18); }
         .actions { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
         .btn { border: none; border-radius: 12px; padding: 12px 16px; font-weight: 700; cursor: pointer; font-size: 14px; }
-        .btn-primary { background: linear-gradient(to right, #9333ea, #7c3aed); color: #fff; box-shadow: 0 0 15px rgba(147, 51, 234, 0.3); transition: all 0.2s; }
-        .btn-primary:hover { filter: brightness(1.08); box-shadow: 0 0 20px rgba(147, 51, 234, 0.5); }
-        .btn-secondary { background: transparent; border: 1px solid #475569; color: #cbd5e1; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(to right, #9333ea, #7c3aed); color: #fff; }
+        .btn-primary:hover { filter: brightness(1.08); }
+        .btn-secondary { background: transparent; border: 1px solid #475569; color: #cbd5e1; }
         .btn-secondary:hover { border-color: #64748b; color: #fff; }
         .hint { margin-top: 10px; font-size: 12px; color: #94a3b8; }
     </style>
 </head>
-<body class="cosmic-customer-page">
-    <script src="session-router.js?v=20260608-router"></script>
-
-    <canvas id="space-station-canvas"></canvas>
-    <div class="station-grid-floor"></div>
-    <div class="station-reactor-glow"></div>
-
+<body>
     <script>
         const checkUserId = localStorage.getItem('userId');
-        if (!window.SessionRouter && !checkUserId && localStorage.getItem('user_role') !== 'Customer') {
+        if (!checkUserId && localStorage.getItem('user_role') !== 'Customer') {
             alert('Vui lòng đăng nhập để sử dụng tính năng này!');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         }
     </script>
 
     <div class="container">
-        <div class="card cyber-glass">
+        <div class="card">
             <h1 class="title">Tư vấn & Chăm sóc khách hàng</h1>
             <p class="subtitle">
                 Hãy gửi thắc mắc của bạn. Đội ngũ Staff sẽ phản hồi sớm nhất có thể qua hệ thống lưu trữ vĩnh viễn.
@@ -123,9 +44,13 @@
             <textarea id="supportContent" placeholder="Ví dụ: Mình đã nạp gói Pro Max nhưng chưa thấy cộng Token..."></textarea>
 
             <div class="actions">
-                <button class="btn btn-primary cyber-btn-plasma" id="btnSendSupport">💬 Gửi yêu cầu</button>
+                <button class="btn btn-primary" id="btnSendSupport">Gửi yêu cầu</button>
                 <button class="btn btn-secondary" id="btnBackHome">Quay về Trang chủ</button>
             </div>
+
+            <p class="hint">
+                Gợi ý: Đăng nhập mock Admin/Staff để vào `dashboard.html` và trả lời yêu cầu.
+            </p>
         </div>
     </div>
 
@@ -171,66 +96,6 @@
                 alert('Gửi yêu cầu thất bại: ' + err.message);
             });
         });
-
-        /* SCRIPT CHẠY HÌNH NỀN HẠT KHÔNG GIAN ĐỘC LẬP */
-        const canvas = document.getElementById('space-station-canvas');
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            let stars = [];
-            const maxStars = 120;
-            const speed = 0.8;
-
-            function initCanvas() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                stars = [];
-                for (let i = 0; i < maxStars; i++) {
-                    stars.push({
-                        x: Math.random() * canvas.width - canvas.width / 2,
-                        y: Math.random() * canvas.height - canvas.height / 2,
-                        z: Math.random() * canvas.width,
-                        color: Math.random() > 0.4 ? 'rgba(168, 85, 247,' : 'rgba(6, 182, 212,'
-                    });
-                }
-            }
-
-            function animateStars() {
-                ctx.fillStyle = 'rgba(6, 4, 13, 0.15)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
-
-                for (let i = 0; i < maxStars; i++) {
-                    let star = stars[i];
-                    star.z -= speed;
-
-                    if (star.z <= 0) {
-                        star.z = canvas.width;
-                        star.x = Math.random() * canvas.width - centerX;
-                        star.y = Math.random() * canvas.height - centerY;
-                    }
-
-                    const px = (star.x / star.z) * centerX + centerX;
-                    const py = (star.y / star.z) * centerY + centerY;
-
-                    if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
-                        const size = (1 - star.z / canvas.width) * 2.5;
-                        const opacity = (1 - star.z / canvas.width) * 0.8;
-
-                        ctx.beginPath();
-                        ctx.arc(px, py, size > 0.2 ? size : 0.2, 0, Math.PI * 2);
-                        ctx.fillStyle = `${star.color} ${opacity})`;
-                        ctx.fill();
-                    }
-                }
-                requestAnimationFrame(animateStars);
-            }
-
-            window.addEventListener('resize', initCanvas);
-            initCanvas();
-            animateStars();
-        }
     </script>
 </body>
 </html>

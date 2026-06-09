@@ -34,6 +34,17 @@ public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
         return UserPlanQuotaSnapshot.FromProfile(profile);
     }
 
+    public async Task<UserPlanQuotaSnapshot> GetSnapshotAsync(UserProfile profile)
+    {
+        var changed = EnsureCurrentPeriod(profile, DateTime.UtcNow);
+        if (changed)
+        {
+            await dbContext.SaveChangesAsync();
+        }
+
+        return UserPlanQuotaSnapshot.FromProfile(profile);
+    }
+
     public async Task<UserPlanQuotaSnapshot> ApplyPaidPlanAsync(Guid userId, string? planName)
     {
         var profile = await GetProfileAsync(userId);

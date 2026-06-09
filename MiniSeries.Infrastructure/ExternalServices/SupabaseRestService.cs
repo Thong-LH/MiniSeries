@@ -187,20 +187,22 @@ public sealed class SupabaseRestService
             Status = "Đã phản hồi"
         });
 
-    public Task<SupabaseUserProfileRow?> CreateUserProfileAsync(Guid id, string email, string fullName, string role)
-    {
-        var normalizedRole = string.IsNullOrWhiteSpace(role) ? "Customer" : role.Trim();
-        var createdAt = DateTime.UtcNow;
-
-        return PostAsync<SupabaseUserProfileRow>("UserProfiles", new Dictionary<string, object?>
+    public Task<SupabaseUserProfileRow?> CreateUserProfileAsync(Guid id, string email, string fullName, string role) =>
+        PostAsync<SupabaseUserProfileRow>("UserProfiles", new
         {
-            ["Id"] = id,
-            ["Email"] = email.Trim(),
-            ["FullName"] = fullName.Trim(),
-            ["Role"] = normalizedRole,
-            ["CreatedAt"] = createdAt.ToString("o")
+            Id = id,
+            Email = email.Trim(),
+            FullName = fullName.Trim(),
+            Role = string.IsNullOrWhiteSpace(role) ? "Customer" : role.Trim(),
+            PlanName = "Free",
+            MangaMonthlyLimit = 3,
+            UsedMangaCount = 0,
+            VideoMonthlyLimit = 1,
+            UsedVideoCount = 0,
+            CurrentPeriodStart = DateTime.UtcNow,
+            CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1),
+            CreatedAt = DateTime.UtcNow
         });
-    }
 
     public async Task<SupabaseUserProfileRow?> GetUserProfileByIdAsync(Guid id)
     {
@@ -248,7 +250,8 @@ public sealed class SupabaseRestService
     public async Task<List<SupabaseUserProfileRow>> ListStaffsAsync()
     {
         EnsureConfigured();
-        var query = "select=*&order=CreatedAt.desc";
+        // Lọc những User có quyền là 'Staff' từ bảng 'UserProfiles'
+        var query = "Role=eq.Staff&select=*&order=CreatedAt.desc";
         using var request = CreateRequest(HttpMethod.Get, "UserProfiles", query);
         using var response = await _http.SendAsync(request);
         if (!response.IsSuccessStatusCode)
@@ -256,10 +259,7 @@ public sealed class SupabaseRestService
             throw new InvalidOperationException(await ReadErrorAsync(response));
         }
         var json = await response.Content.ReadAsStringAsync();
-        var all = JsonSerializer.Deserialize<List<SupabaseUserProfileRow>>(json, JsonOptions) ?? [];
-        return all
-            .Where(p => string.Equals(p.Role, "Staff", StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        return JsonSerializer.Deserialize<List<SupabaseUserProfileRow>>(json, JsonOptions) ?? [];
     }
 
     public Task<SupabasePaymentHistoryRow?> InsertPaymentHistoryAsync(

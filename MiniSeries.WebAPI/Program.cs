@@ -1,4 +1,4 @@
-using MiniSeries.WebAPI.Extensions;
+ using MiniSeries.WebAPI.Extensions;
 using MiniSeries.WebAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);

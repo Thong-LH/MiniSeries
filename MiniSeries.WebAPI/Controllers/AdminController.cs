@@ -30,28 +30,16 @@ public sealed class AdminController(SupabaseRestService supabaseDb) : Controller
         try
         {
             var staffs = await supabaseDb.ListStaffsAsync();
-            var safeList = staffs
-                .Where(s => s.Id != Guid.Empty && !string.IsNullOrWhiteSpace(s.Email))
-                .Select(s => new
-                {
-                    id = s.Id,
-                    email = s.Email,
-                    fullName = s.FullName,
-                    role = s.Role,
-                    createdAt = s.CreatedAt == default ? DateTime.UtcNow : s.CreatedAt
-                })
-                .ToList();
-            return Ok(safeList);
+            return Ok(staffs);
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = "Không thể tải danh sách nhân viên: " + ex.Message });
+            return BadRequest(new { message = "Khong the tai danh sach nhan vien: " + ex.Message });
         }
     }
 
     [Authorize(Policy = "AdminOnly")]
     [HttpGet("payment-history")]
-    [HttpGet("payments")]
     public async Task<IActionResult> GetPaymentHistory()
     {
         try
@@ -67,7 +55,6 @@ public sealed class AdminController(SupabaseRestService supabaseDb) : Controller
 
     [Authorize(Policy = "AdminOnly")]
     [HttpGet("payment-stats")]
-    [HttpGet("revenue-stats")]
     public async Task<IActionResult> GetPaymentStats([FromQuery] string? groupBy)
     {
         try

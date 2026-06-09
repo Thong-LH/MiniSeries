@@ -23,14 +23,14 @@ public class PollinationsService : IImageGenerationService, IMangaService, IVide
 
     public Task<string> GenerateMangaPageAsync(string anchorImageUrl, string fullPagePrompt)
     {
-        var mangaPrompt = $"{fullPagePrompt}. Style: Manga, anime lineart, clean ink-wash colors, consistent character: {anchorImageUrl}.";
+        var mangaPrompt = $"{fullPagePrompt}. Style: Manga, anime lineart, clean ink-wash colors, consistent character: {anchorImageUrl}. Note: If there is any text, speech bubble, or dialogue in the image, write it in Vietnamese.";
         var encodedPrompt = Uri.EscapeDataString(mangaPrompt);
         return Task.FromResult($"{_baseUrl}/image/{encodedPrompt}?width=512&height=512&key={_apiKey}");
     }
 
     public Task<string> GenerateVideoClipAsync(string anchorImageUrl, string action)
     {
-        var videoPrompt = $"Cinematic educational video, {action}, high quality, consistent character: {anchorImageUrl}";
+        var videoPrompt = $"Cinematic educational video, {action}, high quality, consistent character: {anchorImageUrl}. Note: If there is any text, dialogue, or subtitles in the video, write it in Vietnamese.";
         var encodedPrompt = Uri.EscapeDataString(videoPrompt);
         return Task.FromResult($"{_baseUrl}/video/{encodedPrompt}?key={_apiKey}");
     }

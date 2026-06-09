@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using MiniSeries.Application.Common.Exceptions;
 using MiniSeries.Application.Common.Interfaces;
 using MiniSeries.Application.Lessons.Dtos;
@@ -8,11 +9,7 @@ using MiniSeries.Domain.Enums;
 namespace MiniSeries.Application.Lessons.Commands.ApproveLessonScript;
 
 public sealed class ApproveLessonScriptCommandHandler(
-    ILLMService llmService,
-    IImageGenerationService imageGenerationService,
-    IMangaService mangaService,
-    IVideoService videoService,
-    IStorageService storageService,
+    IServiceScopeFactory scopeFactory,
     ILessonRepository lessonRepository)
     : IRequestHandler<ApproveLessonScriptCommand, LessonDto>
 {
@@ -31,20 +28,9 @@ public sealed class ApproveLessonScriptCommandHandler(
             throw new BusinessRuleException("Lesson can only be approved when it is awaiting review.");
         }
 
-        if (request.EditedOverallScript is not null)
+        if (!string.IsNullOrWhiteSpace(request.OverallScript))
         {
-            var editedScript = request.EditedOverallScript.Trim();
-            if (string.IsNullOrWhiteSpace(editedScript))
-            {
-                throw new AppValidationException("OverallScript cannot be empty.");
-            }
-
-            if (editedScript.Length > 20000)
-            {
-                throw new AppValidationException("OverallScript cannot exceed 20000 characters.");
-            }
-
-            lesson.OverallScript = editedScript;
+            lesson.OverallScript = request.OverallScript;
         }
 
         lesson.ScriptStatus = ScriptStatus.Approved;
@@ -52,9 +38,40 @@ public sealed class ApproveLessonScriptCommandHandler(
         lesson.UpdatedAt = DateTime.UtcNow;
 
         var job = StartJob(lesson, GenerationJobType.MediaGeneration, "CreateChapters");
+        AddLog(job, "CreateChapters", "Started creating chapters from approved script.");
+        
+        await lessonRepository.SaveAsync(lesson);
+
+        // Fire and forget the background media generation process
+        _ = Task.Run(async () =>
+        {
+            await GenerateMediaInBackgroundAsync(lesson.Id, job.Id);
+        });
+
+        return LessonDto.FromEntity(lesson);
+    }
+
+    private async Task GenerateMediaInBackgroundAsync(Guid lessonId, Guid jobId)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var sp = scope.ServiceProvider;
+
+        var backgroundLessonRepository = sp.GetRequiredService<ILessonRepository>();
+        var llmService = sp.GetRequiredService<ILLMService>();
+        var imageGenerationService = sp.GetRequiredService<IImageGenerationService>();
+        var mangaService = sp.GetRequiredService<IMangaService>();
+        var videoService = sp.GetRequiredService<IVideoService>();
+        var storageService = sp.GetRequiredService<IStorageService>();
+
+        var lesson = await backgroundLessonRepository.GetByIdAsync(lessonId);
+        if (lesson is null) return;
+
+        var job = lesson.GenerationJobs.FirstOrDefault(j => j.Id == jobId);
+        if (job is null) return;
+
         try
         {
-            AddLog(job, "CreateChapters", "Started creating chapters from approved script.");
+            // Step 1: Create chapters
             var chapterDraft = await llmService.CreateChaptersAsync(
                 lesson.RawContent,
                 lesson.OverallScript,
@@ -88,45 +105,64 @@ public sealed class ApproveLessonScriptCommandHandler(
                 }
             }).ToList();
 
+            // Save chapters to DB
+            await backgroundLessonRepository.SaveAsync(lesson);
+
+            // Step 2: Generate anchor image
             job.CurrentStep = "GenerateAnchorImage";
             AddLog(job, "GenerateAnchorImage", "Started generating anchor image.");
+            await backgroundLessonRepository.SaveAsync(lesson);
+
             var anchorLocalUrl = await imageGenerationService.GenerateAnchorImageAsync(lesson.CharacterProfile);
             lesson.AnchorImageUrl = await storageService.UploadAsync(anchorLocalUrl, $"anchor_{lesson.Id}");
+            await backgroundLessonRepository.SaveAsync(lesson);
 
+            // Step 3 & 4: Generate media for chapters and upload to Cloudinary
             foreach (var chapter in lesson.Chapters)
             {
-                job.CurrentStep = lesson.OutputMode == OutputMode.Video
-                    ? $"GenerateVideoChapter_{chapter.Order}"
-                    : $"GenerateMangaChapter_{chapter.Order}";
-
                 if (lesson.OutputMode == OutputMode.Video)
                 {
+                    job.CurrentStep = $"GenerateVideoChapter_{chapter.Order}";
                     AddLog(job, job.CurrentStep, $"Started generating video for chapter {chapter.Order}.");
+                    await backgroundLessonRepository.SaveAsync(lesson);
+
                     var videoUrl = await videoService.GenerateVideoClipAsync(lesson.AnchorImageUrl, chapter.FullPrompt);
+
+                    job.CurrentStep = $"UploadVideoChapter_{chapter.Order}";
+                    AddLog(job, job.CurrentStep, $"Started uploading video for chapter {chapter.Order} to Cloudinary.");
+                    await backgroundLessonRepository.SaveAsync(lesson);
+
                     chapter.VideoUrl = await storageService.UploadAsync(videoUrl, $"chapter_vid_{chapter.Id}");
                     AddLog(job, job.CurrentStep, $"Uploaded video for chapter {chapter.Order}.");
                 }
                 else
                 {
+                    job.CurrentStep = $"GenerateMangaChapter_{chapter.Order}";
                     AddLog(job, job.CurrentStep, $"Started generating manga page for chapter {chapter.Order}.");
+                    await backgroundLessonRepository.SaveAsync(lesson);
+
                     var mangaPageUrl = await mangaService.GenerateMangaPageAsync(lesson.AnchorImageUrl, chapter.FullPrompt);
+
+                    job.CurrentStep = $"UploadMangaChapter_{chapter.Order}";
+                    AddLog(job, job.CurrentStep, $"Started uploading manga page for chapter {chapter.Order} to Cloudinary.");
+                    await backgroundLessonRepository.SaveAsync(lesson);
+
                     chapter.MangaUrl = await storageService.UploadAsync(mangaPageUrl, $"chapter_{chapter.Order}_{lesson.Id}");
                     AddLog(job, job.CurrentStep, $"Uploaded manga page for chapter {chapter.Order}.");
                 }
 
                 chapter.Status = ChapterStatus.Generated;
                 AddLog(job, job.CurrentStep, $"Generated chapter {chapter.Order}.");
+                await backgroundLessonRepository.SaveAsync(lesson);
             }
 
             CompleteJob(job, "Generated all media for lesson.");
-            await lessonRepository.SaveAsync(lesson);
-            return LessonDto.FromEntity(lesson);
+            await backgroundLessonRepository.SaveAsync(lesson);
         }
         catch (Exception ex)
         {
             FailJob(job, ex);
-            await lessonRepository.SaveAsync(lesson);
-            throw;
+            await backgroundLessonRepository.SaveAsync(lesson);
         }
     }
 

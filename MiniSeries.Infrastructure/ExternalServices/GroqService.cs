@@ -36,6 +36,7 @@ public class GroqService : ILLMService
             ""characterProfile"": ""Detailed visual description of the recurring main character."",
             ""overallScript"": ""A coherent overall script/treatment describing the narrative arc, teaching strategy, tone, and how the lesson should unfold from start to finish.""
         }}
+        CRITICAL: All user-facing content including characterProfile and overallScript MUST be written in natural, fluent Vietnamese with proper accents (tiếng Việt có dấu).
 
         {guidance}
 
@@ -71,6 +72,7 @@ public class GroqService : ILLMService
             ""characterProfile"": ""Updated detailed visual description of the recurring main character if needed."",
             ""overallScript"": ""Revised coherent overall script/treatment.""
         }}
+        CRITICAL: All user-facing content including characterProfile and overallScript MUST be written in natural, fluent Vietnamese with proper accents (tiếng Việt có dấu).
 
         Lesson content:
         {rawContent}
@@ -123,6 +125,8 @@ public class GroqService : ILLMService
                 }}
             ]
         }}
+        CRITICAL: All user-facing texts, summaries, quiz questions, options, explanations MUST be written in fluent, grammatically correct Vietnamese with proper accents (tiếng Việt có dấu).
+        For manga fullPrompt: If any dialogue, text or speech bubbles are mentioned/rendered in the panels, they MUST be in Vietnamese.
 
         Lesson content:
         {rawContent}

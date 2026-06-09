@@ -99,17 +99,33 @@ public sealed class CloudinaryStorageService : IStorageService
     private async Task<Stream> DownloadSourceAsync(string sourceUrl)
     {
         var httpClient = _httpClientFactory.CreateClient();
-        using var response = await httpClient.GetAsync(sourceUrl);
-        if (!response.IsSuccessStatusCode)
+        int maxRetries = 4;
+        
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            throw new InvalidOperationException(
-                $"Could not download media before Cloudinary upload. HTTP {(int)response.StatusCode}.");
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(25));
+            try
+            {
+                var response = await httpClient.GetAsync(sourceUrl, cts.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var stream = new MemoryStream();
+                    await response.Content.CopyToAsync(stream);
+                    stream.Position = 0;
+                    return stream;
+                }
+            }
+            catch (Exception)
+            {
+            }
+            
+            if (attempt < maxRetries)
+            {
+                await Task.Delay(1500);
+            }
         }
-
-        var stream = new MemoryStream();
-        await response.Content.CopyToAsync(stream);
-        stream.Position = 0;
-        return stream;
+        
+        throw new InvalidOperationException("Source media download failed after 4 attempts.");
     }
 
     private static void ThrowIfFailed(RawUploadResult result)

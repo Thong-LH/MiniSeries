@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-white min-h-screen font-sans">
-    <script src="session-router.js?v=20260608-router"></script>
 
     <nav class="bg-slate-800 p-4 shadow-md flex justify-between items-center px-10">
         <h1 class="text-2xl font-bold text-purple-400 tracking-wider">MiniSeries</h1>
@@ -70,11 +69,9 @@
     <script>
         const API_BASE = "/api";
         // Lấy Id người dùng đã lưu từ bước kích hoạt OTP thành công
-        const userId = localStorage.getItem("userId") || "";
+        const userId = localStorage.getItem("userId") || "3fa85f64-5717-4562-b3fc-2c963f66afa6";
 
         async function loadProfile() {
-            if (window.SessionRouter && !window.SessionRouter.guard()) return;
-
             try {
                 const res = await fetch(`${API_BASE}/profile/${userId}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` } });
                 if (!res.ok) throw new Error("Không thể tải hồ sơ.");
@@ -141,13 +138,8 @@
         }
 
         function logout() {
-            if (window.SessionRouter) {
-                window.SessionRouter.logout();
-                return;
-            }
-
             localStorage.clear();
-            window.location.replace("index.html");
+            window.location.href = "index.html";
         }
 
         // Tự động tải hồ sơ khi trang web được mở lên

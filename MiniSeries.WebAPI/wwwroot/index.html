@@ -1,1139 +1,170 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Series - The Story Stream</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
+    <title>EduGenAI - Đăng nhập</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #09090b; }
-        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; border: 1px solid #09090b; }
-        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
-
-        :root {
-            /* Impeccable Dark Theme Palette */
-            --paper-beige: #09090b; /* Deep obsidian background */
-            --warm-cream: #18181b; /* Sleek surface cards */
-            --sky-blue: #38bdf8; /* Bright electric accents */
-            --golden-yellow: #fde047;
-            --soft-orange: #fb923c;
-            --gentle-green: #4ade80;
-            --ink-black: #fafafa; /* Inverted for light text on dark */
-            
-            --font-serif: 'Lora', serif;
-            --font-sans: 'Outfit', sans-serif;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        html, body {
-            background-color: var(--paper-beige);
-            /* Add structural grid and lateral ambient glows */
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                radial-gradient(circle at 0% 40%, rgba(56, 189, 248, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 100% 60%, rgba(167, 139, 250, 0.15) 0%, transparent 40%);
-            background-size: 60px 60px, 60px 60px, 100% 100%, 100% 100%;
-            background-position: center center;
-            background-attachment: fixed;
-            color: var(--ink-black);
-            font-family: var(--font-sans);
-            /* Removed overflow-x: hidden to allow viewport scroll snapping */
-        }
-        
-        html {
-            scroll-behavior: smooth;
-        }
-
-
-        /* Navigation Bar */
-        .navbar {
-            position: fixed;
-            top: 0; left: 0; width: 100%;
-            padding: 20px 50px;
-            display: flex; justify-content: space-between;
-            z-index: 2000;
-            background: rgba(253, 251, 247, 0.8);
-            backdrop-filter: blur(10px);
-        }
-        .nav-links { display: flex; gap: 20px; list-style: none; }
-        .nav-links a { text-decoration: none; color: var(--ink-black); font-weight: 500; }
-
-        /* Global content wrapper to sit above the stream */
-        .content-wrapper {
-            position: relative;
-            overflow-x: clip; /* Use clip! 'hidden' creates a scroll container which breaks html snapping and causes double scrollbars */
-            width: 100%;
-        }
-
-        /* ---------------------------------
-           SECTION 1: HERO
-           --------------------------------- */
-        .hero {
-            position: relative;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            text-align: center;
-            z-index: 60; /* Stay above stream */
-        }
-        
-        .hero-title, .hero-subtitle {
-            position: relative;
-            z-index: 10; /* Bring above char cards */
-        }
-
-        .hero-title {
-            font-family: var(--font-serif);
-            font-size: clamp(4rem, 10vw, 8rem);
-            font-weight: 500;
-            letter-spacing: -0.02em;
-            text-shadow: 0 0 30px rgba(255,255,255,0.2); /* Subtle glow for dark mode */
-            margin-bottom: 10px;
-        }
-        
-        .hero-subtitle {
-            font-size: 1.5rem;
-            color: #a1a1aa; /* Light gray */
-            font-style: italic;
-        }
-
-        /* Floating character cards in Hero */
-        .char-card {
-            position: absolute;
-            width: 140px; height: 180px;
-            background: var(--warm-cream); /* Dark surface */
-            border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5); /* Deep shadow */
-            padding: 16px;
-            display: flex; align-items: center; gap: 12px;
-            background: rgba(39, 39, 42, 0.6); /* Dark glass */
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.05); /* Subtle dark border */
-        }
-
-        /* Lateral Structural Accents (Impeccable Pattern) */
-        .side-accent {
-            position: fixed; 
-            top: 0; bottom: 0;
-            width: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 100px 0;
-            opacity: 0.4;
-            z-index: 10;
-            pointer-events: none;
-        }
-        .side-left { left: 40px; border-right: 1px solid rgba(255,255,255,0.05); }
-        .side-right { right: 40px; border-left: 1px solid rgba(255,255,255,0.05); }
-        
-        .accent-text {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            font-size: 0.7rem;
-            letter-spacing: 5px;
-            color: rgba(255,255,255,0.5);
-            text-transform: uppercase;
-        }
-
-        /* ---------------------------------
-           SECTION 2: FLOW (Branches)
-           --------------------------------- */
-        .flow-section {
-            padding: 150px 20px 100px 20px; /* Push the cards down a bit */
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap; /* CRITICAL: Prevent symmetric overflow clipping */
-            justify-content: center;
-            align-content: center; /* Keeps the entire block centered */
-            align-items: stretch; /* Forces all cards in the row to be equal height */
-            gap: 40px;
-            z-index: 60;
-            width: 100%;
-            counter-reset: flow-step; /* Initialize the step counter */
-        }
-        
-        .flow-page {
-            position: relative;
-            flex: 1 1 280px; /* Allow shrinking on smaller screens */
-            max-width: 320px;
-            background: var(--warm-cream); /* Dark surface */
-            border-radius: 8px;
-            padding: 40px 30px 30px 30px; /* Extra top padding so content doesn't crowd the top badge */
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            /* Manga page aesthetic */
-            border: 1px solid rgba(255,255,255,0.05);
-            background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-
-        /* Sequence Number Badge */
-        .flow-page::before {
-            counter-increment: flow-step;
-            content: counter(flow-step);
-            position: absolute;
-            top: -15px;
-            left: 20px;
-            width: 36px; height: 36px;
-            background: var(--soft-orange);
-            color: #09090b; /* Dark text */
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-family: var(--font-sans);
-            font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 10px rgba(251, 146, 60, 0.4);
-            z-index: 2;
-        }
-
-        .flow-page h3 {
-            font-family: var(--font-serif);
-            font-size: 1.6rem; margin-bottom: 1rem; color: var(--soft-orange);
-        }
-        
-        .flow-page p { font-size: 1rem; line-height: 1.5; color: #a1a1aa; }
-
-        /* SVG connecting lines */
-        .branch-line {
-            position: absolute;
-            top: 50%;
-            right: -40px; /* Span the 40px gap */
-            width: 40px; height: 4px;
-            background: linear-gradient(to right, var(--golden-yellow), transparent);
-            opacity: 0.6;
-        }
-
-        /* ---------------------------------
-           SECTION 3: FEEDBACK ORBIT
-           --------------------------------- */
-        .feedback-section {
-            position: relative;
-            min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            overflow: hidden;
-            z-index: 60; /* Ensure feedback cards render above flying pages (z: 50) but below nav (z: 100) */
-        }
-        .orbit-container {
-            position: relative;
-            width: 100%;
-            height: 480px;
-            max-width: 800px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .marquee-track {
-            display: flex;
-            width: 100vw;
-            margin-bottom: 20px;
-            padding: 20px 0; /* Add padding to prevent clipping top icons */
-            overflow: hidden; /* Hide horizontal scrollbar */
-        }
-        .marquee-track:hover .marquee-content {
-            animation-play-state: paused;
-        }
-        .marquee-content {
-            display: flex;
-            flex-shrink: 0;
-            padding: 0 10px;
-        }
-        .scroll-left { animation: scrollLeft 40s linear infinite; }
-        .scroll-right { animation: scrollRight 40s linear infinite; }
-        
-        @keyframes scrollLeft {
-            from { transform: translateX(0); }
-            to { transform: translateX(-100%); }
-        }
-        @keyframes scrollRight {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
-        }
-        .review-card {
-            position: relative; /* Contain absolute quote icon */
-            width: 380px;
-            margin: 0 15px;
-            background: rgba(39, 39, 42, 0.6); /* Dark glass */
-            backdrop-filter: blur(15px);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4); 
-            border: 1px solid rgba(255,255,255,0.05);
-            border-bottom: 3px solid var(--sky-blue);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-        .review-card:hover {
-            transform: translateY(-5px);
-            border-bottom-color: var(--soft-orange);
-            box-shadow: 0 15px 40px rgba(254, 215, 170, 0.1); /* Subtle orange glow */
-        }
-        .review-card p {
-            font-style: italic; font-size: 1rem; line-height: 1.5; color: #a1a1aa; /* Light gray text */
-            margin-top: 12px; margin-bottom: 16px;
-        }
-        .review-author {
-            display: flex; justify-content: space-between; align-items: center;
-            border-top: 1px solid rgba(0,0,0,0.1);
-            padding-top: 12px;
-        }
-        .review-badge {
-            font-size: 0.75rem; font-weight: bold; background: var(--sky-blue);
-            color: var(--ink-black); padding: 3px 6px; border-radius: 5px;
-        }
-        .review-name {
-            font-size: 0.9rem; font-weight: bold; color: var(--soft-orange);
-        }
-        .quote-icon {
-            position: absolute; top: -15px; left: -10px;
-            background: var(--sky-blue); padding: 8px; border-radius: 12px;
-            font-size: 1.2rem; border: 1px solid rgba(0,0,0,0.1);
-            line-height: 1; width: 35px; height: 35px; text-align: center;
-        }
-
-        /* ---------------------------------
-           SECTION 4: THE FINAL BOOK
-           --------------------------------- */
-        .final-section {
-            position: relative;
-            padding-top: 100px;
-            min-height: 120vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            /* z-index removed to avoid trapping stacking context for flying pages */
-            background: linear-gradient(to bottom, transparent, var(--paper-beige) 80%);
-        }
-        .final-content {
-            text-align: center;
-            margin-bottom: 100px;
-            position: relative;
-            z-index: 60; /* Stay above the flying pages (z-index 50) */
-        }
-        .final-title {
-            font-family: var(--font-serif);
-            font-size: 4rem;
-            margin-bottom: 20px;
-            letter-spacing: -0.02em;
-        }
-        .cta-btn {
-            display: inline-block;
-            background: var(--soft-orange);
-            color: var(--ink-black);
-            padding: 18px 40px;
-            border-radius: 50px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(251, 146, 60, 0.2);
-        }
-        .cta-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 10px 30px rgba(251, 146, 60, 0.4);
-            background: #f97316;
-        }
-
-        .book-container {
-            position: relative;
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding-bottom: 50px; /* Slight buffer instead of the massive 500px pseudo-element */
-        }
-        
-        /* 3D Book CSS */
-        .css-book-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 620px;
-            margin: 40px auto 0; /* Move book down a bit */
-            display: flex;
-            justify-content: center;
-            height: 350px;
-            z-index: 25;
-            perspective: 1600px; /* Reduced distortion */
-        }
-
-        .spawn-glow {
-            position: absolute;
-            top: 155px; /* Exact center of book where spawn is (175 - 20) */
-            left: 50%;
-            width: 150px;
-            height: 150px;
-            transform: translate(-50%, -50%);
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.8) 0%, rgba(56, 189, 248, 0.2) 40%, transparent 70%);
-            z-index: 30; /* Over the book */
-            animation: pulseGlow 2s infinite alternate ease-in-out;
-            pointer-events: none;
-            filter: blur(10px); /* Static blur is much faster than animated blur */
-            will-change: transform, opacity;
-        }
-
-        @keyframes pulseGlow {
-            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; }
-            100% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
-        }
-
-        .firefly {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 20;
-            mix-blend-mode: screen;
-            will-change: transform, opacity;
-        }
-        
-        .flying-page {
-            position: absolute;
-            width: 55px;
-            height: 62px; /* Match book page ratio (approx 31:35) */
-            background: linear-gradient(225deg, transparent 10px, var(--warm-cream) 10px); /* Cut top-right corner */
-            border: none;
-            border-radius: 0px; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 4px;
-            box-shadow: 1px 2px 6px rgba(0,0,0,0.15); /* Very soft shadow for thin paper */
-            left: 50%;
-            top: 50%;
-            margin-left: -27px; margin-top: -31px;
-            z-index: 1000;
-            will-change: transform, opacity;
-            transform-style: preserve-3d; 
-            backface-visibility: visible; 
-        }
-
-        /* Folded dog-ear corner effect */
-        .flying-page::before {
-            content: '';
-            position: absolute;
-            top: 0; right: 0;
-            width: 14px; height: 14px;
-            background: linear-gradient(225deg, transparent 50%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.15) 100%);
-            box-shadow: -1px 1px 2px rgba(0,0,0,0.05);
-        }
-        .css-book {
-            position: relative;
-            width: 100%;
-            height: 320px;
-            display: flex;
-            transform-style: preserve-3d;
-            transform: rotateX(52deg) rotateZ(-12deg);
-        }
-        .css-page {
-            width: 50%;
-            height: 100%;
-            position: relative;
-            transform-style: preserve-3d;
-        }
-        .left-page {
-            transform-origin: right center -14px; /* Pivot at the bottom cover to close the gap */
-            transform: rotateY(6deg); /* Bends the left side UP */
-        }
-        .right-page {
-            transform-origin: left center -14px; /* Pivot at the bottom cover to close the gap */
-            transform: rotateY(-6deg); /* Bends the right side UP */
-        }
-
-        /* 3D Box Construction */
-        .book-top {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #fdfbf7; /* Ivory white paper */
-            color: #1c1917; /* Dark text */
-            transform: translateZ(10px); /* Top surface at +10px */
-            display: flex; flex-direction: column;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.05); /* Soft inner shadow */
-            z-index: 5;
-            backface-visibility: hidden;
-        }
-        .left-page .book-top {
-            padding: 30px;
-            justify-content: space-between;
-            border-right: 2px solid rgba(0,0,0,0.15); /* Stronger center crease */
-            box-shadow: inset -15px 0 20px -10px rgba(0,0,0,0.15), inset 0 0 20px rgba(0,0,0,0.05); /* Deep shadow */
-        }
-        .right-page .book-top {
-            justify-content: center; align-items: center;
-            box-shadow: inset 15px 0 20px -10px rgba(0,0,0,0.15), inset 0 0 20px rgba(0,0,0,0.05); /* Deep shadow */
-        }
-
-        .book-bottom {
-            position: absolute;
-            top: -4px; bottom: -4px; left: -4px; width: calc(100% + 4px); height: calc(100% + 8px);
-            background: #b91c1c; /* Deep Red Hardcover */
-            transform: translateZ(-11px); /* Cover sits just below the paper block */
-            border: 1px solid #7f1d1d;
-            border-radius: 4px 0 0 4px;
-            transform-style: preserve-3d;
-        }
-        .right-page .book-bottom {
-            left: 0; width: calc(100% + 4px);
-            border-radius: 0 4px 4px 0;
-        }
-        .book-bottom::before, .book-bottom::after {
-            content: '';
-            position: absolute;
-            inset: -1px;
-            border-radius: inherit;
-            border: 1px solid #7f1d1d;
-        }
-        .book-bottom::before {
-            background: #991b1b;
-            transform: translateZ(-3px);
-        }
-        .book-bottom::after {
-            background: #450a0a;
-            transform: translateZ(-6px);
-            box-shadow: 0 30px 50px rgba(0,0,0,0.9);
-        }
-
-        /* Paper Edges (20px thick) */
-        .book-edge {
-            position: absolute;
-            background: #e5e5e5;
-            background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
-        }
-        .book-edge-bottom {
-            bottom: 0; left: 0; width: 100%; height: 20px;
-            transform: translateY(10px) rotateX(-90deg);
-        }
-        .book-edge-top {
-            top: 0; left: 0; width: 100%; height: 20px;
-            transform: translateY(-10px) rotateX(90deg);
-        }
-        .left-page .book-edge-side {
-            top: 0; left: 0; width: 20px; height: 100%;
-            background-image: repeating-linear-gradient(to right, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
-            transform: translateX(-10px) rotateY(-90deg);
-        }
-        .right-page .book-edge-side {
-            top: 0; right: 0; width: 20px; height: 100%;
-            background-image: repeating-linear-gradient(to right, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
-            transform: translateX(10px) rotateY(90deg);
-        }
-
-        .css-spine {
-            position: absolute;
-            left: 50%; top: -4px; bottom: -4px;
-            width: 40px;
-            background: linear-gradient(to right, #7f1d1d, #b91c1c 20%, #b91c1c 80%, #7f1d1d);
-            transform: translateX(-50%) translateZ(-11px); /* Match cover depth */
-            z-index: 1; /* Below the pages */
-            pointer-events: none;
-        }
-        .css-spine-glow {
-            position: absolute;
-            top: 10px; bottom: 10px;
-            left: 50%; width: 2px;
-            transform: translateX(-50%);
-            background: rgba(255,255,255,0.2);
-            box-shadow: 0 0 20px 10px rgba(255,255,255,0.1);
-        }
-        .flying-page {
-            position: absolute;
-            width: 50px; height: 68px;
-            background: var(--warm-cream); /* Dark flying page */
-            border: 1px solid rgba(255,255,255,0.05); /* Subtle border */
-            border-radius: 4px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); /* Strong shadow */
-            display: flex; flex-direction: column; justify-content: space-between;
-            padding: 6px;
-            pointer-events: none;
-            transform-style: preserve-3d;
-            left: 50%;
-            top: 50%;
-            margin-left: -25px; margin-top: -34px;
-            z-index: 50; /* Interleaves with Feedback Orbit cards (40 and 60) */
-        }
-
-        /* Nav */
-        .nav {
-            position: fixed; top: 0; left: 0; width: 100%;
-            padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
-            z-index: 100;
-            background: rgba(9, 9, 11, 0.7); /* Dark glass */
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(255,255,255,0.05); /* Subtle dark border */
-        }
-        .nav-brand { font-family: var(--font-serif); font-size: 1.5rem; font-weight: bold; color: var(--ink-black); text-decoration: none;}
-        .nav-links { display: flex; gap: 30px; }
-        .nav-links a { text-decoration: none; color: var(--ink-black); font-weight: 500; transition: color 0.3s; }
-        .nav-links a:hover { color: var(--soft-orange); }
-        .nav-login { 
-            font-weight: bold; text-decoration: none; color: #09090b; background: var(--ink-black); /* Inverted CTA */
-            padding: 10px 24px; border-radius: 50px; transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255,255,255,0.05);
-        }
-        .nav-login:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,255,255,0.15); }
-
-        /* Footer */
-        .site-footer {
-            padding: 60px 20px 40px;
-            text-align: center;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            background: linear-gradient(to bottom, rgba(255,255,255,0.02), transparent);
-            position: relative;
-            z-index: 60;
-            margin-top: 0;
-        }
-        .footer-links {
-            display: flex; justify-content: center; flex-wrap: wrap; gap: 24px; margin-bottom: 24px;
-        }
-        .footer-links a {
-            color: #a1a1aa; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.3s;
-        }
-        .footer-links a:hover { color: var(--ink-black); }
-        .footer-copy { color: #52525b; font-size: 0.85rem; }
-
-        @media (max-width: 950px) {
-            .branch-line { display: none; }
-        }
-        @media (max-width: 768px) {
-            .flow-section {
-                flex-direction: column;
-                gap: 20px;
-                padding: 50px 0;
-                .nav-links { display: none; } /* Hide links on mobile to save space */
-        }
-            .flow-page {
-                width: 90%;
-            }
-            .branch-line { display: none; }
-            .review-card { width: 260px; height: 160px; margin-left: -130px; margin-top: -80px; padding: 16px; }
-            .review-card p { font-size: 0.9rem; }
-            .hero-title { font-size: 3rem; }
-            .char-card { transform: scale(0.7); }
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #0b0f19; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
     </style>
 </head>
-<body>
+<body class="flex items-center justify-center min-h-screen text-slate-200 relative overflow-hidden">
 
+    <div class="absolute w-96 h-96 bg-purple-600/10 rounded-full blur-3xl -top-20 -left-20"></div>
+    <div class="absolute w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -bottom-20 -right-20"></div>
 
-
-    <!-- MAIN CONTENT -->
-    <div class="content-wrapper">
-
-        <!-- Impeccable Side Accents -->
-        <div class="side-accent side-left">
-            <span class="accent-text">MINI SERIES // ENGINE</span>
-            <div style="width: 1px; flex: 1; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent); margin: 20px 0;"></div>
-            <span class="accent-text" style="color: var(--sky-blue);">V2.4.1</span>
+    <div class="w-full max-w-md p-8 rounded-2xl glass z-10 shadow-2xl mx-4">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold tracking-wider text-white">Edu<span class="text-purple-500">Gen</span>AI</h1>
+            <p class="text-sm text-slate-400 mt-2" id="formSubtitle">Đăng nhập để bắt đầu chuyển đổi bài học</p>
         </div>
-        <div class="side-accent side-right">
-            <span class="accent-text" style="color: var(--soft-orange);">ONLINE</span>
-            <div style="width: 1px; flex: 1; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent); margin: 20px 0;"></div>
-            <span class="accent-text">GENERATIVE WORKFLOW</span>
+
+        <div id="loginFormSection">
+            <form id="loginForm" class="space-y-4" action="#" method="post" novalidate>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2" for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" name="email" autocomplete="email" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="name@example.com" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2" for="loginPassword">Mật khẩu</label>
+                    <input type="password" id="loginPassword" name="password" autocomplete="current-password" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="••••••••" required>
+                </div>
+                <button type="submit" id="loginBtn" class="w-full py-3 mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold rounded-xl transition shadow-lg shadow-purple-600/20 flex justify-center items-center">
+                    Đăng nhập
+                </button>
+            </form>
+            <p class="text-center text-sm text-slate-400 mt-6">
+                Chưa có tài khoản? <a href="#" id="toRegisterLink" class="text-purple-400 hover:underline">Đăng ký ngay</a>
+            </p>
         </div>
-        
-        <header class="nav">
-            <a href="index.html" class="nav-brand">MiniSeries</a>
-            <div class="nav-links">
-                <a href="#hero">Home</a>
-                <a href="#flow">Features</a>
-                <a href="#feedback">Feedback</a>
-            </div>
-            <a href="login.html" class="nav-login">Get Started</a>
-        </header>
 
-        <!-- SECTION 1: HERO -->
-        <section class="hero" id="hero">
-            <h1 class="hero-title">MINI SERIES</h1>
-            <p class="hero-subtitle">Turn Learning Into Animated Stories.</p>
-            
-            <!-- Floating Character Cards -->
-            <div class="char-card" style="top: 15%; left: 100px;">
-                <div style="width: 40px; height: 40px; background: rgba(56,189,248,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🎨</div>
-                <div style="flex:1;">
-                    <div style="width: 80px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-bottom: 8px;"></div>
-                    <div style="width: 50px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;"></div>
+        <div id="registerFormSection" class="hidden">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Họ và tên</label>
+                    <input type="text" id="regName" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="Nguyễn Văn A">
                 </div>
-            </div>
-            <div class="char-card" style="top: 25%; right: 100px;">
-                <div style="width: 40px; height: 40px; background: rgba(251,146,60,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">⚔️</div>
-                <div style="flex:1;">
-                    <div style="width: 90px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-bottom: 8px;"></div>
-                    <div style="width: 40px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;"></div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email</label>
+                    <input type="email" id="regEmail" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="name@example.com">
                 </div>
-            </div>
-            <div class="char-card" style="bottom: 15%; left: 140px;">
-                <div style="width: 40px; height: 40px; background: rgba(167,139,250,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🐉</div>
-                <div style="flex:1;">
-                    <div style="width: 70px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-bottom: 8px;"></div>
-                    <div style="width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;"></div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Mật khẩu</label>
+                    <input type="password" id="regPassword" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-white transition" placeholder="Tối thiểu 6 ký tự">
                 </div>
+                <button id="registerBtn" class="w-full py-3 mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl transition shadow-lg flex justify-center items-center">
+                    Đăng ký tài khoản
+                </button>
             </div>
-            <div class="char-card" style="bottom: 25%; right: 140px;">
-                <div style="width: 40px; height: 40px; background: rgba(52,211,153,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">✨</div>
-                <div style="flex:1;">
-                    <div style="width: 85px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-bottom: 8px;"></div>
-                    <div style="width: 30px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION 2: FLOW -->
-        <section class="flow-section" id="flow">
-            <div class="flow-page">
-                <div class="branch-line"></div>
-                <h3>Idea → Script</h3>
-                <p>Mọi câu chuyện vĩ đại đều bắt đầu từ một ý tưởng nhỏ bé. Nhập nội dung bài học của bạn vào dòng sông tri thức, AI sẽ chắp bút biến chúng thành một kịch bản lôi cuốn.</p>
-            </div>
-            
-            <div class="flow-page">
-                <div class="branch-line"></div>
-                <h3>Script → Storyboard</h3>
-                <p>Từng khung hình được phác thảo. Dòng chảy thị giác bắt đầu hình thành với bố cục truyện tranh chuyên nghiệp, nhân vật được định hình rõ nét.</p>
-            </div>
-            
-            <div class="flow-page">
-                <h3>Storyboard → Animation</h3>
-                <p>Trang giấy không còn tĩnh lặng. Hiệu ứng động, âm thanh và voice over đưa câu chuyện bước ra đời thực, tạo thành một Mini Series hoàn chỉnh.</p>
-            </div>
-        </section>
-
-        <!-- SECTION 3: FEEDBACK -->
-        <section class="feedback-section" id="feedback" style="padding: 100px 0; overflow-x: hidden;">
-            
-            <!-- TOP TRACK (Moves Left) -->
-            <div class="marquee-track">
-                <div class="marquee-content scroll-left" id="track1-1">
-                    <div class="review-card">
-                        <div class="quote-icon">❝</div>
-                        <p>"I never knew learning history could feel like being inside my favorite anime story!"</p>
-                        <div class="review-author">
-                            <span class="review-badge">STUDENT FEEDBACK</span>
-                            <span class="review-name">— Kenji, 12</span>
-                        </div>
-                    </div>
-                    <div class="review-card">
-                        <div class="quote-icon">❝</div>
-                        <p>"The AI actually understood my weird dragon biology ideas and turned them into gorgeous storyboards."</p>
-                        <div class="review-author">
-                            <span class="review-badge">STUDENT FEEDBACK</span>
-                            <span class="review-name">— Sarah, 14</span>
-                        </div>
-                    </div>
-                    <div class="review-card">
-                        <div class="quote-icon">❝</div>
-                        <p>"This is the first time I actually wanted to do my science homework. It's absolute magic!"</p>
-                        <div class="review-author">
-                            <span class="review-badge">STUDENT FEEDBACK</span>
-                            <span class="review-name">— Leo, 10</span>
-                        </div>
-                    </div>
-                    <div class="review-card">
-                        <div class="quote-icon">❝</div>
-                        <p>"Tạo ra một series hoạt hình ngắn về hệ mặt trời chưa bao giờ dễ dàng và trực quan đến thế!"</p>
-                        <div class="review-author">
-                            <span class="review-badge">STUDENT FEEDBACK</span>
-                            <span class="review-name">— Minh, 15</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="marquee-content scroll-left" id="track1-2"></div>
-            </div>
-
-            <!-- BOTTOM TRACK (Moves Right) -->
-            <div class="marquee-track">
-                <div class="marquee-content scroll-right" id="track2-1">
-                    <div class="review-card">
-                        <div class="quote-icon">❝</div>
-                        <p>"My students are absolutely obsessed with turning their essays into interactive visual novels."</p>
-                        <div class="review-author">
-                            <span class="review-badge" style="background: rgba(167, 139, 250, 0.2); color: var(--purple-accent);">TEACHER REVIEW</span>
-                            <span class="review-name">— Ms. Clara</span>
-                        </div>
-                    </div>
-                    <div class="review-card">
-                        <div class="quote-icon">❝</div>
-                        <p>"The rendering speed is incredible. I generated a full 10-page manga in just minutes!"</p>
-                        <div class="review-author">
-                            <span class="review-badge">STUDENT FEEDBACK</span>
-                            <span class="review-name">— Alex, 16</span>
-                        </div>
-                    </div>
-                    <div class="review-card">
-                        <div class="quote-icon">❝</div>
-                        <p>"Từ kịch bản văn bản khô khan trở thành những thước phim sống động. Khó tin nổi đây là AI."</p>
-                        <div class="review-author">
-                            <span class="review-badge">STUDENT FEEDBACK</span>
-                            <span class="review-name">— Hùng, 17</span>
-                        </div>
-                    </div>
-                    <div class="review-card">
-                        <div class="quote-icon">❝</div>
-                        <p>"The best tool for project-based learning. My kids love creating their own universes."</p>
-                        <div class="review-author">
-                            <span class="review-badge" style="background: rgba(167, 139, 250, 0.2); color: var(--purple-accent);">PARENT REVIEW</span>
-                            <span class="review-name">— David S.</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="marquee-content scroll-right" id="track2-2"></div>
-            </div>
-        </section>
-
-        <!-- SECTION 4: FINAL BOOK -->
-        <section class="final-section">
-            <div class="final-content">
-                <h2 class="final-title">Every Great Story<br>Starts With One Page.</h2>
-                <a href="login.html" class="cta-btn">Create Your Own Mini Series</a>
-            </div>
-            <div class="book-container">
-                <div class="css-book-wrapper">
-                    <div class="spawn-glow"></div>
-                    <div class="css-book">
-                        <div class="css-page left-page">
-                            <div class="book-bottom"></div>
-                            <div class="book-edge-top book-edge"></div>
-                            <div class="book-edge-bottom book-edge"></div>
-                            <div class="book-edge-side book-edge"></div>
-                            <div class="book-top" style="justify-content: space-between; padding: 40px 30px;">
-                                <div style="opacity: 0.4;">
-                                    <div style="height: 12px; background: rgba(0,0,0,0.1); width: 85%; border-radius: 6px; margin-bottom: 20px;"></div>
-                                    <div style="height: 12px; background: rgba(0,0,0,0.1); width: 100%; border-radius: 6px; margin-bottom: 20px;"></div>
-                                    <div style="height: 12px; background: rgba(0,0,0,0.1); width: 90%; border-radius: 6px; margin-bottom: 20px;"></div>
-                                    <div style="height: 12px; background: rgba(0,0,0,0.1); width: 70%; border-radius: 6px; margin-bottom: 20px;"></div>
-                                </div>
-                                <div style="font-family: var(--font-sans); font-weight: bold; font-size: 1.1rem; color: var(--sky-blue);">
-                                    Mini Series
-                                </div>
-                            </div>
-                        </div>
-                        <div class="css-page right-page">
-                            <div class="book-bottom"></div>
-                            <div class="book-edge-top book-edge"></div>
-                            <div class="book-edge-bottom book-edge"></div>
-                            <div class="book-edge-side book-edge"></div>
-                            <div class="book-top" style="padding: 40px 30px; justify-content: center; align-items: center;">
-                                <div style="width: 80px; height: 80px; background: rgba(251, 146, 60, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
-                                    <span style="font-size: 32px;">✨</span>
-                                </div>
-                                <div style="width: 40px; height: 2px; background: rgba(0,0,0,0.1);"></div>
-                            </div>
-                        </div>
-                        <div class="css-spine" id="spine">
-                            <div class="css-spine-glow"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FOOTER -->
-        <footer class="site-footer">
-            <div class="footer-links">
-                <a href="#">Terms</a>
-                <a href="#">Privacy</a>
-                <a href="#">Security</a>
-                <a href="#">Status</a>
-                <a href="#">Community</a>
-                <a href="#">Docs</a>
-                <a href="#">Contact</a>
-            </div>
-            <p class="footer-copy">© 2026 MiniSeries. Built with an Impeccable Aesthetic.</p>
-        </footer>
-
+            <p class="text-center text-sm text-slate-400 mt-6">
+                Đã có tài khoản? <a href="#" id="toLoginLink" class="text-blue-400 hover:underline">Quay lại đăng nhập</a>
+            </p>
+        </div>
     </div>
 
+    <script src="auth.js?v=20260607-register-fix"></script>
     <script>
-        gsap.registerPlugin(ScrollTrigger);
+    document.addEventListener("DOMContentLoaded", function () {
+        const loginSection = document.getElementById("loginFormSection");
+        const registerSection = document.getElementById("registerFormSection");
+        const formSubtitle = document.getElementById("formSubtitle");
+        const toRegisterLink = document.getElementById("toRegisterLink");
+        const toLoginLink = document.getElementById("toLoginLink");
 
-
-
-        // --- GSAP Animations ---
-
-        // 1. Hero Character Cards
-        const cards = gsap.utils.toArray('.char-card');
-        cards.forEach((card, i) => {
-            // Fade and pop in gracefully on page load
-            gsap.from(card, {
-                opacity: 0,
-                scale: 0.5,
-                duration: 1.2,
-                delay: 0.2 + (i * 0.2), // Staggered entrance
-                ease: "back.out(1.5)"
+        if (toRegisterLink) {
+            toRegisterLink.addEventListener("click", function (e) {
+                e.preventDefault();
+                loginSection.classList.add("hidden");
+                registerSection.classList.remove("hidden");
+                formSubtitle.innerText = "Đăng ký tài khoản mới để trải nghiệm hệ thống";
             });
+        }
 
-            // Use yPercent for the continuous float so it doesn't conflict with the scroll scrub on 'y'
-            gsap.to(card, {
-                yPercent: -20,
-                duration: 2 + Math.random(),
-                yoyo: true,
-                repeat: -1,
-                ease: "sine.inOut",
-                delay: Math.random()
+        if (toLoginLink) {
+            toLoginLink.addEventListener("click", function (e) {
+                e.preventDefault();
+                registerSection.classList.add("hidden");
+                loginSection.classList.remove("hidden");
+                formSubtitle.innerText = "Đăng nhập để bắt đầu chuyển đổi bài học";
             });
-            gsap.to(card, {
-                scrollTrigger: {
-                    trigger: ".hero",
-                    start: "top top",
-                    end: "bottom top",
-                    scrub: 1
-                },
-                y: 80 * (i%2 === 0 ? 1 : -1), // Reduced amplitude for smoother, subtler parallax
-                rotation: (Math.random() - 0.5) * 20 // Reduced rotation range
+        }
+
+        const loginForm = document.getElementById("loginForm");
+        if (loginForm) {
+            loginForm.addEventListener("submit", function (e) {
+                e.preventDefault();
             });
-        });
+        }
 
-        // 2. Flow Pages (Fly out from stream in a row)
-        const flowPages = gsap.utils.toArray('.flow-page');
-        
-        // Hide contents initially
-        flowPages.forEach(page => {
-            const line = page.querySelector('.branch-line');
-            const content = page.querySelectorAll('h3, p');
-            if (line) gsap.set(line, { opacity: 0 });
-            gsap.set(content, { opacity: 0, y: 15 });
-        });
+        // XỬ LÝ SỰ KIỆN: ĐĂNG NHẬP
+        const oldLoginBtn = document.getElementById("loginBtn");
+        if (oldLoginBtn) {
+            console.log("🎯 Đã tìm thấy nút Đăng nhập. Tiến hành bẻ gãy mọi sự kiện cũ trùng lặp!");
+            const newLoginBtn = oldLoginBtn.cloneNode(true);
+            oldLoginBtn.parentNode.replaceChild(newLoginBtn, oldLoginBtn);
+            newLoginBtn.setAttribute("type", "button");
 
-        // Use a single timeline so they fly out sequentially
-        const tl = gsap.timeline({
-            scrollTrigger: {
-                trigger: ".flow-section",
-                start: "top 60%", // Trigger when the row is halfway into viewport
-                toggleActions: "play none none none"
-            }
-        });
+            newLoginBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-        flowPages.forEach((page, i) => {
-            const content = page.querySelectorAll('h3, p');
-            const line = page.querySelector('.branch-line');
+                const emailInput = document.getElementById("loginEmail");
+                const passwordInput = document.getElementById("loginPassword");
+                if (!emailInput || !passwordInput) return;
 
-            // Step 1: Blank page flies out from the center stream
-            tl.from(page, {
-                x: () => {
-                    const rect = page.getBoundingClientRect();
-                    const pageCenter = rect.left + rect.width / 2;
-                    return (window.innerWidth / 2) - pageCenter;
-                },
-                y: 300, // Fly upwards from stream
-                scale: 0.1,
-                rotationY: 180, // Flip open like a book page
-                rotationY: 180,
-                rotationZ: (i - 1) * 30,
-                opacity: 0,
-                duration: 1.0,
-                ease: "back.out(1.2)"
-            }, i * 0.4);
-            
-            tl.to(content, { opacity: 1, y: 0, duration: 0.5, stagger: 0.15 }, "-=0.3");
-            if (line) {
-                tl.to(line, { opacity: 0.6, duration: 0.4 }, "<");
-            }
-        });
-        // 3. Duplicate Marquee Content for seamless scrolling
-        document.getElementById('track1-2').innerHTML = document.getElementById('track1-1').innerHTML;
-        document.getElementById('track2-2').innerHTML = document.getElementById('track2-1').innerHTML;
+                const email = emailInput.value.trim().toLowerCase();
+                const password = passwordInput.value;
 
-        // 4. Book emerge animation
-        gsap.from(".css-book-wrapper", {
-            scrollTrigger: {
-                trigger: ".final-section",
-                start: "top bottom",
-                end: "bottom bottom",
-                scrub: true
-            },
-            y: 150,
-            scale: 0.95
-        });
-
-        // 5. 3D Book gentle tilt loop
-        gsap.to(".css-book", {
-            rotateX: 55,
-            rotateZ: -10,
-            y: -10,
-            duration: 3,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut"
-        });
-
-        // 6. Flying pages spawner
-        const symbols = ["✨", "💡", "🌱", "⚛️", "📚", "🎨", "🌟"];
-
-        function spawnPage(initialProgress = 0) {
-            const page = document.createElement("div");
-            page.className = "flying-page";
-            
-            const sym = symbols[Math.floor(Math.random() * symbols.length)];
-            // Keep the rich HTML structure that was originally there!
-            page.innerHTML = `
-                <div style="width:100%; height:4px; background:rgba(0,0,0,0.1); border-radius:2px;"></div>
-                <div style="text-align:center; font-size:18px; color:#f59e0b; font-weight:bold;">${sym}</div>
-                <div style="width:12px; height:2px; background:rgba(0,0,0,0.1);"></div>
-            `;
-            
-            if (Math.random() > 0.5) page.classList.add("flipped");
-
-            document.body.appendChild(page);
-
-            const wrapper = document.querySelector(".css-book-wrapper");
-            if (!wrapper) return;
-            const rect = wrapper.getBoundingClientRect();
-            
-            // Calculate starting absolute position
-            const spawnX = rect.left + rect.width / 2 + window.scrollX;
-            const spawnY = rect.top + 155 + window.scrollY; // Center of the book crease
-
-            // Initial state
-            gsap.set(page, {
-                left: 0, top: 0, margin: 0,
-                x: spawnX,
-                y: spawnY,
-                xPercent: -50,
-                yPercent: -50,
-                rotationY: (Math.random() - 0.5) * 45,
-                rotationZ: (Math.random() - 0.5) * 30,
-                scale: 0.25 // Starting scale
-            });
-
-            const driftX = (Math.random() - 0.5) * 300; // Wider spread like floating leaves
-            const rotXEnd = (Math.random() - 0.5) * 1440; // Tumble head-over-heels! (up to 4 flips)
-            const rotYEnd = (Math.random() - 0.5) * 1440; // Tumble sideways
-            const rotZEnd = (Math.random() - 0.5) * 180; // Gentle spin
-            const scaleEnd = 0.8 + Math.random() * 0.5;
-            
-            // Total visual distance they will fly
-            const distance = spawnY + 200; 
-            const baseDuration = 15 + Math.random() * 10; // Float slower, like paper
-            const flyDuration = distance / (80 + Math.random() * 100); // Speed roughly 80-180px/s (drifting)
-
-            const safeTargetY = -200; // Fly safely above top of document
-
-            const flyTween = gsap.to(page, {
-                y: safeTargetY,
-                rotationX: rotXEnd * (flyDuration / baseDuration),
-                rotationY: rotYEnd * (flyDuration / baseDuration),
-                rotationZ: rotZEnd * (flyDuration / baseDuration),
-                duration: flyDuration,
-                ease: "power1.out", // Decelerate slightly as it goes up
-                onComplete: () => {
-                    if (page.parentNode) page.parentNode.removeChild(page);
+                if (!email || !password) {
+                    alert("Vui lòng điền đầy đủ Email và Mật khẩu!");
+                    return;
+                }
+                console.log("Tài khoản người dùng, chuyển tiếp sang hàm xử lý API auth.js...");
+                if (typeof handleLogin === "function") {
+                    handleLogin(email, password);
+                } else {
+                    alert("Không tải được module đăng nhập (auth.js). Vui lòng tải lại trang.");
                 }
             });
-
-            // Horizontal drift
-            const xTween = gsap.to(page, {
-                x: spawnX + driftX,
-                duration: baseDuration,
-                ease: "power2.out"
-            });
-
-            // Scale
-            const scaleTween = gsap.fromTo(page, 
-                { scale: 0.25 }, 
-                { scale: scaleEnd, duration: 1.2, ease: "back.out(1.5)" }
-            );
-
-            // Opacity fade in
-            const opacityTween = gsap.fromTo(page, 
-                { opacity: 0 }, 
-                { opacity: 1, duration: 1.5, ease: "power1.inOut" }
-            );
-
-            // Pre-fill logic
-            if (initialProgress > 0) {
-                const visibleRatio = baseDuration / flyDuration;
-                flyTween.progress(initialProgress * visibleRatio);
-                xTween.progress(initialProgress);
-                scaleTween.progress(1);
-                opacityTween.progress(1);
-            }
-
-            // Hover interactions
-            page.addEventListener('mouseenter', () => {
-                flyTween.pause();
-                xTween.pause();
-                gsap.to(page, { scale: scaleEnd * 1.5, zIndex: 2000, duration: 0.3 });
-            });
-            page.addEventListener('mouseleave', () => {
-                flyTween.play();
-                xTween.play();
-                gsap.to(page, { scale: scaleEnd, zIndex: 1000, duration: 0.3 });
-            });
         }
 
-        // Pre-fill the stream with pages already in flight (reduced to 40 for performance)
-        for (let i = 0; i < 40; i++) {
-            spawnPage(Math.random());
+        // XỬ LÝ SỰ KIỆN: ĐĂNG KÝ MỚI
+        const registerBtn = document.getElementById("registerBtn");
+        if (registerBtn) {
+            registerBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+
+                const regNameInput = document.getElementById("regName");
+                const regEmailInput = document.getElementById("regEmail");
+                const regPasswordInput = document.getElementById("regPassword");
+
+                const fullName = regNameInput ? regNameInput.value.trim() : "";
+                const email = regEmailInput ? regEmailInput.value.trim().toLowerCase() : "";
+                const password = regPasswordInput ? regPasswordInput.value : "";
+
+                if (!fullName || !email || !password) {
+                    alert("Vui lòng điền đầy đủ các thông tin đăng ký!");
+                    return;
+                }
+
+                if (password.length < 6) {
+                    alert("Mật khẩu bảo mật phải tối thiểu từ 6 ký tự trở lên!");
+                    return;
+                }
+
+                console.log("Đang gửi yêu cầu đăng ký tài khoản mới lên API...");
+                if (typeof window.handleRegister === "function") {
+                    window.handleRegister(email, password, fullName);
+                } else {
+                    alert("Không tải được cấu trúc xử lý đăng ký tài khoản (auth.js). Vui lòng tải lại trang.");
+                }
+            });
         }
-
-        // Spawn a new page every 250ms (4 per second) instead of spamming too many
-        setInterval(() => {
-            if (document.hidden) return; // Prevent accumulation when tab is inactive
-            spawnPage();
-        }, 250);
-
-        function createFireflies() {
-            const wrapper = document.querySelector(".css-book-wrapper");
-            const colors = ['rgba(56, 189, 248, 0.8)', 'rgba(251, 146, 60, 0.8)', 'rgba(255, 255, 255, 0.8)'];
-            
-            for (let i = 0; i < 15; i++) { // Reduced from 35 to 15 for performance
-                const firefly = document.createElement("div");
-                firefly.className = "firefly";
-                
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                firefly.style.boxShadow = `0 0 12px 3px ${color}`;
-                firefly.style.background = color.replace('0.8', '1');
-                
-                wrapper.appendChild(firefly);
-                
-                const startX = (Math.random() - 0.5) * 700; // Wide horizontal spread
-                const startY = (Math.random() - 0.5) * 450; // Vertical spread
-
-                gsap.set(firefly, {
-                    x: startX,
-                    y: startY,
-                    opacity: 0,
-                    scale: Math.random() * 0.6 + 0.2
-                });
-
-                // Floating animation
-                gsap.to(firefly, {
-                    x: startX + (Math.random() - 0.5) * 120,
-                    y: startY + (Math.random() - 0.5) * 120,
-                    duration: 3 + Math.random() * 5,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: "sine.inOut"
-                });
-
-                // Pulsing animation
-                gsap.to(firefly, {
-                    opacity: Math.random() * 0.7 + 0.3,
-                    duration: 0.8 + Math.random() * 2,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: "power1.inOut",
-                    delay: Math.random() * 2
-                });
-            }
-        }
-        
-        // Init fireflies
-        createFireflies();
+    });
     </script>
 </body>
 </html>

@@ -1,40 +1,89 @@
-# Nhật ký hoạt động - MiniSeries
+﻿## [2026-06-09] - Fix approve treo khi upload Cloudinary
 
-File này ghi lại các bước thực hiện của trợ lý AI Antigravity trong quá trình phát triển dự án.
+### Da hoan thanh:
+1. Cap nhat `CloudinaryStorageService.cs`:
+   - Image upload khong con de Cloudinary tu fetch remote URL Pollinations truoc.
+   - Backend tu download source media bang HttpClient co timeout roi upload stream len Cloudinary.
+   - Them timeout ro rang cho download image, upload image va upload video de tranh request treo vo han.
+2. Cap nhat `ApproveLessonScriptCommandHandler.cs`:
+   - Giam concurrency media ve 2 de tranh qua tai Pollinations/Cloudinary khi nhieu chapter.
+3. Kiem tra:
+   - `dotnet build MiniSeries.sln --no-restore` thanh cong.
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+   - Restart WebAPI tai `http://localhost:5088`.
+## [2026-06-09] - Chinh lai loading approve khong doan sai trang thai
 
-## [2026-05-15] - Tích hợp API Pollinations & Xây dựng giao diện
+### Da hoan thanh:
+1. Cap nhat React Studio loading:
+   - Bo co che doan stage theo thoi gian vi khong co realtime job status.
+   - Doi copy thanh trang thai tong quat: backend dang tao chapter, quiz va media.
+   - Giu elapsed time va checklist cac viec he thong dang xu ly.
+   - Giam progress cap tu 94% xuong 88% trong buoc tao media de tranh cam giac gan xong nhung van cho lau.
+2. Kiem tra:
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+   - `dotnet build MiniSeries.sln --no-restore` thanh cong.
+## [2026-06-09] - Toi uu buoc approve tao media
 
-### Đã hoàn thành:
-1.  **Thiết lập cấu hình:** Thêm Pollinations API Key (`sk_...`) vào `appsettings.json`.
-2.  **Triển khai Infrastructure:** Tạo `PollinationsService.cs` thực hiện các interface:
-    - `ILLMService`: Phân tích bài học thành JSON.
-    - `IImageGenerationService`: Tạo ảnh mỏ neo (Anchor Image).
-    - `IMangaService`: Tạo các khung hình Manga.
-    - `IVideoService`: Tạo các đoạn video clip ngắn.
-    - `IStorageService`: Quản lý URL hình ảnh.
-3.  **Cập nhật Backend:**
-    - Cấu hình Dependency Injection trong `Program.cs`.
-    - Tạo endpoint API `POST /api/lessons/generate`.
-    - Kích hoạt phục vụ file tĩnh (Static Files).
-4.  **Phát triển Frontend (wwwroot):**
-    - `index.html`: Giao diện chính với phong cách Glassmorphism.
+### Da hoan thanh:
+1. Cap nhat backend `ApproveLessonScriptCommandHandler.cs`:
+   - Doi tao media chapter tu tuan tu sang chay song song co gioi han.
+   - Manga xu ly toi da 3 chapter cung luc, video toi da 2 chapter cung luc.
+   - Giu luong approve hien tai nhung giam thoi gian cho khi co nhieu chapter.
+2. Cap nhat React Studio loading:
+   - Them elapsed time.
+   - Them 4 stage ro rang: chia chapter, dung nhan vat, tao media, upload Cloudinary.
+   - Giam cam giac progress bar dung lau o mot trang thai mo ho.
+3. Kiem tra:
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+   - `dotnet build MiniSeries.sln --no-restore` thanh cong.
+## [2026-06-09] - Ep output AI sang tieng Viet
+
+### Da hoan thanh:
+1. Cap nhat `GroqService.cs`:
+   - Them rule bat buoc moi noi dung user-facing trong JSON la tieng Viet co dau.
+   - Ap dung cho draft script, review script, chapter summary/fullPrompt, quiz question/options/explanation.
+2. Cap nhat `GeminiService.cs` voi cung rule de fallback/provider khac cung tra tieng Viet.
+3. Cap nhat `PollinationsService.cs`:
+   - Prompt manga/video yeu cau neu co chu, loi thoai, bong bong thoai/phu de thi dung tieng Viet co dau.
+4. Kiem tra:
+   - `dotnet build MiniSeries.sln --no-restore` thanh cong.
+# Nháº­t kÃ½ hoáº¡t Ä‘á»™ng - MiniSeries
+
+File nÃ y ghi láº¡i cÃ¡c bÆ°á»›c thá»±c hiá»‡n cá»§a trá»£ lÃ½ AI Antigravity trong quÃ¡ trÃ¬nh phÃ¡t triá»ƒn dá»± Ã¡n.
+
+## [2026-05-15] - TÃ­ch há»£p API Pollinations & XÃ¢y dá»±ng giao diá»‡n
+
+### ÄÃ£ hoÃ n thÃ nh:
+1.  **Thiáº¿t láº­p cáº¥u hÃ¬nh:** ThÃªm Pollinations API Key (`sk_...`) vÃ o `appsettings.json`.
+2.  **Triá»ƒn khai Infrastructure:** Táº¡o `PollinationsService.cs` thá»±c hiá»‡n cÃ¡c interface:
+    - `ILLMService`: PhÃ¢n tÃ­ch bÃ i há»c thÃ nh JSON.
+    - `IImageGenerationService`: Táº¡o áº£nh má» neo (Anchor Image).
+    - `IMangaService`: Táº¡o cÃ¡c khung hÃ¬nh Manga.
+    - `IVideoService`: Táº¡o cÃ¡c Ä‘oáº¡n video clip ngáº¯n.
+    - `IStorageService`: Quáº£n lÃ½ URL hÃ¬nh áº£nh.
+3.  **Cáº­p nháº­t Backend:**
+    - Cáº¥u hÃ¬nh Dependency Injection trong `Program.cs`.
+    - Táº¡o endpoint API `POST /api/lessons/generate`.
+    - KÃ­ch hoáº¡t phá»¥c vá»¥ file tÄ©nh (Static Files).
+4.  **PhÃ¡t triá»ƒn Frontend (wwwroot):**
+    - `index.html`: Giao diá»‡n chÃ­nh vá»›i phong cÃ¡ch Glassmorphism.
     - `styles.css`: CSS premium, dark mode, vibrant gradients.
-    - `app.js`: Xử lý tương tác, gọi API và hiển thị kết quả.
-5.  **Khởi chạy:** Ứng dụng đã chạy thành công tại `http://localhost:5137`.
+    - `app.js`: Xá»­ lÃ½ tÆ°Æ¡ng tÃ¡c, gá»i API vÃ  hiá»ƒn thá»‹ káº¿t quáº£.
+5.  **Khá»Ÿi cháº¡y:** á»¨ng dá»¥ng Ä‘Ã£ cháº¡y thÃ nh cÃ´ng táº¡i `http://localhost:5137`.
 
-### Ghi chú kỹ thuật:
-- **LLM:** Đã chuyển đổi sang **Groq (Llama 3.3)** để tăng tốc độ và độ ổn định. Model: `llama-3.3-70b-versatile`.
-- **Manga Page:** Đã nâng cấp thành công việc gen **1 ảnh chứa 4 khung hình có sẵn chữ và bong bóng thoại** do AI tự vẽ.
-- **Sửa lỗi:**
-    - Đã đính kèm API Key vào URL ảnh/video để tránh lỗi 401.
-    - Đã cấu hình `UseDefaultFiles` để truy cập trang chủ không bị lỗi 404.
-- **Lưu trữ:** Đang lên kế hoạch tích hợp **Supabase** và **Cloudinary** để lưu trữ vĩnh viễn.
+### Ghi chÃº ká»¹ thuáº­t:
+- **LLM:** ÄÃ£ chuyá»ƒn Ä‘á»•i sang **Groq (Llama 3.3)** Ä‘á»ƒ tÄƒng tá»‘c Ä‘á»™ vÃ  Ä‘á»™ á»•n Ä‘á»‹nh. Model: `llama-3.3-70b-versatile`.
+- **Manga Page:** ÄÃ£ nÃ¢ng cáº¥p thÃ nh cÃ´ng viá»‡c gen **1 áº£nh chá»©a 4 khung hÃ¬nh cÃ³ sáºµn chá»¯ vÃ  bong bÃ³ng thoáº¡i** do AI tá»± váº½.
+- **Sá»­a lá»—i:**
+    - ÄÃ£ Ä‘Ã­nh kÃ¨m API Key vÃ o URL áº£nh/video Ä‘á»ƒ trÃ¡nh lá»—i 401.
+    - ÄÃ£ cáº¥u hÃ¬nh `UseDefaultFiles` Ä‘á»ƒ truy cáº­p trang chá»§ khÃ´ng bá»‹ lá»—i 404.
+- **LÆ°u trá»¯:** Äang lÃªn káº¿ hoáº¡ch tÃ­ch há»£p **Supabase** vÃ  **Cloudinary** Ä‘á»ƒ lÆ°u trá»¯ vÄ©nh viá»…n.
 
-### Lịch sử thay đổi gần đây:
-- [x] Chuyển LLM sang Groq.
-- [x] Cấu hình workflow Manga Page (4 panels/page).
-- [x] Hỗ trợ AI vẽ text trực tiếp vào tranh.
-- [x] Fix lỗi hiển thị ảnh (Authentication query parameter).
+### Lá»‹ch sá»­ thay Ä‘á»•i gáº§n Ä‘Ã¢y:
+- [x] Chuyá»ƒn LLM sang Groq.
+- [x] Cáº¥u hÃ¬nh workflow Manga Page (4 panels/page).
+- [x] Há»— trá»£ AI váº½ text trá»±c tiáº¿p vÃ o tranh.
+- [x] Fix lá»—i hiá»ƒn thá»‹ áº£nh (Authentication query parameter).
 
 
 ## [2026-05-18] - Thi?t k? l?i flow review tr??c khi sinh media
@@ -45,68 +94,68 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
 3. T?o `TODO.md` ?? theo d?i to?n b? ??u vi?c refactor v? chu?n b? persistence th?t.
 4. Quy ??c t? nay m?i thay ??i ??ng k? s? ???c ghi ti?p v?o file nh?t k? n?y.
 
-## [2026-05-19] - Dựng nền domain cho flow review
+## [2026-05-19] - Dá»±ng ná»n domain cho flow review
 
-### Đã hoàn thành:
-1. Mở rộng `Lesson` để lưu creative mode, creative brief, output mode, trạng thái review, kịch bản tổng thể và thời điểm duyệt.
-2. Chuẩn hóa `Chapter` thành đơn vị nội dung sau bước duyệt: có `LessonId`, `Summary`, `FullPrompt`, media URL và trạng thái riêng.
-3. Thêm các entity vận hành:
-   - `LlmJson`: lưu raw JSON từ LLM theo mục đích sử dụng.
-   - `GenerationJob`: theo dõi từng lần chạy pipeline.
-   - `GenerationLog`: ghi lịch sử từng bước trong mỗi job.
-4. Thêm các enum phục vụ workflow: creative mode, output mode, script status, chapter status, job type/status và log level.
+### ÄÃ£ hoÃ n thÃ nh:
+1. Má»Ÿ rá»™ng `Lesson` Ä‘á»ƒ lÆ°u creative mode, creative brief, output mode, tráº¡ng thÃ¡i review, ká»‹ch báº£n tá»•ng thá»ƒ vÃ  thá»i Ä‘iá»ƒm duyá»‡t.
+2. Chuáº©n hÃ³a `Chapter` thÃ nh Ä‘Æ¡n vá»‹ ná»™i dung sau bÆ°á»›c duyá»‡t: cÃ³ `LessonId`, `Summary`, `FullPrompt`, media URL vÃ  tráº¡ng thÃ¡i riÃªng.
+3. ThÃªm cÃ¡c entity váº­n hÃ nh:
+   - `LlmJson`: lÆ°u raw JSON tá»« LLM theo má»¥c Ä‘Ã­ch sá»­ dá»¥ng.
+   - `GenerationJob`: theo dÃµi tá»«ng láº§n cháº¡y pipeline.
+   - `GenerationLog`: ghi lá»‹ch sá»­ tá»«ng bÆ°á»›c trong má»—i job.
+4. ThÃªm cÃ¡c enum phá»¥c vá»¥ workflow: creative mode, output mode, script status, chapter status, job type/status vÃ  log level.
 
-### Bước kế tiếp:
-- Nối flow tạo draft script tổng thể, review/feedback và approve trước khi sinh chapter chi tiết + media.
+### BÆ°á»›c káº¿ tiáº¿p:
+- Ná»‘i flow táº¡o draft script tá»•ng thá»ƒ, review/feedback vÃ  approve trÆ°á»›c khi sinh chapter chi tiáº¿t + media.
 
-## [2026-05-19] - Triển khai flow review trước khi sinh media
+## [2026-05-19] - Triá»ƒn khai flow review trÆ°á»›c khi sinh media
 
-### Đã hoàn thành:
-1. Tách LLM thành 3 nhịp rõ ràng:
-   - tạo `overallScript` + `characterProfile`,
-   - revise script theo feedback của user,
-   - sau khi duyệt mới sinh danh sách `Chapter` chi tiết để render media.
-2. Thêm `ILessonRepository` và `InMemoryLessonRepository` để flow nhiều bước chạy được trước khi gắn database thật.
-3. Thêm các command mới:
+### ÄÃ£ hoÃ n thÃ nh:
+1. TÃ¡ch LLM thÃ nh 3 nhá»‹p rÃµ rÃ ng:
+   - táº¡o `overallScript` + `characterProfile`,
+   - revise script theo feedback cá»§a user,
+   - sau khi duyá»‡t má»›i sinh danh sÃ¡ch `Chapter` chi tiáº¿t Ä‘á»ƒ render media.
+2. ThÃªm `ILessonRepository` vÃ  `InMemoryLessonRepository` Ä‘á»ƒ flow nhiá»u bÆ°á»›c cháº¡y Ä‘Æ°á»£c trÆ°á»›c khi gáº¯n database tháº­t.
+3. ThÃªm cÃ¡c command má»›i:
    - `CreateLessonDraftCommand`
    - `ReviewLessonScriptCommand`
    - `ApproveLessonScriptCommand`
-4. Thêm API mới:
+4. ThÃªm API má»›i:
    - `POST /api/lessons/drafts`
    - `POST /api/lessons/{lessonId}/review`
    - `POST /api/lessons/{lessonId}/approve`
    - `GET /api/lessons/{lessonId}`
-5. Giữ lại endpoint cũ `POST /api/lessons/generate` dưới dạng legacy one-shot flow để frontend hiện tại chưa bị gãy.
-6. Chuyển logic Groq sang schema mới, đồng thời dọn `PollinationsService` khỏi vai trò LLM không còn cần thiết.
-7. Build solution thành công sau refactor (`0 error`).
+5. Giá»¯ láº¡i endpoint cÅ© `POST /api/lessons/generate` dÆ°á»›i dáº¡ng legacy one-shot flow Ä‘á»ƒ frontend hiá»‡n táº¡i chÆ°a bá»‹ gÃ£y.
+6. Chuyá»ƒn logic Groq sang schema má»›i, Ä‘á»“ng thá»i dá»n `PollinationsService` khá»i vai trÃ² LLM khÃ´ng cÃ²n cáº§n thiáº¿t.
+7. Build solution thÃ nh cÃ´ng sau refactor (`0 error`).
 
-### Ghi chú:
-- Dữ liệu hiện vẫn lưu bằng in-memory store; bước tiếp theo là chốt database thật và map persistence cho các entity mới.
+### Ghi chÃº:
+- Dá»¯ liá»‡u hiá»‡n váº«n lÆ°u báº±ng in-memory store; bÆ°á»›c tiáº¿p theo lÃ  chá»‘t database tháº­t vÃ  map persistence cho cÃ¡c entity má»›i.
 
-## [2026-05-19] - Tích hợp Supabase/Postgres và Cloudinary
+## [2026-05-19] - TÃ­ch há»£p Supabase/Postgres vÃ  Cloudinary
 
-### Đã hoàn thành:
-1. Thêm EF Core + Npgsql để dùng Supabase như Postgres database.
-2. Thêm `MiniSeriesDbContext`, map các bảng cho `Lesson`, `Chapter`, `LlmJson`, `GenerationJob`, `GenerationLog`.
-3. Thêm `LessonRepository` để thay thế `InMemoryLessonRepository` khi có `ConnectionStrings:MiniSeries`.
-4. Tạo migration đầu tiên `InitialPersistence` và xuất file `supabase_initial_persistence.sql` để có thể chạy trực tiếp trong Supabase SQL Editor.
-5. Thêm Cloudinary SDK và `CloudinaryStorageService`; khi đủ Cloudinary config, media sẽ upload lên Cloudinary thay vì chỉ giữ Pollinations URL.
-6. Thêm tài liệu `SETUP_SUPABASE_CLOUDINARY.md` hướng dẫn cấu hình Supabase, Cloudinary, migration và user-secrets.
-7. Build solution thành công (`0 error`).
+### ÄÃ£ hoÃ n thÃ nh:
+1. ThÃªm EF Core + Npgsql Ä‘á»ƒ dÃ¹ng Supabase nhÆ° Postgres database.
+2. ThÃªm `MiniSeriesDbContext`, map cÃ¡c báº£ng cho `Lesson`, `Chapter`, `LlmJson`, `GenerationJob`, `GenerationLog`.
+3. ThÃªm `LessonRepository` Ä‘á»ƒ thay tháº¿ `InMemoryLessonRepository` khi cÃ³ `ConnectionStrings:MiniSeries`.
+4. Táº¡o migration Ä‘áº§u tiÃªn `InitialPersistence` vÃ  xuáº¥t file `supabase_initial_persistence.sql` Ä‘á»ƒ cÃ³ thá»ƒ cháº¡y trá»±c tiáº¿p trong Supabase SQL Editor.
+5. ThÃªm Cloudinary SDK vÃ  `CloudinaryStorageService`; khi Ä‘á»§ Cloudinary config, media sáº½ upload lÃªn Cloudinary thay vÃ¬ chá»‰ giá»¯ Pollinations URL.
+6. ThÃªm tÃ i liá»‡u `SETUP_SUPABASE_CLOUDINARY.md` hÆ°á»›ng dáº«n cáº¥u hÃ¬nh Supabase, Cloudinary, migration vÃ  user-secrets.
+7. Build solution thÃ nh cÃ´ng (`0 error`).
 
-### Ghi chú:
-- App có fallback: nếu chưa cấu hình DB thì dùng in-memory store; nếu chưa cấu hình Cloudinary thì dùng Pollinations URL tạm.
-- Cần chuyển secret thật ra khỏi `appsettings.json` trước khi push/deploy.
+### Ghi chÃº:
+- App cÃ³ fallback: náº¿u chÆ°a cáº¥u hÃ¬nh DB thÃ¬ dÃ¹ng in-memory store; náº¿u chÆ°a cáº¥u hÃ¬nh Cloudinary thÃ¬ dÃ¹ng Pollinations URL táº¡m.
+- Cáº§n chuyá»ƒn secret tháº­t ra khá»i `appsettings.json` trÆ°á»›c khi push/deploy.
 
-## [2026-05-19] - Thử kết nối Supabase Direct connection
+## [2026-05-19] - Thá»­ káº¿t ná»‘i Supabase Direct connection
 
-### Đã thực hiện:
-1. Đã lưu `ConnectionStrings:MiniSeries` vào user-secrets của `MiniSeries.WebAPI`.
-2. Đã chạy `dotnet ef database update` với Direct connection của Supabase.
-3. Kết quả: Direct host `db.devnyzwnvyzgulqroyqa.supabase.co` chỉ resolve IPv6 (`AAAA`), môi trường hiện tại không dùng được để migrate qua đường Direct.
+### ÄÃ£ thá»±c hiá»‡n:
+1. ÄÃ£ lÆ°u `ConnectionStrings:MiniSeries` vÃ o user-secrets cá»§a `MiniSeries.WebAPI`.
+2. ÄÃ£ cháº¡y `dotnet ef database update` vá»›i Direct connection cá»§a Supabase.
+3. Káº¿t quáº£: Direct host `db.devnyzwnvyzgulqroyqa.supabase.co` chá»‰ resolve IPv6 (`AAAA`), mÃ´i trÆ°á»ng hiá»‡n táº¡i khÃ´ng dÃ¹ng Ä‘Æ°á»£c Ä‘á»ƒ migrate qua Ä‘Æ°á»ng Direct.
 
-### Bước tiếp theo:
-- Lấy **Session Pooler** connection string từ Supabase Connect popup rồi chạy lại migration.
+### BÆ°á»›c tiáº¿p theo:
+- Láº¥y **Session Pooler** connection string tá»« Supabase Connect popup rá»“i cháº¡y láº¡i migration.
 
 ## [2026-05-23] - Lam mong controller va chuyen response DTO ve Application
 
@@ -515,3 +564,153 @@ File này ghi lại các bước thực hiện của trợ lý AI Antigravity tr
    - `dotnet build MiniSeries.sln --no-restore` thanh cong.
    - Mock render xac nhan draft khong con side panel, chapter image va quiz van render dung.
    - Don lai `app.js` thanh mot ban render duy nhat, khong con ham cu bi override.
+
+## [2026-06-09] - Chot navbar React
+
+### Da hoan thanh:
+1. Cap nhat `MiniSeries.Frontend/src/components/Layout.tsx`:
+   - Route `/` dung navbar landing rieng.
+   - Tat ca route con trong Layout nhu `/studio`, `/pricing`, `/checkout`, `/profile`, `/tu-van` dung studio navbar.
+   - Studio navbar load profile/quota cho moi route app, khong chi rieng `/studio`.
+   - Neu chua login thi studio navbar hien link `Dang nhap`.
+2. Don lai text bi loi encoding trong `Layout.tsx`.
+3. Kiem tra:
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+
+## [2026-06-09] - Them guard tai khoan React
+
+### Da hoan thanh:
+1. Them `MiniSeries.Frontend/src/components/AuthGuard.tsx`:
+   - Cac route app yeu cau phai co du `token` va `userId`.
+   - Neu thieu session thi redirect ve `/login` bang `replace`.
+2. Cap nhat `MiniSeries.Frontend/src/App.tsx`:
+   - Bao ve `/studio`, `/pricing`, `/checkout`, `/profile`, `/tu-van`, `/dashboard`.
+3. Cap nhat `MiniSeries.Frontend/src/components/Layout.tsx`:
+   - Bo fallback profile gia khi load profile fail.
+   - Neu backend tra 401/403 thi xoa session va day ve `/login`.
+   - Sua lai text tieng Viet trong navbar/profile dropdown.
+4. Cap nhat `MiniSeries.Frontend/src/pages/Login.tsx`:
+   - Chi tu redirect khoi trang login khi co du `token` va `userId`.
+   - Dung `replace` sau login de giam loi back lai trang login.
+5. Kiem tra:
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+
+## [2026-06-09] - Fix flicker dang nhap tren navbar React
+
+### Da hoan thanh:
+1. Cap nhat `MiniSeries.Frontend/src/components/Layout.tsx`:
+   - Them state `isProfileLoading`.
+   - Khi co session local nhung profile chua load xong, navbar hien badge loading thay vi hien `Dang nhap`.
+   - Chan update state sau khi component doi route/unmount trong luc API profile dang chay.
+2. Kiem tra:
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+
+## [2026-06-09] - Chuyen profile/quota sang endpoint me
+
+### Da hoan thanh:
+1. Cap nhat backend `MiniSeries.WebAPI/Controllers/ProfileController.cs`:
+   - Them `GET /api/profile/me`.
+   - Endpoint lay user hien tai tu JWT, khong can FE gui `userId`.
+   - Tai su dung cung response profile/quota voi `/api/profile/{id}`.
+2. Cap nhat React API `MiniSeries.Frontend/src/services/api.ts`:
+   - Them `api.getCurrentProfile()` goi `/api/profile/me`.
+   - Them key cache `profile_snapshot`.
+   - Login tiep tuc luu session toi gian va xoa cache profile cu neu doi user.
+3. Cap nhat navbar `MiniSeries.Frontend/src/components/Layout.tsx`:
+   - Render ten user tu session toi gian ngay lap tuc.
+   - Render quota tu cache neu co.
+   - Goi `/api/profile/me` de refresh quota that va cap nhat cache.
+   - Khong con goi `/profile/{userId}` cho navbar cua chinh user.
+4. Cap nhat `MiniSeries.Frontend/src/pages/Profile.tsx`:
+   - Bo placeholder.
+   - Hien profile/quota that tu `/api/profile/me`.
+5. Kiem tra:
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+   - `dotnet build MiniSeries.sln --no-restore` thanh cong.
+
+## [2026-06-09] - Preload quota sau login va refresh sau generate
+
+### Da hoan thanh:
+1. Cap nhat `MiniSeries.Frontend/src/services/api.ts`:
+   - Them `refreshProfileSnapshot()` de goi `/api/profile/me`, ghi cache `profile_snapshot`.
+   - Them event `profile-snapshot-updated` de cac component biet quota vua doi.
+   - Sau `approveDraft()` thanh cong se refresh lai profile/quota.
+2. Cap nhat `MiniSeries.Frontend/src/pages/Login.tsx`:
+   - Sau login thanh cong, FE goi `/api/profile/me` ngay de preload quota lan dau truoc khi vao Studio.
+   - Neu preload fail vi 401/403 thi xoa session va bao dang nhap lai.
+3. Cap nhat `MiniSeries.Frontend/src/components/Layout.tsx`:
+   - Navbar lang nghe event `profile-snapshot-updated`.
+   - Khi profile cache doi, navbar cap nhat quota ngay khong can reload trang.
+4. Kiem tra:
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+
+## [2026-06-09] - Tra quota ngay trong login response
+
+### Da hoan thanh:
+1. Cap nhat backend `MiniSeries.WebAPI/Controllers/AuthController.cs`:
+   - `POST /api/auth/login-profile` tra them quota snapshot hien tai.
+   - Response login gom plan, manga quota, video quota, chu ky hien tai va avatarUrl.
+2. Cap nhat React `MiniSeries.Frontend/src/pages/Login.tsx`:
+   - Sau login khong goi them `/api/profile/me`.
+   - Ghi profile/quota cache truc tiep tu login response bang `writeProfileSnapshot(data)`.
+3. Giu nguyen `/api/profile/me`:
+   - Dung de refresh profile/quota khi mo lai app, sau generate, sau payment.
+4. Kiem tra:
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+   - `dotnet build MiniSeries.sln --no-restore` thanh cong.
+
+## [2026-06-09] - Toi uu toc do login response quota
+
+### Da hoan thanh:
+1. Cap nhat `MiniSeries.WebAPI/Controllers/AuthController.cs`:
+   - Bo call `SupabaseRestService.GetUserProfileByIdAsync()` trong login.
+   - Sau Supabase Auth, login query `UserProfiles` truc tiep bang EF.
+   - Neu profile thieu thi tao bang EF trong cung DB context.
+   - Login lay quota tu entity profile da query, khong query lai profile lan nua.
+2. Cap nhat `MiniSeries.Infrastructure/Services/UserPlanQuotaService.cs`:
+   - Them overload `GetSnapshotAsync(UserProfile profile)` de dung entity co san.
+3. Muc tieu:
+   - Giam login tu Auth + PostgREST profile + EF quota xuong Auth + EF profile/quota.
+4. Kiem tra:
+   - `dotnet build MiniSeries.sln --no-restore` thanh cong.
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+
+## [2026-06-09] - Bo alert browser va success login React
+
+### Da hoan thanh:
+1. Cap nhat `MiniSeries.Frontend/src/pages/Login.tsx`:
+   - Bo banner `Dang nhap thanh cong`.
+   - Login thanh cong dieu huong ngay sang route phu hop.
+2. Cap nhat `MiniSeries.Frontend/src/pages/Studio.tsx`:
+   - Thay alert validate bang inline error state.
+   - Validate thieu title/content va draft rong khong con hien popup trinh duyet.
+3. Cap nhat `MiniSeries.Frontend/src/components/Layout.tsx`:
+   - Bo alert o nut `Series yeu thich`.
+4. Cap nhat `MiniSeries.Frontend/src/pages/TuVan.tsx`:
+   - Bo alert submit form.
+   - Hien message trong UI va reset form.
+5. Kiem tra:
+   - `rg "alert\\(" MiniSeries.Frontend/src` khong con ket qua.
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+
+## [2026-06-09] - Chuyen validate sang toast popup React
+
+### Da hoan thanh:
+1. Them component dung chung:
+   - `MiniSeries.Frontend/src/components/Toast.tsx`
+   - `MiniSeries.Frontend/src/components/Toast.css`
+2. Cap nhat `MiniSeries.Frontend/src/pages/Login.tsx`:
+   - Error/success dang nhap/dang ky/OTP hien bang toast noi.
+   - Khong chiem dien tich trong box login.
+3. Cap nhat `MiniSeries.Frontend/src/pages/Studio.tsx`:
+   - Validate va API error hien bang toast noi.
+   - Khong day layout input/draft xuong.
+4. Cap nhat `MiniSeries.Frontend/src/pages/TuVan.tsx`:
+   - Submit message hien bang toast noi.
+5. Kiem tra:
+   - `rg "alert\\(|login-error-alert|login-success-alert" MiniSeries.Frontend/src` khong con ket qua.
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+
+
+
+

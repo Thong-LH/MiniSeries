@@ -16,7 +16,6 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
     public DbSet<SupportRequest> SupportRequests => Set<SupportRequest>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<StaffReport> StaffReports => Set<StaffReport>();
-    public DbSet<PaymentHistory> PaymentHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

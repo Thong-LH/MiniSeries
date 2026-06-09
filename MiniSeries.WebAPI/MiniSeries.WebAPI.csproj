@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MiniSeries.Infrastructure\MiniSeries.Infrastructure.csproj" />
-    <ProjectReference Include="..\MiniSeries.Application\MiniSeries.Application.csproj" />
   </ItemGroup>
 
 </Project>

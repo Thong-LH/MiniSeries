@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 
@@ -18,6 +19,17 @@ const reviews = [
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<number | null>(null);
+  const navigate = useNavigate();
+
+  const handleProtectedNavigation = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (token && token.trim() !== '') {
+      navigate('/studio');
+    } else {
+      navigate('/login');
+    }
+  };
 
   useEffect(() => {
     let ctx = gsap.context(() => {
@@ -327,10 +339,10 @@ export default function Home() {
 
       {/* SECTION 4: THE FINAL BOOK */}
       <section className="final-section">
-        <div className="final-content">
-          <h2 className="final-title">Every Great Story<br/>Starts With One Page.</h2>
-          <a href="/login" className="cta-btn">Create Your Own Mini Series</a>
-        </div>
+          <div className="final-content">
+            <h2 className="final-title">Bạn đã sẵn sàng?</h2>
+            <Link to="/studio" onClick={handleProtectedNavigation} className="cta-btn">Create Your Own Mini Series</Link>
+          </div>
         <div className="book-container">
           <div className="css-book-wrapper">
             <div className="spawn-glow"></div>
