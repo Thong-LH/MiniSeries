@@ -85,8 +85,9 @@ export default function Studio() {
                 setLessonData(lesson);
 
                 const jobs = lesson.generationJobs || [];
-                const activeJob = jobs.find((j: any) => j.status === 'Running' || j.status === 1) 
-                    || jobs[jobs.length - 1];
+                // Always pick the newest job (avoid getting stuck on old stale Running job)
+                const activeJob = [...jobs]
+                    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
 
                 if (activeJob) {
                     const status = activeJob.status;
@@ -140,8 +141,9 @@ export default function Studio() {
         if (step === 'finished') return 'completed';
 
         const jobs = lessonData?.generationJobs || [];
-        const activeJob = jobs.find((j: any) => j.status === 'Running' || j.status === 1) 
-            || jobs[jobs.length - 1];
+        // Always pick the newest job to avoid stale Running job blocking the UI
+        const activeJob = [...jobs]
+            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
 
         if (!activeJob) {
             if (index === 0) return 'active';
@@ -153,41 +155,43 @@ export default function Studio() {
 
         if (isCompleted) return 'completed';
 
+        // Determine the "highest step ever reached" by scanning logs
+        // This prevents steps from going backwards when processing multiple chapters
+        const logs: any[] = activeJob.logs || [];
+        const hasReachedAnchorImage = logs.some((l: any) => l.step === "GenerateAnchorImage");
+        const hasReachedGenerate = logs.some((l: any) => 
+            (l.step || "").startsWith("GenerateVideoChapter_") || 
+            (l.step || "").startsWith("GenerateMangaChapter_"));
+        const hasReachedUpload = logs.some((l: any) => 
+            (l.step || "").startsWith("UploadVideoChapter_") || 
+            (l.step || "").startsWith("UploadMangaChapter_"));
+
         if (index === 0) {
-            if (currentStep === "CreateChapters") {
+            if (currentStep === "CreateChapters" && !hasReachedAnchorImage) {
                 return 'active';
             }
             return 'completed';
         }
         if (index === 1) {
-            if (currentStep === "CreateChapters") {
-                return 'pending';
-            }
-            if (currentStep === "GenerateAnchorImage") {
-                return 'active';
-            }
+            if (!hasReachedAnchorImage) return 'pending';
+            if (currentStep === "GenerateAnchorImage" && !hasReachedGenerate) return 'active';
             return 'completed';
         }
         if (index === 2) {
-            if (currentStep === "CreateChapters" || currentStep === "GenerateAnchorImage") {
-                return 'pending';
-            }
-            if (currentStep.startsWith("GenerateVideoChapter_") || currentStep.startsWith("GenerateMangaChapter_")) {
+            if (!hasReachedGenerate) return 'pending';
+            // Only active if currently on a Generate step AND has NOT yet reached any Upload step
+            if (!hasReachedUpload && (
+                currentStep.startsWith("GenerateVideoChapter_") || 
+                currentStep.startsWith("GenerateMangaChapter_")
+            )) {
                 return 'active';
-            }
-            if (currentStep.startsWith("Upload") || isCompleted) {
-                return 'completed';
             }
             return 'completed';
         }
         if (index === 3) {
-            if (currentStep.startsWith("Upload")) {
-                return 'active';
-            }
-            if (isCompleted) {
-                return 'completed';
-            }
-            return 'pending';
+            if (!hasReachedUpload) return 'pending';
+            if (!isCompleted) return 'active';
+            return 'completed';
         }
 
         return 'pending';

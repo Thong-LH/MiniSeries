@@ -33,6 +33,27 @@ public sealed class ApproveLessonScriptCommandHandler(
             lesson.OverallScript = request.OverallScript;
         }
 
+        // Idempotency guard: skip if a media job is already Running or Completed
+        var existingMediaJob = lesson.GenerationJobs
+            .Where(j => j.Type == GenerationJobType.MediaGeneration)
+            .OrderByDescending(j => j.CreatedAt)
+            .FirstOrDefault();
+
+        if (existingMediaJob is not null &&
+            (existingMediaJob.Status == GenerationJobStatus.Running ||
+             existingMediaJob.Status == GenerationJobStatus.Completed))
+        {
+            return LessonDto.FromEntity(lesson);
+        }
+
+        // Idempotency guard: skip if chapters already have generated media
+        if (lesson.Chapters.Any(c =>
+            !string.IsNullOrWhiteSpace(c.MangaUrl) ||
+            !string.IsNullOrWhiteSpace(c.VideoUrl)))
+        {
+            return LessonDto.FromEntity(lesson);
+        }
+
         lesson.ScriptStatus = ScriptStatus.Approved;
         lesson.ApprovedAt = DateTime.UtcNow;
         lesson.UpdatedAt = DateTime.UtcNow;
@@ -86,27 +107,31 @@ public sealed class ApproveLessonScriptCommandHandler(
                 RawJson = chapterDraft.RawJson
             });
 
-            lesson.Chapters = chapterDraft.Chapters.Select(ch => new Chapter
+            // Guard: only create chapters if none exist yet (prevent overwrite on retry)
+            if (!lesson.Chapters.Any())
             {
-                LessonId = lesson.Id,
-                Order = ch.Order,
-                Summary = ch.Summary,
-                FullPrompt = ch.FullPrompt,
-                Status = ChapterStatus.ReadyForGeneration,
-                Quiz = new ChapterQuiz
+                lesson.Chapters = chapterDraft.Chapters.Select(ch => new Chapter
                 {
-                    Question = ch.Quiz.Question,
-                    OptionA = ch.Quiz.OptionA,
-                    OptionB = ch.Quiz.OptionB,
-                    OptionC = ch.Quiz.OptionC,
-                    OptionD = ch.Quiz.OptionD,
-                    CorrectOption = ch.Quiz.CorrectOption,
-                    Explanation = ch.Quiz.Explanation
-                }
-            }).ToList();
+                    LessonId = lesson.Id,
+                    Order = ch.Order,
+                    Summary = ch.Summary,
+                    FullPrompt = ch.FullPrompt,
+                    Status = ChapterStatus.ReadyForGeneration,
+                    Quiz = new ChapterQuiz
+                    {
+                        Question = ch.Quiz.Question,
+                        OptionA = ch.Quiz.OptionA,
+                        OptionB = ch.Quiz.OptionB,
+                        OptionC = ch.Quiz.OptionC,
+                        OptionD = ch.Quiz.OptionD,
+                        CorrectOption = ch.Quiz.CorrectOption,
+                        Explanation = ch.Quiz.Explanation
+                    }
+                }).ToList();
 
-            // Save chapters to DB
-            await backgroundLessonRepository.SaveAsync(lesson);
+                // Save chapters to DB
+                await backgroundLessonRepository.SaveAsync(lesson);
+            }
 
             // Step 2: Generate anchor image
             job.CurrentStep = "GenerateAnchorImage";
@@ -129,10 +154,14 @@ public sealed class ApproveLessonScriptCommandHandler(
                     var videoUrl = await videoService.GenerateVideoClipAsync(lesson.AnchorImageUrl, chapter.FullPrompt);
 
                     job.CurrentStep = $"UploadVideoChapter_{chapter.Order}";
-                    AddLog(job, job.CurrentStep, $"Started uploading video for chapter {chapter.Order} to Cloudinary.");
+                    AddLog(job, job.CurrentStep, $"[DEBUG] Before UploadAsync video chapter {chapter.Order}.");
                     await backgroundLessonRepository.SaveAsync(lesson);
 
                     chapter.VideoUrl = await storageService.UploadAsync(videoUrl, $"chapter_vid_{chapter.Id}");
+
+                    AddLog(job, job.CurrentStep, $"[DEBUG] After UploadAsync video chapter {chapter.Order}.");
+                    await backgroundLessonRepository.SaveAsync(lesson);
+
                     AddLog(job, job.CurrentStep, $"Uploaded video for chapter {chapter.Order}.");
                 }
                 else
@@ -144,10 +173,14 @@ public sealed class ApproveLessonScriptCommandHandler(
                     var mangaPageUrl = await mangaService.GenerateMangaPageAsync(lesson.AnchorImageUrl, chapter.FullPrompt);
 
                     job.CurrentStep = $"UploadMangaChapter_{chapter.Order}";
-                    AddLog(job, job.CurrentStep, $"Started uploading manga page for chapter {chapter.Order} to Cloudinary.");
+                    AddLog(job, job.CurrentStep, $"[DEBUG] Before UploadAsync manga chapter {chapter.Order}.");
                     await backgroundLessonRepository.SaveAsync(lesson);
 
                     chapter.MangaUrl = await storageService.UploadAsync(mangaPageUrl, $"chapter_{chapter.Order}_{lesson.Id}");
+
+                    AddLog(job, job.CurrentStep, $"[DEBUG] After UploadAsync manga chapter {chapter.Order}.");
+                    await backgroundLessonRepository.SaveAsync(lesson);
+
                     AddLog(job, job.CurrentStep, $"Uploaded manga page for chapter {chapter.Order}.");
                 }
 
