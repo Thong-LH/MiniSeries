@@ -182,7 +182,7 @@
             }
 
             try {
-                const response = await fetch("http://localhost:5137/api/payment/create-invoice", {
+                const response = await fetch("/api/payment/create-invoice", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                     body: JSON.stringify({

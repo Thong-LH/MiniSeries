@@ -1,6 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using MiniSeries.Domain.Entities;
 using MiniSeries.Infrastructure.ExternalServices;
+using MiniSeries.Infrastructure.Persistence;
+using MiniSeries.Infrastructure.Services;
 using MiniSeries.WebAPI.Contracts;
 using MiniSeries.WebAPI.Security;
 using System.Collections.Concurrent;
@@ -14,7 +18,9 @@ namespace MiniSeries.WebAPI.Controllers;
 public sealed class AuthController(
     SupabaseRestService supabaseDb,
     SupabaseAuthService auth,
-    IConfiguration config) : ControllerBase
+    IConfiguration config,
+    MiniSeriesDbContext dbContext,
+    UserPlanQuotaService quotaService) : ControllerBase
 {
     private static readonly ConcurrentDictionary<string, string> TempOtpStore = new(StringComparer.OrdinalIgnoreCase);
     private static readonly ConcurrentDictionary<string, PendingRegistration> PendingRegistrations = new(StringComparer.OrdinalIgnoreCase);
@@ -196,13 +202,30 @@ public sealed class AuthController(
         try
         {
             var session = await auth.SignInAsync(email, password);
-            var profile = await supabaseDb.GetUserProfileByIdAsync(session.UserId)
-                ?? await supabaseDb.CreateUserProfileAsync(session.UserId, email, session.Email, "Customer");
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == session.UserId);
 
             if (profile is null)
             {
-                return StatusCode(500, new { message = "Dang nhap Auth thanh cong nhung khong tim thay UserProfiles." });
+                profile = new UserProfile
+                {
+                    Id = session.UserId,
+                    Email = string.IsNullOrEmpty(session.Email) ? email : session.Email,
+                    FullName = "User",
+                    Role = "Customer",
+                    PlanName = "Free",
+                    MangaMonthlyLimit = 3,
+                    UsedMangaCount = 0,
+                    VideoMonthlyLimit = 1,
+                    UsedVideoCount = 0,
+                    CurrentPeriodStart = DateTime.UtcNow,
+                    CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1),
+                    CreatedAt = DateTime.UtcNow
+                };
+                dbContext.UserProfiles.Add(profile);
+                await dbContext.SaveChangesAsync();
             }
+
+            var quota = await quotaService.GetSnapshotAsync(profile);
 
             return Ok(new
             {
@@ -210,7 +233,16 @@ public sealed class AuthController(
                 email = profile.Email,
                 fullName = profile.FullName,
                 role = AuthUser.NormalizeRole(profile.Role),
-                accessToken = session.AccessToken
+                accessToken = session.AccessToken,
+                
+                // Quota properties returned directly at login
+                planName = quota.PlanName,
+                remainingMangaCount = quota.RemainingMangaCount,
+                mangaMonthlyLimit = quota.MangaMonthlyLimit,
+                remainingVideoCount = quota.RemainingVideoCount,
+                videoMonthlyLimit = quota.VideoMonthlyLimit,
+                currentPeriodEnd = quota.CurrentPeriodEnd,
+                avatarUrl = $"https://api.dicebear.com/7.x/bottts/svg?seed={Uri.EscapeDataString(profile.FullName ?? "User")}"
             });
         }
         catch (Exception ex)

@@ -202,7 +202,7 @@
     <script src="app.js"></script>
 
     <script>
-        const BACKEND_API = "http://localhost:5137/api";
+        const BACKEND_API = "/api";
 
         async function fetchAndRenderHeaderProfile() {
             const userId = localStorage.getItem("userId");
@@ -337,7 +337,7 @@
     </script>
 
     <script>
-        const FEEDBACK_API = "http://localhost:5137/api/feedback";
+        const FEEDBACK_API = "/api/feedback";
         function escapeHtml(value) {
             return String(value ?? '')
                 .replaceAll('&', '&amp;')

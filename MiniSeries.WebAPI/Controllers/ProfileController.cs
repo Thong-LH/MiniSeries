@@ -13,6 +13,17 @@ public sealed class ProfileController(
     SupabaseRestService supabaseDb,
     UserPlanQuotaService quotaService) : ControllerBase
 {
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMe()
+    {
+        var currentUserId = AuthUser.GetCurrentUserId(User);
+        if (currentUserId is null)
+        {
+            return Unauthorized();
+        }
+        return await GetById(currentUserId.Value);
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {

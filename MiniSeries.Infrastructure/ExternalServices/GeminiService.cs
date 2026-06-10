@@ -54,6 +54,8 @@ public class GeminiService : ILLMService
                 }}
             ]
         }}
+        CRITICAL: All user-facing texts, summaries, quiz questions, options, explanations MUST be written in fluent, grammatically correct Vietnamese with proper accents (tiếng Việt có dấu).
+        For manga fullPrompt: If any dialogue, text or speech bubbles are mentioned/rendered in the panels, they MUST be in Vietnamese.
 
         Lesson content:
         {rawContent}
@@ -133,6 +135,7 @@ public class GeminiService : ILLMService
             ""characterProfile"": ""Detailed visual description of the recurring main character."",
             ""overallScript"": ""A coherent overall script/treatment.""
         }}
+        CRITICAL: All user-facing content including characterProfile and overallScript MUST be written in natural, fluent Vietnamese with proper accents (tiếng Việt có dấu).
 
         Creative brief:
         {creativeBrief}
