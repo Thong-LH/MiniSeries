@@ -179,14 +179,14 @@ export default function Layout() {
   return (
     <div className="content-wrapper">
       <div className="side-accent side-left">
-        <span className="accent-text">MINI SERIES // ENGINE</span>
+        <span className="accent-text">MINISERIES // CREATIVE SYSTEM</span>
         <div style={{ width: '1px', flex: 1, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent)', margin: '20px 0' }} />
-        <span className="accent-text" style={{ color: 'var(--sky-blue)' }}>V2.4.1</span>
+        <span className="accent-text" style={{ color: 'var(--sky-blue)' }}>STORY PLATFORM</span>
       </div>
       <div className="side-accent side-right">
-        <span className="accent-text" style={{ color: 'var(--soft-orange)' }}>ONLINE</span>
+        <span className="accent-text" style={{ color: 'var(--soft-orange)' }}>AI CORE ACTIVE</span>
         <div style={{ width: '1px', flex: 1, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent)', margin: '20px 0' }} />
-        <span className="accent-text">GENERATIVE WORKFLOW</span>
+        <span className="accent-text">IDEA TO ANIMATION</span>
       </div>
 
       {useStudioNavbar ? (
@@ -289,6 +289,7 @@ export default function Layout() {
           <div className="nav-links">
             <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Trang chủ</Link>
             <a href="#flow">Tính năng</a>
+            <a href="#comparison">Trải nghiệm</a>
             <a href="#feedback">Phản hồi</a>
           </div>
           <Link to="/login" onClick={handleProtectedNavigation} className="nav-login">Bắt đầu</Link>
