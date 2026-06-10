@@ -26,7 +26,7 @@
     padding-top: 70px;
     padding-bottom: 80px;
     overflow-x: hidden;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Lexend', system-ui, -apple-system, sans-serif;
     color: var(--text-primary);
 }
 
@@ -64,7 +64,7 @@
 }
 
 .studio-hero h1 {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lexend', sans-serif;
     font-size: 2rem;
     font-weight: 800;
     letter-spacing: -0.02em;
@@ -77,7 +77,7 @@
 }
 
 .studio-hero .sub-title {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lexend', sans-serif;
     font-size: 0.92rem;
     color: var(--text-secondary);
     max-width: 600px;
@@ -527,8 +527,10 @@ input:checked + .slider:before {
 .generation-progress-bar {
     height: 100%;
     background: var(--primary);
-    width: 0%;
-    transition: width 0.3s ease;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Script Review Section */
@@ -724,7 +726,7 @@ input:checked + .slider:before {
     
     /* Fade in slightly after the circle starts appearing */
     opacity: 0;
-    animation: tooltip-fade-in-bounce 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s forwards;
+    animation: tooltip-fade-in-smooth 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
 }
 
 .draft-float-tooltip::before {
@@ -767,10 +769,10 @@ input:checked + .slider:before {
     }
 }
 
-@keyframes tooltip-fade-in-bounce {
+@keyframes tooltip-fade-in-smooth {
     0% {
         opacity: 0;
-        transform: translateX(-15px) scale(0.9);
+        transform: translateX(-15px) scale(0.95);
     }
     100% {
         opacity: 1;
@@ -1353,7 +1355,7 @@ input:checked + .slider:before {
 }
 
 .cyber-logo-container {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Lexend', system-ui, -apple-system, sans-serif;
     font-size: 1.5rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -1486,7 +1488,7 @@ input:checked + .slider:before {
     color: #f8fafc;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     z-index: 99999;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Lexend', system-ui, sans-serif;
     text-align: left;
     display: block;
     animation: dropdownFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1745,7 +1747,10 @@ input:checked + .slider:before {
 .inline-progress-bar {
     height: 100%;
     background: var(--primary);
-    transition: width 0.3s ease;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (max-width: 760px) {

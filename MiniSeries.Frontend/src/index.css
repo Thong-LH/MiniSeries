@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -9,7 +10,7 @@ body {
     padding: 0;
     background-color: #030712; /* Default very dark background */
     color: #ffffff;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Lexend', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
 }
 

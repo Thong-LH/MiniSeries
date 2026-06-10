@@ -282,12 +282,14 @@
     position: absolute;
     left: 0;
     bottom: -3px;
-    width: 0;
+    width: 100%;
     height: 2px;
     background: linear-gradient(90deg, #06b6d4, #7c3aed);
     box-shadow: 0 0 8px rgba(6, 182, 212, 0.8);
     border-radius: 9999px;
-    transition: width 0.32s ease;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.32s ease;
 }
 
 .cosmic-customer-page .cyber-nav-link:hover {
@@ -296,7 +298,7 @@
 }
 
 .cosmic-customer-page .cyber-nav-link:hover::after {
-    width: 100%;
+    transform: scaleX(1);
 }
 
 /* Feedback button — energy wrap */

@@ -79,11 +79,8 @@
 }
 
 .login-title span {
-  color: #a855f7;
-  text-shadow: 0 0 12px rgba(168, 85, 247, 0.7);
-  background: linear-gradient(to right, #c084fc, #a855f7);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: #c084fc;
+  text-shadow: 0 0 12px rgba(192, 132, 252, 0.5);
 }
 
 .login-subtitle {

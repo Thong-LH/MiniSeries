@@ -19,7 +19,7 @@
 body {
     background-color: #030712;
     color: #ffffff;
-    font-family: 'Inter', sans-serif; /* Chuyển sang Font tròn này để fix full lỗi dấu */
+    font-family: 'Lexend', sans-serif;
     margin: 0;
     padding: 40px;
 }
@@ -78,7 +78,7 @@ main {
 
 /* XỬ LÝ TIÊU ĐỀ H1: KHÔNG DÙNG FONT SCI-FI, DÙNG CSS ĐỂ LÀM SCI-FI */
 .hero h1 {
-    font-family: 'Inter', sans-serif; /* Đảm bảo h1 dùng font Inter cực đậm */
+    font-family: 'Lexend', sans-serif;
     font-size: 3.5rem;
     font-weight: 900;
     text-transform: uppercase;
@@ -99,17 +99,15 @@ main {
 
 /* HIỆU ỨNG NEON CHO CHỮ "TRẢI NGHIỆM" */
 .hero h1 .neon-text {
-    background: linear-gradient(45deg, #00d4ff, #ff007f);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #00d4ff;
     
     /* PHÁT SÁNG MẠNH: Tạo hào quang neon */
     filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5)) 
-            drop-shadow(0 0 20px rgba(255, 0, 127, 0.7));
+            drop-shadow(0 0 20px rgba(255, 0, 127, 0.4));
 }
 
 .hero .sub-title {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lexend', sans-serif;
     font-size: 1.2rem;
     color: #94a3b8;
     max-width: 600px;
@@ -360,12 +358,14 @@ input:checked + .slider:before {
 }
 
 .generation-progress-bar {
-    width: 0%;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left;
     height: 100%;
     border-radius: inherit;
     background: linear-gradient(90deg, #22d3ee, #7c3aed, #34d399);
     box-shadow: 0 0 18px rgba(34, 211, 238, 0.42);
-    transition: width 0.45s ease;
+    transition: transform 0.45s ease;
 }
 
 .loading-state.media-loading {
@@ -382,7 +382,7 @@ input:checked + .slider:before {
     padding: 18px 20px;
     color: #e5e7eb;
     background: transparent;
-    font-family: Inter, system-ui, sans-serif;
+    font-family: 'Lexend', system-ui, sans-serif;
     font-size: 15px;
     line-height: 1.75;
 }
@@ -551,7 +551,8 @@ footer {
     background: rgba(255,255,255,0.03);
     padding: 1rem;
     border-radius: 12px;
-    border-left: 4px solid var(--primary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 2px 0 0 var(--primary);
     font-size: 0.95rem;
     line-height: 1.5;
 }
@@ -1013,9 +1014,6 @@ footer {
     font-size: 32px;
     font-weight: 900;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-    background: linear-gradient(to right, #fff, #94a3b8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
 .chapter-detail-panel .chapter-summary {
@@ -1025,7 +1023,8 @@ footer {
     background: rgba(2, 6, 23, 0.5);
     padding: 16px;
     border-radius: 8px;
-    border-left: 4px solid #34d399;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: inset 2px 0 0 #34d399;
 }
 
 .quiz-panel {
@@ -1157,12 +1156,12 @@ footer {
     padding: 16px;
     border-radius: 10px;
     background: rgba(15, 23, 42, 0.9);
-    border-left: 4px solid;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     font-size: 14px;
     line-height: 1.6;
 }
-.quiz-feedback.correct { border-left-color: #10b981; color: #bbf7d0; }
-.quiz-feedback.wrong { border-left-color: #ef4444; color: #fecaca; }
+.quiz-feedback.correct { box-shadow: inset 2px 0 0 #10b981; color: #bbf7d0; }
+.quiz-feedback.wrong { box-shadow: inset 2px 0 0 #ef4444; color: #fecaca; }
 
 .quiz-feedback.wrong {
     color: #fecaca;

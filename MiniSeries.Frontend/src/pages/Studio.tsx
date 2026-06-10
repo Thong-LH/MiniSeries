@@ -448,9 +448,9 @@ export default function Studio() {
                                         <div className="inline-spinner"></div>
                                         <span>Đang tạo kịch bản... {progress}%</span>
                                     </div>
-                                    <div className="inline-progress-bg">
-                                        <div className="inline-progress-bar" style={{ width: `${progress}%` }}></div>
-                                    </div>
+                                     <div className="inline-progress-bg">
+                                         <div className="inline-progress-bar" style={{ transform: `scaleX(${progress / 100})` }}></div>
+                                     </div>
                                 </div>
                             )}
                         </div>
@@ -462,9 +462,9 @@ export default function Studio() {
                     <section id="resultContainer" className="result-container">
                         <div id="loadingState" className="loading-state">
                             <div className="loader"></div>
-                            <div className="generation-progress" aria-hidden="true">
-                                <div className="generation-progress-bar" style={{ width: `${progress}%` }}></div>
-                            </div>
+                             <div className="generation-progress" aria-hidden="true">
+                                 <div className="generation-progress-bar" style={{ transform: `scaleX(${progress / 100})` }}></div>
+                             </div>
                             <div className="media-loading-copy">
                                 <span className="media-loading-eyebrow">Đã chạy {elapsedLabel}</span>
                                 <h2>Đang tạo series của bạn</h2>
