@@ -216,37 +216,63 @@ export default function Layout() {
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="cyber-profile-dropdown">
+                  <div className="cyber-profile-dropdown premium-dropdown-card">
+                    {/* User Header */}
                     <div className="dropdown-user-info">
-                      <img src={profile.avatarUrl} alt="Avatar" className="dropdown-avatar" />
+                      <div className="avatar-wrapper">
+                        <img src={profile.avatarUrl} alt="Avatar" className="dropdown-avatar" />
+                        <span className="user-online-badge"></span>
+                      </div>
                       <div className="dropdown-user-text">
                         <h4 className="dropdown-fullname">{profile.fullName}</h4>
                         <p className="dropdown-email">{profile.email}</p>
                       </div>
                     </div>
 
+                    {/* Button to go to Profile Page directly */}
+                    <button 
+                      type="button" 
+                      onClick={() => { navigate('/profile'); setIsDropdownOpen(false); }} 
+                      className="dropdown-profile-link-btn"
+                    >
+                      👤 Trang cá nhân của tôi
+                    </button>
+
+                    {/* Quota Section */}
                     <div className="dropdown-quota-summary">
-                      <div className="quota-summary-item">
-                        <span className="quota-summary-label">Tài khoản</span>
-                        <span className="quota-summary-tier">{(profile.tier || 'Đang cập nhật').toUpperCase()}</span>
+                      <div className="quota-header">
+                        <span className="quota-label-main">Hạn mức tài khoản</span>
+                        <span className="quota-badge-tier">{(profile.tier || 'Free').toUpperCase()}</span>
                       </div>
-                      <div className="quota-summary-item" style={{ textAlign: 'right' }}>
-                        <span className="quota-summary-label">Quota còn lại</span>
-                        <span className="quota-summary-tokens manga">Truyện {formatQuota(profile.mangaTokens, profile.mangaLimit)}</span>
-                        <span className="quota-summary-tokens video">Video {formatQuota(profile.videoTokens, profile.videoLimit)}</span>
+                      <div className="quota-tokens-grid">
+                        <div className="quota-token-card manga-card">
+                          <span className="quota-token-icon">📚</span>
+                          <div className="quota-token-data">
+                            <span className="quota-token-value">{formatQuota(profile.mangaTokens, profile.mangaLimit)}</span>
+                            <span className="quota-token-name">Truyện</span>
+                          </div>
+                        </div>
+                        <div className="quota-token-card video-card">
+                          <span className="quota-token-icon">🎬</span>
+                          <div className="quota-token-data">
+                            <span className="quota-token-value">{formatQuota(profile.videoTokens, profile.videoLimit)}</span>
+                            <span className="quota-token-name">Video</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
+                    {/* Action Items */}
                     <div className="dropdown-actions">
-                      <button type="button" onClick={() => { navigate('/profile'); setIsDropdownOpen(false); }} className="dropdown-action-btn">
-                        Series yêu thích
+                      <button type="button" onClick={() => { navigate('/profile'); setIsDropdownOpen(false); }} className="dropdown-action-btn-new">
+                        <span className="btn-icon">⭐</span> Series yêu thích
                       </button>
-                      <button type="button" onClick={() => { navigate('/pricing'); setIsDropdownOpen(false); }} className="dropdown-action-btn upgrade">
-                        Mua thêm lượt / Gói
+                      <button type="button" onClick={() => { navigate('/pricing'); setIsDropdownOpen(false); }} className="dropdown-action-btn-new upgrade-btn">
+                        <span className="btn-icon">⚡</span> Mua thêm lượt / Gói
                       </button>
-                      <hr className="dropdown-divider" />
-                      <button type="button" onClick={handleLogout} className="dropdown-action-btn logout">
-                        Đăng xuất tài khoản
+                      <div className="dropdown-divider-new" />
+                      <button type="button" onClick={handleLogout} className="dropdown-action-btn-new logout-btn">
+                        <span className="btn-icon">🚪</span> Đăng xuất tài khoản
                       </button>
                     </div>
                   </div>

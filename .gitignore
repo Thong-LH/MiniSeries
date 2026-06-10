@@ -21,3 +21,11 @@ coverage/
 *.trx
 
 *.log
+
+# AI Skill and Tool folders (keep local)
+.claude/
+.codegraph/
+.gemini/
+.trae/
+.trae-cn/
+

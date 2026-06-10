@@ -80,8 +80,6 @@ public sealed class ApproveLessonScriptCommandHandler(
         var backgroundLessonRepository = sp.GetRequiredService<ILessonRepository>();
         var llmService = sp.GetRequiredService<ILLMService>();
         var imageGenerationService = sp.GetRequiredService<IImageGenerationService>();
-        var mangaService = sp.GetRequiredService<IMangaService>();
-        var videoService = sp.GetRequiredService<IVideoService>();
         var storageService = sp.GetRequiredService<IStorageService>();
 
         var lesson = await backgroundLessonRepository.GetByIdAsync(lessonId);
@@ -92,7 +90,7 @@ public sealed class ApproveLessonScriptCommandHandler(
 
         try
         {
-            // Step 1: Create chapters
+            // Step 1: Create chapters via LLM
             var chapterDraft = await llmService.CreateChaptersAsync(
                 lesson.RawContent,
                 lesson.OverallScript,
@@ -129,7 +127,6 @@ public sealed class ApproveLessonScriptCommandHandler(
                     }
                 }).ToList();
 
-                // Save chapters to DB
                 await backgroundLessonRepository.SaveAsync(lesson);
             }
 
@@ -142,52 +139,29 @@ public sealed class ApproveLessonScriptCommandHandler(
             lesson.AnchorImageUrl = await storageService.UploadAsync(anchorLocalUrl, $"anchor_{lesson.Id}");
             await backgroundLessonRepository.SaveAsync(lesson);
 
-            // Step 3 & 4: Generate media for chapters and upload to Cloudinary
-            foreach (var chapter in lesson.Chapters)
-            {
-                if (lesson.OutputMode == OutputMode.Video)
-                {
-                    job.CurrentStep = $"GenerateVideoChapter_{chapter.Order}";
-                    AddLog(job, job.CurrentStep, $"Started generating video for chapter {chapter.Order}.");
-                    await backgroundLessonRepository.SaveAsync(lesson);
+            // Step 3 & 4: Generate + upload all chapters in parallel (max 3 at a time)
+            job.CurrentStep = "GenerateChapters";
+            AddLog(job, "GenerateChapters", $"Starting parallel generation for {lesson.Chapters.Count} chapters.");
+            await backgroundLessonRepository.SaveAsync(lesson);
 
-                    var videoUrl = await videoService.GenerateVideoClipAsync(lesson.AnchorImageUrl, chapter.FullPrompt);
+            using var semaphore = new SemaphoreSlim(3);
 
-                    job.CurrentStep = $"UploadVideoChapter_{chapter.Order}";
-                    AddLog(job, job.CurrentStep, $"[DEBUG] Before UploadAsync video chapter {chapter.Order}.");
-                    await backgroundLessonRepository.SaveAsync(lesson);
+            // Snapshot chapter data before parallel execution (avoid sharing mutable entity objects)
+            var chapterSnapshots = lesson.Chapters
+                .Select(c => (c.Id, c.Order, c.FullPrompt))
+                .ToList();
 
-                    chapter.VideoUrl = await storageService.UploadAsync(videoUrl, $"chapter_vid_{chapter.Id}");
+            var chapterTasks = chapterSnapshots.Select(ch =>
+                ProcessChapterAsync(
+                    lesson.Id,
+                    ch.Id,
+                    ch.Order,
+                    ch.FullPrompt,
+                    lesson.AnchorImageUrl!,
+                    lesson.OutputMode,
+                    semaphore));
 
-                    AddLog(job, job.CurrentStep, $"[DEBUG] After UploadAsync video chapter {chapter.Order}.");
-                    await backgroundLessonRepository.SaveAsync(lesson);
-
-                    AddLog(job, job.CurrentStep, $"Uploaded video for chapter {chapter.Order}.");
-                }
-                else
-                {
-                    job.CurrentStep = $"GenerateMangaChapter_{chapter.Order}";
-                    AddLog(job, job.CurrentStep, $"Started generating manga page for chapter {chapter.Order}.");
-                    await backgroundLessonRepository.SaveAsync(lesson);
-
-                    var mangaPageUrl = await mangaService.GenerateMangaPageAsync(lesson.AnchorImageUrl, chapter.FullPrompt);
-
-                    job.CurrentStep = $"UploadMangaChapter_{chapter.Order}";
-                    AddLog(job, job.CurrentStep, $"[DEBUG] Before UploadAsync manga chapter {chapter.Order}.");
-                    await backgroundLessonRepository.SaveAsync(lesson);
-
-                    chapter.MangaUrl = await storageService.UploadAsync(mangaPageUrl, $"chapter_{chapter.Order}_{lesson.Id}");
-
-                    AddLog(job, job.CurrentStep, $"[DEBUG] After UploadAsync manga chapter {chapter.Order}.");
-                    await backgroundLessonRepository.SaveAsync(lesson);
-
-                    AddLog(job, job.CurrentStep, $"Uploaded manga page for chapter {chapter.Order}.");
-                }
-
-                chapter.Status = ChapterStatus.Generated;
-                AddLog(job, job.CurrentStep, $"Generated chapter {chapter.Order}.");
-                await backgroundLessonRepository.SaveAsync(lesson);
-            }
+            await Task.WhenAll(chapterTasks);
 
             CompleteJob(job, "Generated all media for lesson.");
             await backgroundLessonRepository.SaveAsync(lesson);
@@ -196,6 +170,44 @@ public sealed class ApproveLessonScriptCommandHandler(
         {
             FailJob(job, ex);
             await backgroundLessonRepository.SaveAsync(lesson);
+        }
+    }
+
+    private async Task ProcessChapterAsync(
+        Guid lessonId,
+        Guid chapterId,
+        int chapterOrder,
+        string fullPrompt,
+        string anchorImageUrl,
+        OutputMode outputMode,
+        SemaphoreSlim semaphore)
+    {
+        await semaphore.WaitAsync();
+        try
+        {
+            using var chapterScope = scopeFactory.CreateScope();
+            var sp = chapterScope.ServiceProvider;
+            var chapterRepo = sp.GetRequiredService<ILessonRepository>();
+            var mangaService = sp.GetRequiredService<IMangaService>();
+            var storageService = sp.GetRequiredService<IStorageService>();
+            var videoService = sp.GetRequiredService<IVideoService>();
+
+            if (outputMode == OutputMode.Video)
+            {
+                var videoUrl = await videoService.GenerateVideoClipAsync(anchorImageUrl, fullPrompt);
+                var uploadedUrl = await storageService.UploadAsync(videoUrl, $"chapter_vid_{chapterId}");
+                await chapterRepo.UpdateChapterMediaAsync(chapterId, null, uploadedUrl);
+            }
+            else
+            {
+                var mangaPageUrl = await mangaService.GenerateMangaPageAsync(anchorImageUrl, fullPrompt);
+                var uploadedUrl = await storageService.UploadAsync(mangaPageUrl, $"chapter_{chapterOrder}_{lessonId}");
+                await chapterRepo.UpdateChapterMediaAsync(chapterId, uploadedUrl, null);
+            }
+        }
+        finally
+        {
+            semaphore.Release();
         }
     }
 

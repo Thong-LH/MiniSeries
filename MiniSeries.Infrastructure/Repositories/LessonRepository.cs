@@ -1,5 +1,6 @@
 using MiniSeries.Application.Common.Interfaces;
 using MiniSeries.Domain.Entities;
+using MiniSeries.Domain.Enums;
 using MiniSeries.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -96,6 +97,18 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
                 entry.State = EntityState.Added;
             }
         }
+    }
+
+    public async Task UpdateChapterMediaAsync(Guid chapterId, string? mangaUrl, string? videoUrl)
+    {
+        var chapter = await dbContext.Chapters.FindAsync(chapterId);
+        if (chapter is null) return;
+
+        if (mangaUrl is not null) chapter.MangaUrl = mangaUrl;
+        if (videoUrl is not null) chapter.VideoUrl = videoUrl;
+        chapter.Status = ChapterStatus.Generated;
+
+        await dbContext.SaveChangesAsync();
     }
 
     public Task<Lesson?> GetByIdAsync(Guid lessonId)

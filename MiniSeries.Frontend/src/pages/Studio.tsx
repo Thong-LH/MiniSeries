@@ -31,6 +31,7 @@ export default function Studio() {
 
     // Draft floating expand state
     const [isDraftExpanded, setIsDraftExpanded] = useState(false);
+    const [showDraftTooltip, setShowDraftTooltip] = useState(false);
 
     // Media Viewer state
     const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -39,11 +40,23 @@ export default function Studio() {
     // Progress bar simulation
     useEffect(() => {
         let timer: any;
+
+        const jobs = lessonData?.generationJobs || [];
+        const activeJob = [...jobs]
+            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        const isJobCompleted = activeJob && (activeJob.status === 'Completed' || activeJob.status === 2);
+
+        if (isJobCompleted) {
+            setProgress(100);
+            return;
+        }
+
         if (step === 'drafting' || step === 'generating_media') {
-            setProgress(8);
+            setProgress(prev => (prev === 0 || prev === 100) ? 8 : prev);
             timer = setInterval(() => {
                 setProgress(prev => {
-                    const cap = step === 'generating_media' ? 88 : 94;
+                    const cap = step === 'generating_media' ? 92 : 94;
+                    if (prev >= cap) return cap;
                     return Math.min(prev + Math.max(1, Math.floor((cap - prev) / 10)), cap);
                 });
             }, 1200);
@@ -53,7 +66,7 @@ export default function Studio() {
             return () => clearTimeout(t);
         }
         return () => clearInterval(timer);
-    }, [step]);
+    }, [step, lessonData]);
 
     useEffect(() => {
         if (step !== 'generating_media') {
@@ -66,6 +79,18 @@ export default function Studio() {
         }, 1000);
 
         return () => clearInterval(timer);
+    }, [step]);
+
+    useEffect(() => {
+        if (step === 'generating_media') {
+            setShowDraftTooltip(true);
+            const timer = setTimeout(() => {
+                setShowDraftTooltip(false);
+            }, 2000);
+            return () => clearTimeout(timer);
+        } else {
+            setShowDraftTooltip(false);
+        }
     }, [step]);
 
     // Polling effect for background media generation status
@@ -92,7 +117,13 @@ export default function Studio() {
                 if (activeJob) {
                     const status = activeJob.status;
                     if (status === 'Completed' || status === 2) {
-                        setStep('finished');
+                        // Job completed! Set progress to 100% and wait 2 seconds before finishing
+                        setProgress(100);
+                        setTimeout(() => {
+                            if (isMounted) {
+                                setStep('finished');
+                            }
+                        }, 2000);
                     } else if (status === 'Failed' || status === 3) {
                         setError(activeJob.errorMessage || "Đã xảy ra lỗi khi tạo media từ server.");
                         setStep('draft_review');
@@ -120,20 +151,20 @@ export default function Studio() {
 
     const mediaLoadingStages = [
         {
-            title: 'Chia kịch bản thành các chương',
-            detail: 'AI tạo nội dung truyện và quiz tiếng Việt cho từng chương.'
+            title: 'Phân tích kịch bản',
+            detail: 'Tạo nội dung câu chuyện và câu hỏi học tập.'
         },
         {
-            title: 'Dựng nhân vật chính',
-            detail: 'Tạo ảnh tham chiếu để giữ phong cách nhân vật nhất quán.'
+            title: 'Tạo hình nhân vật',
+            detail: 'Thiết kế tạo hình nhân vật chính xuyên suốt.'
         },
         {
-            title: generateVideo ? 'Tạo video minh họa' : 'Tạo ảnh manga cho các chương',
-            detail: 'Các chương được xử lý song song để rút ngắn thời gian chờ.'
+            title: generateVideo ? 'Tạo video minh họa' : 'Vẽ tranh minh họa',
+            detail: 'Tạo hình ảnh/video song song cho các chương.'
         },
         {
-            title: 'Lưu media lên Cloudinary',
-            detail: 'Lưu file và chuẩn bị mở trình đọc chapter.'
+            title: 'Hoàn tất bài học',
+            detail: 'Tối ưu hóa hình ảnh và chuẩn bị bài học.'
         }
     ];
 
@@ -155,16 +186,19 @@ export default function Studio() {
 
         if (isCompleted) return 'completed';
 
-        // Determine the "highest step ever reached" by scanning logs
-        // This prevents steps from going backwards when processing multiple chapters
         const logs: any[] = activeJob.logs || [];
         const hasReachedAnchorImage = logs.some((l: any) => l.step === "GenerateAnchorImage");
-        const hasReachedGenerate = logs.some((l: any) => 
-            (l.step || "").startsWith("GenerateVideoChapter_") || 
-            (l.step || "").startsWith("GenerateMangaChapter_"));
-        const hasReachedUpload = logs.some((l: any) => 
-            (l.step || "").startsWith("UploadVideoChapter_") || 
-            (l.step || "").startsWith("UploadMangaChapter_"));
+        const hasReachedGenerate = currentStep === "GenerateChapters" || logs.some((l: any) => l.step === "GenerateChapters");
+
+        const chapters = lessonData?.chapters || [];
+        const generatedCount = chapters.filter((c: any) => 
+            c.status === 'Generated' || 
+            c.status === 2 || 
+            c.mangaUrl || 
+            c.videoUrl
+        ).length;
+
+        const allChaptersGenerated = chapters.length > 0 && generatedCount === chapters.length;
 
         if (index === 0) {
             if (currentStep === "CreateChapters" && !hasReachedAnchorImage) {
@@ -179,17 +213,11 @@ export default function Studio() {
         }
         if (index === 2) {
             if (!hasReachedGenerate) return 'pending';
-            // Only active if currently on a Generate step AND has NOT yet reached any Upload step
-            if (!hasReachedUpload && (
-                currentStep.startsWith("GenerateVideoChapter_") || 
-                currentStep.startsWith("GenerateMangaChapter_")
-            )) {
-                return 'active';
-            }
+            if (!allChaptersGenerated) return 'active';
             return 'completed';
         }
         if (index === 3) {
-            if (!hasReachedUpload) return 'pending';
+            if (!allChaptersGenerated) return 'pending';
             if (!isCompleted) return 'active';
             return 'completed';
         }
@@ -441,10 +469,10 @@ export default function Studio() {
                                 <span className="media-loading-eyebrow">Đã chạy {elapsedLabel}</span>
                                 <h2>Đang tạo series của bạn</h2>
                                 <p id="statusText">
-                                    Backend đang tạo chapter, quiz và media. Các tác vụ nặng được chạy song song để giảm thời gian chờ.
+                                    Hệ thống đang chuẩn bị nội dung bài học và hình ảnh minh họa.
                                 </p>
                                 <p className="media-loading-note">
-                                    Thời gian thường phụ thuộc số chương và tốc độ API tạo ảnh/video. Bạn cứ để tab này mở, kết quả sẽ tự hiện khi xong.
+                                    Vui lòng giữ tab này mở, bài học của bạn sẽ tự động hiển thị sau khi hoàn tất.
                                 </p>
                             </div>
                             <div className="media-loading-steps" aria-label="Các bước tạo media">
@@ -533,16 +561,18 @@ export default function Studio() {
                                     </div>
                                 )}
                             </div>
+                            {showDraftTooltip && (
+                                <div className="draft-float-tooltip">
+                                    Kịch bản của bạn được thu nhỏ tại đây!
+                                </div>
+                            )}
 
                             {/* CHAPTER MEDIA VIEWER */}
                             {step === 'finished' && (
                                 <div id="mediaSection" className="media-section">
                                     <div className="chapter-reader">
                                         <div className="chapter-reader-header">
-                                            <div>
-                                                <p className="reader-kicker">Poll AI Output</p>
-                                                <h2>Trình đọc chapter</h2>
-                                            </div>
+                                            <div></div>
                                             <div className="chapter-nav" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <button 
                                                     type="button" 

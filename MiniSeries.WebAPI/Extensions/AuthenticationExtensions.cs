@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Caching.Memory;
 using MiniSeries.Infrastructure.ExternalServices;
 using MiniSeries.Infrastructure.Options;
 using MiniSeries.WebAPI.Security;
@@ -13,6 +14,7 @@ public static class AuthenticationExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddMemoryCache();
         var supabaseOptions = configuration.GetSection(SupabaseOptions.SectionName).Get<SupabaseOptions>() ?? new();
         var supabaseAuthIssuer = string.IsNullOrWhiteSpace(supabaseOptions.Url)
             ? string.Empty
@@ -54,19 +56,27 @@ public static class AuthenticationExtensions
                             return;
                         }
 
-                        var supabaseDb = context.HttpContext.RequestServices.GetRequiredService<SupabaseRestService>();
-                        var profile = await supabaseDb.GetUserProfileByIdAsync(userId);
-                        if (profile is null)
+                        var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+                        var cacheKey = $"user-profile-{userId}";
+
+                        if (!memoryCache.TryGetValue(cacheKey, out SupabaseUserProfileRow? profile))
                         {
-                            context.Fail("Authenticated user does not have a UserProfiles record.");
-                            return;
+                            var supabaseDb = context.HttpContext.RequestServices.GetRequiredService<SupabaseRestService>();
+                            profile = await supabaseDb.GetUserProfileByIdAsync(userId);
+                            if (profile is null)
+                            {
+                                context.Fail("Authenticated user does not have a UserProfiles record.");
+                                return;
+                            }
+                            // Cache the profile for 2 minutes to prevent spamming queries
+                            memoryCache.Set(cacheKey, profile, TimeSpan.FromMinutes(2));
                         }
 
-                        if (principal?.Identity is ClaimsIdentity identity)
+                        if (profile is not null && principal?.Identity is ClaimsIdentity identity)
                         {
                             identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId.ToString()));
-                            identity.AddClaim(new Claim(ClaimTypes.Email, profile.Email));
-                            identity.AddClaim(new Claim(ClaimTypes.Name, profile.FullName));
+                            identity.AddClaim(new Claim(ClaimTypes.Email, profile.Email ?? string.Empty));
+                            identity.AddClaim(new Claim(ClaimTypes.Name, profile.FullName ?? string.Empty));
                             identity.AddClaim(new Claim(ClaimTypes.Role, AuthUser.NormalizeRole(profile.Role)));
                         }
                     }
