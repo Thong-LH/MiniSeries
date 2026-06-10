@@ -1,5 +1,6 @@
 using MiniSeries.Application.Common.Interfaces;
 using MiniSeries.Domain.Entities;
+using MiniSeries.Domain.Enums;
 using MiniSeries.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -98,6 +99,18 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
         }
     }
 
+    public async Task UpdateChapterMediaAsync(Guid chapterId, string? mangaUrl, string? videoUrl)
+    {
+        var chapter = await dbContext.Chapters.FindAsync(chapterId);
+        if (chapter is null) return;
+
+        if (mangaUrl is not null) chapter.MangaUrl = mangaUrl;
+        if (videoUrl is not null) chapter.VideoUrl = videoUrl;
+        chapter.Status = ChapterStatus.Generated;
+
+        await dbContext.SaveChangesAsync();
+    }
+
     public Task<Lesson?> GetByIdAsync(Guid lessonId)
     {
         return dbContext.Lessons
@@ -107,5 +120,15 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
             .Include(x => x.GenerationJobs.OrderBy(job => job.CreatedAt))
                 .ThenInclude(x => x.Logs.OrderBy(log => log.CreatedAt))
             .FirstOrDefaultAsync(x => x.Id == lessonId);
+    }
+
+    public async Task<IReadOnlyList<Lesson>> ListByUserIdAsync(Guid userId)
+    {
+        return await dbContext.Lessons
+            .AsNoTracking()
+            .Include(x => x.Chapters)
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
     }
 }

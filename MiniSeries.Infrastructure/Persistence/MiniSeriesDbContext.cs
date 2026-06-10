@@ -22,6 +22,7 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
         modelBuilder.Entity<Lesson>(entity =>
         {
             entity.HasKey(x => x.Id);
+            entity.Property(x => x.UserEmail).HasMaxLength(320);
             entity.Property(x => x.Title).HasMaxLength(300);
             entity.Property(x => x.RawContent).HasColumnType("text");
             entity.Property(x => x.CreativeBrief).HasColumnType("text");
@@ -31,6 +32,7 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.CreativeMode).HasConversion<string>().HasMaxLength(32);
             entity.Property(x => x.OutputMode).HasConversion<string>().HasMaxLength(32);
             entity.Property(x => x.ScriptStatus).HasConversion<string>().HasMaxLength(32);
+            entity.HasIndex(x => x.UserId);
 
             entity.HasMany(x => x.Chapters)
                 .WithOne()
@@ -114,8 +116,28 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
         {
             entity.HasKey(x => x.Id);
             entity.Property(x => x.UserId).HasMaxLength(100);
+            entity.Property(x => x.UserEmail).HasMaxLength(320);
+            entity.Property(x => x.PlanName).HasMaxLength(100);
             entity.Property(x => x.PaymentCode).HasMaxLength(50);
             entity.Property(x => x.MoneyAmount).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.Status).HasMaxLength(50);
+            entity.HasIndex(x => x.PaymentCode).IsUnique();
+            entity.HasIndex(x => x.UserId);
+        });
+
+        modelBuilder.Entity<UserProfile>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Email).HasMaxLength(320);
+            entity.Property(x => x.FullName).HasMaxLength(200);
+            entity.Property(x => x.Role).HasMaxLength(50);
+            entity.Property(x => x.PlanName).HasMaxLength(50).HasDefaultValue("Free");
+            entity.Property(x => x.MangaMonthlyLimit).HasDefaultValue(3);
+            entity.Property(x => x.UsedMangaCount).HasDefaultValue(0);
+            entity.Property(x => x.VideoMonthlyLimit).HasDefaultValue(1);
+            entity.Property(x => x.UsedVideoCount).HasDefaultValue(0);
+            entity.Property(x => x.CurrentPeriodStart).HasDefaultValueSql("NOW()");
+            entity.Property(x => x.CurrentPeriodEnd).HasDefaultValueSql("NOW() + INTERVAL '1 month'");
         });
 
         modelBuilder.Entity<SupportRequest>(entity =>

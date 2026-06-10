@@ -18,6 +18,8 @@ public sealed class CreateLessonDraftCommandHandler(
 
         var lesson = new Lesson
         {
+            UserId = request.UserId,
+            UserEmail = request.UserEmail?.Trim() ?? string.Empty,
             Title = request.Title,
             RawContent = request.RawContent,
             CreativeMode = request.CreativeMode,
@@ -87,6 +89,11 @@ public sealed class CreateLessonDraftCommandHandler(
         if (request.CreativeMode == CreativeMode.Guided && string.IsNullOrWhiteSpace(request.CreativeBrief))
         {
             errors.Add("CreativeBrief is required when CreativeMode is Guided.");
+        }
+
+        if (request.UserId == Guid.Empty)
+        {
+            errors.Add("UserId is required.");
         }
 
         if (errors.Count > 0)

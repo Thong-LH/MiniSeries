@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5137';
+const API_BASE_URL = window.location.origin;
 
 async function parseResponseSafe(response) {
     const text = await response.text();
@@ -87,10 +87,10 @@ function saveSessionFromAuth(data) {
 }
 
 // Giai đoạn 1: Gửi OTP qua Gmail (chưa tạo Supabase Auth)
-document.getElementById('registerBtn')?.addEventListener('click', async () => {
-    const fullName = document.getElementById('regName').value.trim();
-    const email = document.getElementById('regEmail').value.trim().toLowerCase();
-    const password = document.getElementById('regPassword').value;
+async function handleRegister(email, password, fullName) {
+    fullName = (fullName || '').trim();
+    email = (email || '').trim().toLowerCase();
+    password = password || '';
 
     if (!fullName || !email || !password) {
         alert('Vui lòng điền đầy đủ thông tin!');
@@ -143,7 +143,7 @@ document.getElementById('registerBtn')?.addEventListener('click', async () => {
     } catch (err) {
         alert('Lỗi đăng ký: ' + (err.message || 'Không xác định'));
     }
-});
+}
 
 // Giai đoạn 2: Xác thực OTP → Backend tạo Supabase Auth + UserProfiles
 async function handleVerifyOtp() {
@@ -217,3 +217,4 @@ async function handleLogin(email, password) {
 }
 
 window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
