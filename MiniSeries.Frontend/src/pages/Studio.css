@@ -1351,7 +1351,6 @@ input:checked + .slider:before {
 .studio-nav {
     background: rgba(9, 9, 11, 0.8) !important;
     backdrop-filter: blur(15px) !important;
-    -webkit-backdrop-filter: blur(15px) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -1482,7 +1481,6 @@ input:checked + .slider:before {
     width: 300px;
     background: rgba(15, 23, 42, 0.94);
     backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 20px;
