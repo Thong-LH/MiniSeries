@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5088/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5088/api";
 export const PROFILE_CACHE_KEY = "profile_snapshot";
 export const PROFILE_UPDATED_EVENT = "profile-snapshot-updated";
 
