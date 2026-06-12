@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniSeries.Infrastructure.ExternalServices;
+using Microsoft.EntityFrameworkCore;
+using MiniSeries.Infrastructure.Persistence;
 using MiniSeries.Infrastructure.Services;
 using MiniSeries.WebAPI.Security;
 
@@ -10,7 +11,7 @@ namespace MiniSeries.WebAPI.Controllers;
 [Authorize(Policy = "AuthenticatedUser")]
 [Route("api/profile")]
 public sealed class ProfileController(
-    SupabaseRestService supabaseDb,
+    MiniSeriesDbContext dbContext,
     UserPlanQuotaService quotaService) : ControllerBase
 {
     [HttpGet("me")]
@@ -39,13 +40,13 @@ public sealed class ProfileController(
 
         try
         {
-            var profile = await supabaseDb.GetUserProfileByIdAsync(id);
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == id);
             if (profile is null)
             {
                 return NotFound(new { message = "Khong tim thay ho so nguoi dung." });
             }
 
-            var quota = await quotaService.GetSnapshotAsync(id);
+            var quota = await quotaService.GetSnapshotAsync(profile);
 
             return Ok(new
             {

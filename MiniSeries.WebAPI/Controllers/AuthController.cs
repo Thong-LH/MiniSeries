@@ -8,6 +8,7 @@ using MiniSeries.Infrastructure.Services;
 using MiniSeries.WebAPI.Contracts;
 using MiniSeries.WebAPI.Security;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Mail;
 
@@ -20,7 +21,8 @@ public sealed class AuthController(
     SupabaseAuthService auth,
     IConfiguration config,
     MiniSeriesDbContext dbContext,
-    UserPlanQuotaService quotaService) : ControllerBase
+    UserPlanQuotaService quotaService,
+    ILogger<AuthController> logger) : ControllerBase
 {
     private static readonly ConcurrentDictionary<string, string> TempOtpStore = new(StringComparer.OrdinalIgnoreCase);
     private static readonly ConcurrentDictionary<string, PendingRegistration> PendingRegistrations = new(StringComparer.OrdinalIgnoreCase);
@@ -201,8 +203,16 @@ public sealed class AuthController(
 
         try
         {
+            var sw = Stopwatch.StartNew();
             var session = await auth.SignInAsync(email, password);
+            logger.LogInformation("LoginProfile timing: Supabase sign-in completed in {ElapsedMs}ms for {Email}.",
+                sw.ElapsedMilliseconds,
+                email);
+
             var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == session.UserId);
+            logger.LogInformation("LoginProfile timing: UserProfiles lookup completed in {ElapsedMs}ms for {Email}.",
+                sw.ElapsedMilliseconds,
+                email);
 
             if (profile is null)
             {
@@ -223,9 +233,15 @@ public sealed class AuthController(
                 };
                 dbContext.UserProfiles.Add(profile);
                 await dbContext.SaveChangesAsync();
+                logger.LogInformation("LoginProfile timing: missing UserProfile created in {ElapsedMs}ms for {Email}.",
+                    sw.ElapsedMilliseconds,
+                    email);
             }
 
             var quota = await quotaService.GetSnapshotAsync(profile);
+            logger.LogInformation("LoginProfile timing: quota snapshot completed in {ElapsedMs}ms for {Email}.",
+                sw.ElapsedMilliseconds,
+                email);
 
             return Ok(new
             {

@@ -70,6 +70,12 @@ export interface DraftRequest {
 }
 
 export const api = {
+    warmup() {
+        return fetch(`${API_BASE}/health/warmup`, {
+            method: "GET"
+        }).catch(() => undefined);
+    },
+
     async login(email: string, password: string) {
         const response = await fetch(`${API_BASE}/auth/login-profile`, {
             method: "POST",
