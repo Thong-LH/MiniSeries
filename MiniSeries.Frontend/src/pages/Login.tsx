@@ -43,6 +43,10 @@ export default function Login() {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    void api.warmup();
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = email.trim().toLowerCase();

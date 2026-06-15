@@ -1,4 +1,22 @@
-﻿## [2026-06-09] - Fix approve treo khi upload Cloudinary
+﻿## [2026-06-12] - Toi uu login lan dau
+
+### Da hoan thanh:
+1. Do timing login backend:
+   - Them log trong `AuthController.LoginProfile` cho Supabase sign-in, UserProfiles lookup va quota snapshot.
+   - Xac nhan login lan dau cham do cold path cua EF/UserProfiles + ket noi Supabase/DB.
+2. Them warmup endpoint:
+   - Tao `GET /api/health/warmup` de lam nong DB, query `UserProfiles` va Supabase Auth.
+   - Trang login React goi warmup ngam khi mo trang, khong chan UI.
+3. Toi uu profile sau login:
+   - `ProfileController` doi tu Supabase REST sang EF `MiniSeriesDbContext` de giam request remote khong can thiet.
+   - Dung entity profile vua query de tao quota snapshot, tranh query DB lap lai.
+4. Cai thien ket qua do:
+   - Truoc: login lan dau sau warmup van khoang 2373ms.
+   - Sau: login lan dau sau warmup khoang 824ms, cac lan sau khoang 400-700ms.
+5. Kiem tra:
+   - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+   - Backend build thanh cong sau khi restart process dang khoa file.
+## [2026-06-09] - Fix approve treo khi upload Cloudinary
 
 ### Da hoan thanh:
 1. Cap nhat `CloudinaryStorageService.cs`:
@@ -710,6 +728,7 @@ File nÃ y ghi láº¡i cÃ¡c bÆ°á»›c thá»±c hiá»‡n cá»§a trá
 5. Kiem tra:
    - `rg "alert\\(|login-error-alert|login-success-alert" MiniSeries.Frontend/src` khong con ket qua.
    - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+
 
 
 

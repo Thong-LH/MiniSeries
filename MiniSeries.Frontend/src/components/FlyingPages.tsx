@@ -8,7 +8,7 @@ const grades = ['A+', 'A', 'A-', 'B+', 'B', '10/10', '9.5/10', '9/10', '8.5/10',
 export default function FlyingPages() {
   useEffect(() => {
     let accumulatedTime = 0;
-    const activeTweens: gsap.core.Tween[] = [];
+    const activeTweens: (gsap.core.Tween | gsap.core.Timeline)[] = [];
     const spawnedPages: HTMLDivElement[] = [];
 
     function spawnPage(initialProgress = 0) {
@@ -186,7 +186,8 @@ export default function FlyingPages() {
       if (!wrapper) return;
       const rect = wrapper.getBoundingClientRect();
 
-      let spawnX = rect.left + rect.width / 2;
+      const initialOffset = (Math.random() - 0.5) * 120;
+      let spawnX = rect.left + rect.width / 2 + initialOffset;
       let spawnY = rect.top + 155;
 
       if (orbitContainer) {
@@ -224,36 +225,45 @@ export default function FlyingPages() {
       const rotXEnd = (Math.random() - 0.5) * 1440;
       const rotYEnd = (Math.random() - 0.5) * 1440;
       const rotZEnd = (Math.random() - 0.5) * 180;
-      const scaleEnd = 0.8 + Math.random() * 0.5;
+      const scaleEnd = 1.1 + Math.random() * 0.4;
 
       const distance = spawnY - targetY;
-      const baseDuration = 15 + Math.random() * 10;
-      const flyDuration = distance / (80 + Math.random() * 100);
+      const speed = 90 + Math.random() * 130; // Faster speed range (90 to 220 px/s)
+      const flyDuration = distance / speed; // Constant speed duration for this specific page
+      const baseDuration = flyDuration; // Synchronize baseDuration exactly
 
-      const flyTween = gsap.to(page, {
+      const flyTimeline = gsap.timeline();
+
+      flyTimeline.to(page, {
         y: targetY,
         rotationX: rotXEnd * (flyDuration / baseDuration),
         rotationY: rotYEnd * (flyDuration / baseDuration),
         rotationZ: rotZEnd * (flyDuration / baseDuration),
         duration: flyDuration,
-        ease: 'power1.out',
+        ease: 'none', // Strict linear speed
         onComplete: () => {
           if (page.parentNode) page.parentNode.removeChild(page);
           const index = spawnedPages.indexOf(page);
           if (index > -1) spawnedPages.splice(index, 1);
         }
-      });
+      }, 0);
 
-      const xTween = gsap.to(page, {
-        x: spawnX + driftX,
-        duration: baseDuration,
-        ease: 'power2.out'
-      });
-
-      const scaleTween = gsap.fromTo(page, { scale: 0.25 }, {
+      flyTimeline.fromTo(page, { scale: 0.25 }, {
         scale: scaleEnd,
         duration: 1.2,
         ease: 'back.out(1.5)'
+      }, 0);
+
+      flyTimeline.to(page, {
+        scale: scaleEnd * 0.65, // Scale down to 65% at the top to counteract perspective scaling
+        duration: flyDuration - 1.2,
+        ease: 'none'
+      }, 1.2);
+
+      const xTween = gsap.to(page, {
+        x: spawnX + driftX,
+        duration: flyDuration, // Keep the synchronized horizontal duration!
+        ease: 'none' // Keep the linear ease!
       });
 
       const opacityTween = gsap.fromTo(page, { opacity: 0 }, {
@@ -262,23 +272,22 @@ export default function FlyingPages() {
         ease: 'power1.inOut'
       });
 
-      activeTweens.push(flyTween, xTween, scaleTween, opacityTween);
+      activeTweens.push(flyTimeline, xTween, opacityTween);
 
       if (initialProgress > 0) {
         const visibleRatio = baseDuration / flyDuration;
-        flyTween.progress(initialProgress * visibleRatio);
+        flyTimeline.progress(initialProgress * visibleRatio);
         xTween.progress(initialProgress);
-        scaleTween.progress(1);
         opacityTween.progress(1);
       }
 
       page.addEventListener('mouseenter', () => {
-        flyTween.pause();
+        flyTimeline.pause();
         xTween.pause();
         gsap.to(page, { scale: scaleEnd * 1.5, zIndex: 2000, duration: 0.3 });
       });
       page.addEventListener('mouseleave', () => {
-        flyTween.play();
+        flyTimeline.play();
         xTween.play();
         gsap.to(page, { scale: scaleEnd, zIndex: 1000, duration: 0.3 });
       });

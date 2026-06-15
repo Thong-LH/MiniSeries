@@ -116,6 +116,14 @@ public sealed class SupabaseAuthService
         return ParseSession(body) ?? throw new InvalidOperationException("Đăng nhập thất bại: không nhận được session.");
     }
 
+    public async Task WarmupAsync(CancellationToken cancellationToken = default)
+    {
+        EnsureConfigured();
+        using var request = CreateAuthRequest(HttpMethod.Get, "settings");
+        using var response = await _http.SendAsync(request, cancellationToken);
+        _ = await response.Content.ReadAsStringAsync(cancellationToken);
+    }
+
     private static SupabaseAuthSession? ParseSession(string json)
     {
         using var doc = JsonDocument.Parse(json);
