@@ -1,6 +1,40 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5088/api";
 export const PROFILE_CACHE_KEY = "profile_snapshot";
+export const PROFILE_DETAILS_CACHE_KEY = "profile_details_snapshot";
+export const MY_LESSONS_CACHE_PREFIX = "my_lessons_snapshot";
+export const MY_PAYMENTS_CACHE_PREFIX = "my_payments_snapshot";
 export const PROFILE_UPDATED_EVENT = "profile-snapshot-updated";
+export const AUTH_STORAGE_KEYS = [
+    "token",
+    "userId",
+    "userRole",
+    "user_role",
+    "user_name",
+    "user_email",
+    PROFILE_CACHE_KEY,
+    PROFILE_DETAILS_CACHE_KEY
+];
+
+export function clearAuthSession() {
+    AUTH_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    for (let index = localStorage.length - 1; index >= 0; index--) {
+        const key = localStorage.key(index);
+        if (
+            key?.startsWith(`${PROFILE_DETAILS_CACHE_KEY}:`) ||
+            key?.startsWith(`${MY_LESSONS_CACHE_PREFIX}:`) ||
+            key?.startsWith(`${MY_PAYMENTS_CACHE_PREFIX}:`)
+        ) {
+            localStorage.removeItem(key);
+        }
+    }
+    window.dispatchEvent(new Event(PROFILE_UPDATED_EVENT));
+}
+
+export function hasLocalSession() {
+    const token = localStorage.getItem("token")?.trim();
+    const userId = localStorage.getItem("userId")?.trim();
+    return Boolean(token && userId);
+}
 
 function buildAvatarUrl(fullName: string) {
     return `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(fullName || "User")}`;
@@ -157,6 +191,22 @@ export const api = {
 
     async getLesson(lessonId: string) {
         const response = await fetch(`${API_BASE}/lessons/${lessonId}`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async getMyLessons() {
+        const response = await fetch(`${API_BASE}/lessons/my`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async getMyPaymentHistory() {
+        const response = await fetch(`${API_BASE}/payment/my-history`, {
             method: "GET",
             headers: getAuthHeaders()
         });

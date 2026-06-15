@@ -13,6 +13,7 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
     public DbSet<GenerationLog> GenerationLogs => Set<GenerationLog>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<PaymentOrder> PaymentOrders => Set<PaymentOrder>();
+    public DbSet<PaymentHistory> PaymentHistories => Set<PaymentHistory>();
     public DbSet<SupportRequest> SupportRequests => Set<SupportRequest>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<StaffReport> StaffReports => Set<StaffReport>();
@@ -123,6 +124,21 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.Status).HasMaxLength(50);
             entity.HasIndex(x => x.PaymentCode).IsUnique();
             entity.HasIndex(x => x.UserId);
+        });
+
+        modelBuilder.Entity<PaymentHistory>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.UserId).HasMaxLength(100);
+            entity.Property(x => x.UserEmail).HasMaxLength(320);
+            entity.Property(x => x.PaymentCode).HasMaxLength(50);
+            entity.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.PlanName).HasMaxLength(100);
+            entity.Property(x => x.Status).HasMaxLength(50);
+            entity.Property(x => x.Content).HasColumnType("text");
+            entity.HasIndex(x => new { x.UserId, x.CreatedAt });
+            entity.HasIndex(x => x.PaymentCode).IsUnique();
+            entity.HasIndex(x => x.PaymentOrderId).IsUnique();
         });
 
         modelBuilder.Entity<UserProfile>(entity =>

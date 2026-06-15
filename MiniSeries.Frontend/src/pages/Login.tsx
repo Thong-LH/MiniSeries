@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, writeProfileSnapshot } from '../services/api';
+import { api, clearAuthSession, hasLocalSession, writeProfileSnapshot } from '../services/api';
 import Toast from '../components/Toast';
 import './Login.css';
 
@@ -31,16 +31,27 @@ export default function Login() {
 
   // Redirect if already logged in
   useEffect(() => {
-    const token = localStorage.getItem('token')?.trim();
-    const userId = localStorage.getItem('userId')?.trim();
-    if (token && userId) {
-      const role = localStorage.getItem('userRole') || 'Customer';
-      if (role === 'Admin' || role === 'Staff') {
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate('/studio', { replace: true });
-      }
+    if (!hasLocalSession()) {
+      return;
     }
+
+    let ignore = false;
+
+    api.getCurrentProfile()
+      .then((profile) => {
+        if (ignore) return;
+        writeProfileSnapshot(profile);
+        const role = profile.role || localStorage.getItem('userRole') || 'Customer';
+        navigate(role === 'Admin' || role === 'Staff' ? '/dashboard' : '/studio', { replace: true });
+      })
+      .catch(() => {
+        if (ignore) return;
+        clearAuthSession();
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, [navigate]);
 
   useEffect(() => {

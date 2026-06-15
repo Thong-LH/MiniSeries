@@ -7,6 +7,7 @@ using MiniSeries.Infrastructure.Persistence;
 using MiniSeries.Infrastructure.Services;
 using MiniSeries.WebAPI.Contracts;
 using MiniSeries.WebAPI.Security;
+using Npgsql;
 
 namespace MiniSeries.WebAPI.Controllers;
 
@@ -124,11 +125,10 @@ public sealed class PaymentsController(
         string contentUpper = content.ToUpperInvariant();
         var amount = bankData.TransferAmount > 0 ? bankData.TransferAmount : bankData.Amount;
 
-        var pendingOrders = await dbContext.PaymentOrders
-            .Where(o => !o.IsCompleted)
+        var recentOrders = await dbContext.PaymentOrders
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
-        var matched = pendingOrders
+        var matched = recentOrders
             .FirstOrDefault(o => contentUpper.Contains(o.PaymentCode, StringComparison.OrdinalIgnoreCase));
 
         if (matched is null)
@@ -136,26 +136,56 @@ public sealed class PaymentsController(
             return BadRequest(new { message = "No matching pending invoice." });
         }
 
+        if (matched.IsCompleted)
+        {
+            var existingHistory = await EnsurePaymentHistoryAsync(matched, amount, content);
+            if (dbContext.Entry(existingHistory).State == EntityState.Added)
+            {
+                await dbContext.SaveChangesAsync();
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "Payment already processed.",
+                orderId = matched.Id,
+                historyId = existingHistory.Id,
+                paymentCode = matched.PaymentCode,
+                status = matched.Status,
+                planName = matched.PlanName,
+                paidAt = matched.PaidAt
+            });
+        }
+
         try
         {
-            await supabaseDb.InsertPaymentHistoryAsync(
-                matched.UserEmail,
-                amount,
-                matched.PaymentCode,
-                content);
-
             matched.IsCompleted = true;
             matched.Status = "Paid";
             matched.PaidAt = DateTime.UtcNow;
-            await dbContext.SaveChangesAsync();
+            var history = await EnsurePaymentHistoryAsync(matched, amount, content);
 
             var quota = await quotaService.ApplyPaidPlanAsync(Guid.Parse(matched.UserId), matched.PlanName);
+
+            try
+            {
+                await supabaseDb.InsertPaymentHistoryAsync(
+                    matched.UserEmail,
+                    amount,
+                    matched.PaymentCode,
+                    content);
+            }
+            catch
+            {
+                // EF PaymentHistories is the primary history source. Keep the old
+                // Supabase REST table best-effort for existing admin/demo screens.
+            }
 
             return Ok(new
             {
                 success = true,
                 message = "Payment history saved.",
                 orderId = matched.Id,
+                historyId = history.Id,
                 paymentCode = matched.PaymentCode,
                 status = matched.Status,
                 planName = quota.PlanName,
@@ -171,6 +201,68 @@ public sealed class PaymentsController(
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    [Authorize(Policy = "AuthenticatedUser")]
+    [HttpGet("my-history")]
+    public async Task<IActionResult> GetMyPaymentHistory()
+    {
+        var currentUserId = AuthUser.GetCurrentUserId(User);
+        if (currentUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var userId = currentUserId.Value.ToString();
+        var orders = await dbContext.PaymentOrders
+            .AsNoTracking()
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+
+        List<PaymentHistory> histories;
+        try
+        {
+            histories = await dbContext.PaymentHistories
+                .AsNoTracking()
+                .Where(h => h.UserId == userId)
+                .ToListAsync();
+        }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UndefinedTable)
+        {
+            histories = [];
+        }
+
+        var historyByOrderId = histories
+            .Where(h => h.PaymentOrderId.HasValue)
+            .ToDictionary(h => h.PaymentOrderId!.Value);
+        var historyByCode = histories
+            .GroupBy(h => h.PaymentCode, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+        var result = orders.Select(order =>
+        {
+            historyByOrderId.TryGetValue(order.Id, out var history);
+            history ??= historyByCode.GetValueOrDefault(order.PaymentCode);
+
+            return new
+            {
+                historyId = history?.Id,
+                orderId = order.Id,
+                paymentCode = order.PaymentCode,
+                userEmail = order.UserEmail,
+                planName = history?.PlanName ?? order.PlanName,
+                amount = history?.Amount ?? order.MoneyAmount,
+                tokensReceived = history?.TokensReceived ?? order.TokensAmount,
+                status = history?.Status ?? order.Status,
+                isCompleted = order.IsCompleted,
+                content = history?.Content ?? string.Empty,
+                createdAt = order.CreatedAt,
+                paidAt = history?.PaidAt ?? order.PaidAt
+            };
+        });
+
+        return Ok(result);
     }
 
     [Authorize(Policy = "AuthenticatedUser")]
@@ -246,5 +338,36 @@ public sealed class PaymentsController(
         }
 
         return $"MGX{userSuffix}{Guid.NewGuid():N}"[..18].ToUpperInvariant();
+    }
+
+    private async Task<PaymentHistory> EnsurePaymentHistoryAsync(
+        PaymentOrder order,
+        decimal amount,
+        string content)
+    {
+        var existing = await dbContext.PaymentHistories
+            .FirstOrDefaultAsync(x => x.PaymentCode == order.PaymentCode);
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        var history = new PaymentHistory
+        {
+            PaymentOrderId = order.Id,
+            UserId = order.UserId,
+            UserEmail = order.UserEmail,
+            PaymentCode = order.PaymentCode,
+            Amount = amount > 0 ? amount : order.MoneyAmount,
+            PlanName = order.PlanName,
+            TokensReceived = order.TokensAmount,
+            Status = "Paid",
+            Content = content,
+            CreatedAt = DateTime.UtcNow,
+            PaidAt = order.PaidAt ?? DateTime.UtcNow
+        };
+
+        dbContext.PaymentHistories.Add(history);
+        return history;
     }
 }
