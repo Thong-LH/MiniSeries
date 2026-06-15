@@ -24,6 +24,7 @@ type ProfileData = {
 type LessonSummary = {
   id: string;
   title: string;
+  thumbnailUrl?: string | null;
   outputMode: string | number;
   scriptStatus: string | number;
   chapterCount: number;
@@ -38,6 +39,9 @@ type PaymentHistoryItem = {
   planName: string;
   amount: number;
   tokensReceived: number;
+  mangaMonthlyLimit?: number;
+  videoMonthlyLimit?: number;
+  monthlyGenerationLimit?: number;
   status: string;
   isCompleted: boolean;
   createdAt: string;
@@ -45,6 +49,8 @@ type PaymentHistoryItem = {
 };
 
 type TabKey = 'account' | 'lessons' | 'payments';
+
+const SHOW_LEGACY_LESSON_TABLE = false;
 
 const cardStyle = {
   background: 'rgba(15, 23, 42, 0.82)',
@@ -81,6 +87,10 @@ function formatScriptStatus(value: string | number) {
     '3': 'Đã duyệt'
   };
   return map[String(value)] || String(value);
+}
+
+function getLessonThumbnail(lesson: LessonSummary) {
+  return lesson.thumbnailUrl || '';
 }
 
 function tabButtonStyle(isActive: boolean) {
@@ -369,7 +379,7 @@ export default function Profile() {
         )}
 
         {activeTab === 'lessons' && (
-          <div style={{ ...cardStyle, padding: '24px', overflowX: 'auto' }}>
+          <div style={{ ...cardStyle, padding: '24px' }}>
             <h2 style={{ marginBottom: '14px', color: '#67e8f9' }}>Bài học đã tạo</h2>
             {lessonsLoading && <p style={{ color: '#94a3b8' }}>Đang tải lịch sử bài học...</p>}
             {lessonsError && <p style={{ color: '#f87171' }}>{lessonsError}</p>}
@@ -377,6 +387,106 @@ export default function Profile() {
               <p style={{ color: '#94a3b8' }}>Bạn chưa tạo bài học nào.</p>
             )}
             {lessons.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                gap: '18px'
+              }}>
+                {lessons.map((lesson) => {
+                  const thumbnailUrl = getLessonThumbnail(lesson);
+                  const mode = formatOutputMode(lesson.outputMode);
+                  const isVideo = mode === 'Video';
+
+                  return (
+                    <article
+                      key={lesson.id}
+                      onClick={() => navigate(`/studio?lessonId=${lesson.id}`)}
+                      style={{
+                        overflow: 'hidden',
+                        borderRadius: '14px',
+                        border: '1px solid rgba(148, 163, 184, 0.22)',
+                        background: 'rgba(2, 6, 23, 0.62)',
+                        cursor: 'pointer',
+                        minHeight: '280px'
+                      }}
+                    >
+                      <div style={{
+                        position: 'relative',
+                        aspectRatio: '16 / 10',
+                        background: isVideo
+                          ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(15, 23, 42, 0.92))'
+                          : 'linear-gradient(135deg, rgba(6, 182, 212, 0.26), rgba(15, 23, 42, 0.92))'
+                      }}>
+                        {thumbnailUrl ? (
+                          <img
+                            src={thumbnailUrl}
+                            alt={lesson.title}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              display: 'block'
+                            }}
+                          />
+                        ) : (
+                          <div style={{
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: isVideo ? '#c084fc' : '#67e8f9',
+                            fontWeight: 900,
+                            letterSpacing: '0.08em'
+                          }}>
+                            {mode}
+                          </div>
+                        )}
+                        <span style={{
+                          position: 'absolute',
+                          top: '10px',
+                          left: '10px',
+                          padding: '6px 10px',
+                          borderRadius: '999px',
+                          background: isVideo ? 'rgba(168, 85, 247, 0.88)' : 'rgba(6, 182, 212, 0.88)',
+                          color: '#020617',
+                          fontSize: '0.75rem',
+                          fontWeight: 900
+                        }}>
+                          {mode}
+                        </span>
+                      </div>
+
+                      <div style={{ padding: '14px' }}>
+                        <h3 style={{
+                          minHeight: '48px',
+                          margin: '0 0 10px',
+                          color: '#f8fafc',
+                          fontSize: '1rem',
+                          lineHeight: 1.35
+                        }}>
+                          {lesson.title}
+                        </h3>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '10px',
+                          color: '#94a3b8',
+                          fontSize: '0.88rem'
+                        }}>
+                          <span>{formatDate(lesson.createdAt)}</span>
+                          <strong style={{ color: '#e2e8f0' }}>{lesson.chapterCount} chapter</strong>
+                        </div>
+                        <p style={{ marginTop: '10px', color: '#94a3b8', fontSize: '0.86rem' }}>
+                          {formatScriptStatus(lesson.scriptStatus)}
+                        </p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+            {SHOW_LEGACY_LESSON_TABLE && lessons.length > 0 && (
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '760px' }}>
                 <thead>
                   <tr style={{ color: '#94a3b8', textAlign: 'left' }}>
@@ -447,7 +557,9 @@ export default function Profile() {
                       <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)', fontWeight: 800 }}>{payment.paymentCode}</td>
                       <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>{payment.planName}</td>
                       <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>{formatMoney(payment.amount)}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>{payment.tokensReceived}</td>
+                      <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>
+                        Truyện {payment.mangaMonthlyLimit ?? 0} / Video {payment.videoMonthlyLimit ?? 0}
+                      </td>
                       <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)', color: payment.isCompleted ? '#86efac' : '#facc15' }}>
                         {payment.isCompleted ? 'Đã thanh toán' : payment.status}
                       </td>

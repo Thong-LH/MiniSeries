@@ -244,6 +244,8 @@ public sealed class PaymentsController(
         {
             historyByOrderId.TryGetValue(order.Id, out var history);
             history ??= historyByCode.GetValueOrDefault(order.PaymentCode);
+            var planName = history?.PlanName ?? order.PlanName;
+            var plan = UserPlanQuotaService.ResolvePlan(planName);
 
             return new
             {
@@ -251,9 +253,12 @@ public sealed class PaymentsController(
                 orderId = order.Id,
                 paymentCode = order.PaymentCode,
                 userEmail = order.UserEmail,
-                planName = history?.PlanName ?? order.PlanName,
+                planName,
                 amount = history?.Amount ?? order.MoneyAmount,
                 tokensReceived = history?.TokensReceived ?? order.TokensAmount,
+                mangaMonthlyLimit = plan.MangaMonthlyLimit,
+                videoMonthlyLimit = plan.VideoMonthlyLimit,
+                monthlyGenerationLimit = plan.MonthlyGenerationLimit,
                 status = history?.Status ?? order.Status,
                 isCompleted = order.IsCompleted,
                 content = history?.Content ?? string.Empty,
