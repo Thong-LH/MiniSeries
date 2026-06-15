@@ -354,6 +354,7 @@
     margin-top: 6px; margin-bottom: 10px;
     display: -webkit-box;
     -webkit-line-clamp: 5;
+    line-clamp: 5;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -1022,10 +1023,6 @@
         background: #18181b;
         transform: translateX(0);
     }
-}
-
-.wrong-option-sim-2 {
-    /* remains standard normal option */
 }
 
 

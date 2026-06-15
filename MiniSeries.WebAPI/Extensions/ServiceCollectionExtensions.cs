@@ -22,8 +22,14 @@ public static class ServiceCollectionExtensions
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
         services.Configure<SupabaseOptions>(configuration.GetSection(SupabaseOptions.SectionName));
         services.Configure<PexelsOptions>(configuration.GetSection(PexelsOptions.SectionName));
-        services.AddHttpClient<SupabaseRestService>();
-        services.AddHttpClient<SupabaseAuthService>();
+        services.AddHttpClient<SupabaseRestService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
+        services.AddHttpClient<SupabaseAuthService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
 
         services.AddSupabaseJwtAuthentication(configuration);
 
