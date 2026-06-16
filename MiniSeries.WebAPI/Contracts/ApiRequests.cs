@@ -109,3 +109,24 @@ public sealed class ReportReplyRequest
 
     public string? ResolveAdminReply() => AdminReply;
 }
+
+public sealed class CreateStaffRequest
+{
+    [JsonPropertyName("fullName")]
+    public string? FullName { get; set; }
+
+    [JsonPropertyName("email")]
+    public string? Email { get; set; }
+
+    [JsonPropertyName("password")]
+    public string? Password { get; set; }
+}
+
+public sealed class UpdateTokenRequest
+{
+    [JsonPropertyName("tokenDelta")]
+    public int? TokenDelta { get; set; }
+
+    [JsonPropertyName("planName")]
+    public string? PlanName { get; set; }
+}

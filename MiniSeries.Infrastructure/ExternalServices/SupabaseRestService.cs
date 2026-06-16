@@ -184,7 +184,7 @@ public sealed class SupabaseRestService
         PatchByIdAsync<SupabaseReportRow>("StaffReports", id, new
         {
             AdminReply = adminReply,
-            Status = "Đã phản hồi"
+            Status = "Đã hoàn thành"
         });
 
     public Task<SupabaseUserProfileRow?> CreateUserProfileAsync(Guid id, string email, string fullName, string role) =>
@@ -280,6 +280,84 @@ public sealed class SupabaseRestService
     public Task<List<SupabasePaymentHistoryRow>> ListPaymentHistoryAsync() =>
         GetListAsync<SupabasePaymentHistoryRow>("PaymentHistory", "CreatedAt");
 
+    private async Task<bool> DeleteByIdAsync(string table, Guid id)
+    {
+        EnsureConfigured();
+        var query = $"Id=eq.{id:D}";
+        using var request = CreateRequest(HttpMethod.Delete, table, query);
+        using var response = await _http.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException(await ReadErrorAsync(response));
+        }
+        return true;
+    }
+
+    public Task<SupabaseUserProfileRow?> UpdateUserProfileAsync(Guid id, object patch) =>
+        PatchByIdAsync<SupabaseUserProfileRow>("UserProfiles", id, patch);
+
+    public Task<bool> DeleteUserProfileAsync(Guid id) =>
+        DeleteByIdAsync("UserProfiles", id);
+
+    public async Task<TokenSummaryResponse> GetTokenSummaryAsync()
+    {
+        var customers = await ListCustomersAsync();
+        var totalTokens = customers.Sum(c => c.TokenBalance);
+        var plusCount = customers.Count(c =>
+            string.Equals(c.PlanName, "Plus", StringComparison.OrdinalIgnoreCase));
+        var proMaxCount = customers.Count(c =>
+            string.Equals(c.PlanName, "Pro Max", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(c.PlanName, "ProMax", StringComparison.OrdinalIgnoreCase));
+
+        return new TokenSummaryResponse
+        {
+            TotalTokensIssued = totalTokens,
+            PlusPackageCount = plusCount,
+            ProMaxPackageCount = proMaxCount
+        };
+    }
+
+    public async Task<SupabaseUserProfileRow?> AdjustUserTokenAndPlanAsync(
+        Guid userId,
+        int? tokenDelta,
+        string? planName)
+    {
+        var profile = await GetUserProfileByIdAsync(userId);
+        if (profile is null)
+        {
+            return null;
+        }
+
+        var patch = new Dictionary<string, object?>();
+        if (tokenDelta is not null && tokenDelta.Value != 0)
+        {
+            var newBalance = Math.Max(0, profile.TokenBalance + tokenDelta.Value);
+            patch["TokenBalance"] = newBalance;
+        }
+
+        if (!string.IsNullOrWhiteSpace(planName))
+        {
+            var normalized = NormalizePlanName(planName);
+            patch["PlanName"] = normalized;
+        }
+
+        if (patch.Count == 0)
+        {
+            return profile;
+        }
+
+        return await PatchByIdAsync<SupabaseUserProfileRow>("UserProfiles", userId, patch);
+    }
+
+    private static string NormalizePlanName(string planName)
+    {
+        var p = planName.Trim();
+        if (p.Equals("plus", StringComparison.OrdinalIgnoreCase)) return "Plus";
+        if (p.Equals("pro max", StringComparison.OrdinalIgnoreCase) ||
+            p.Equals("promax", StringComparison.OrdinalIgnoreCase)) return "Pro Max";
+        return "Free";
+    }
+
     public async Task<PaymentStatsResponse> GetPaymentStatsAsync(string groupBy = "month")
     {
         var rows = await ListPaymentHistoryAsync();
@@ -311,7 +389,9 @@ public sealed class SupabaseUserProfileRow
     public string Email { get; set; } = "";
     public string FullName { get; set; } = "";
     public string Role { get; set; } = "Customer";
+    public string AccountStatus { get; set; } = "Active";
     public string PlanName { get; set; } = "Free";
+    public int TokenBalance { get; set; }
     public int MangaMonthlyLimit { get; set; } = 3;
     public int UsedMangaCount { get; set; }
     public int VideoMonthlyLimit { get; set; } = 1;
@@ -337,6 +417,13 @@ public sealed class PaymentStatsResponse
     public List<decimal> Amounts { get; set; } = [];
     public decimal TotalRevenue { get; set; }
     public int TransactionCount { get; set; }
+}
+
+public sealed class TokenSummaryResponse
+{
+    public int TotalTokensIssued { get; set; }
+    public int PlusPackageCount { get; set; }
+    public int ProMaxPackageCount { get; set; }
 }
 
 public sealed class SupabaseSupportRow

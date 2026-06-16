@@ -22,14 +22,9 @@ public static class ServiceCollectionExtensions
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
         services.Configure<SupabaseOptions>(configuration.GetSection(SupabaseOptions.SectionName));
         services.Configure<PexelsOptions>(configuration.GetSection(PexelsOptions.SectionName));
-        services.AddHttpClient<SupabaseRestService>(client =>
-        {
-            client.Timeout = TimeSpan.FromSeconds(15);
-        });
-        services.AddHttpClient<SupabaseAuthService>(client =>
-        {
-            client.Timeout = TimeSpan.FromSeconds(15);
-        });
+        services.AddHttpClient<SupabaseRestService>();
+        services.AddHttpClient<SupabaseAuthService>();
+        services.AddHttpClient<SupabaseAdminAuthService>();
 
         services.AddSupabaseJwtAuthentication(configuration);
 
@@ -45,10 +40,13 @@ public static class ServiceCollectionExtensions
                 : sp.GetRequiredService<PollinationsService>();
         });
 
-        var databaseConnectionString = configuration.GetConnectionString("MiniSeries");
+       var databaseConnectionString = configuration.GetConnectionString("MiniSeries") 
+                                       ?? configuration.GetConnectionString("DefaultConnection");
+
         if (string.IsNullOrWhiteSpace(databaseConnectionString))
         {
-            services.AddSingleton<ILessonRepository, InMemoryLessonRepository>();
+            // Nếu hoàn toàn không cấu hình connection string nào, ép buộc nổ lỗi rõ ràng để bạn biết
+            throw new InvalidOperationException("Database Connection String không tìm thấy trong appsettings.json! Hãy kiểm tra lại key 'MiniSeries' hoặc 'DefaultConnection'.");
         }
         else
         {

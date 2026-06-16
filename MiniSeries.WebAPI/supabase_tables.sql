@@ -58,6 +58,15 @@ ALTER TABLE "UserProfiles" ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "anon_all_userprofiles" ON "UserProfiles";
 CREATE POLICY "anon_all_userprofiles" ON "UserProfiles" FOR ALL TO anon USING (true) WITH CHECK (true);
 
+-- Cột mở rộng cho quản trị (chạy an toàn nhiều lần)
+ALTER TABLE "UserProfiles" ADD COLUMN IF NOT EXISTS "AccountStatus" character varying(50) NOT NULL DEFAULT 'Active';
+ALTER TABLE "UserProfiles" ADD COLUMN IF NOT EXISTS "PlanName" character varying(50) NOT NULL DEFAULT 'Free';
+ALTER TABLE "UserProfiles" ADD COLUMN IF NOT EXISTS "TokenBalance" integer NOT NULL DEFAULT 0;
+
+UPDATE "UserProfiles" SET "AccountStatus" = 'Active' WHERE "AccountStatus" IS NULL OR "AccountStatus" = '';
+UPDATE "UserProfiles" SET "PlanName" = 'Free' WHERE "PlanName" IS NULL OR "PlanName" = '';
+UPDATE "UserProfiles" SET "TokenBalance" = 0 WHERE "TokenBalance" IS NULL;
+
 -- PaymentHistory (SePay webhook)
 CREATE TABLE IF NOT EXISTS "PaymentHistory" (
     "Id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),

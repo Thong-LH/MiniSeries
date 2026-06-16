@@ -209,6 +209,21 @@ public sealed class AuthController(
                 sw.ElapsedMilliseconds,
                 email);
 
+            try
+            {
+                var supabaseProfile = await supabaseDb.GetUserProfileByIdAsync(session.UserId);
+                if (supabaseProfile is not null &&
+                    string.Equals(supabaseProfile.AccountStatus, "Blocked", StringComparison.OrdinalIgnoreCase))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden,
+                        new { message = "Tai khoan da bi khoa. Vui long lien he Admin." });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "LoginProfile: khong kiem tra duoc AccountStatus tren Supabase cho {Email}.", email);
+            }
+
             var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == session.UserId);
             logger.LogInformation("LoginProfile timing: UserProfiles lookup completed in {ElapsedMs}ms for {Email}.",
                 sw.ElapsedMilliseconds,
