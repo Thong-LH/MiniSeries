@@ -227,5 +227,171 @@ export const api = {
             headers: getAuthHeaders()
         });
         return await readJsonResponse(response);
+    },
+
+    async adminGetCustomers() {
+        const response = await fetch(`${API_BASE}/admin/customers`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminGetStaffs() {
+        const response = await fetch(`${API_BASE}/admin/staffs`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminCreateStaff(body: any) {
+        const response = await fetch(`${API_BASE}/admin/staffs`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify(body)
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminDeleteStaff(id: string) {
+        const response = await fetch(`${API_BASE}/admin/staffs/${id}`, {
+            method: "DELETE",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminToggleBlockStaff(id: string) {
+        const response = await fetch(`${API_BASE}/admin/staffs/${id}/toggle-block`, {
+            method: "POST",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminDeleteCustomer(id: string) {
+        const response = await fetch(`${API_BASE}/admin/customers/${id}`, {
+            method: "DELETE",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminToggleBlockCustomer(id: string) {
+        const response = await fetch(`${API_BASE}/admin/customers/${id}/toggle-block`, {
+            method: "POST",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminGetTokenSummary() {
+        const response = await fetch(`${API_BASE}/admin/tokens/summary`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminGetTokenUsers() {
+        const response = await fetch(`${API_BASE}/admin/tokens/users`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminUpdateUserToken(id: string, tokenDelta: number, planName: string) {
+        const response = await fetch(`${API_BASE}/admin/tokens/users/${id}`, {
+            method: "PATCH",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ tokenDelta, planName })
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminGetPaymentHistory() {
+        const response = await fetch(`${API_BASE}/admin/payment-history`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async adminGetPaymentStats(groupBy: string = "month") {
+        const response = await fetch(`${API_BASE}/admin/payment-stats?groupBy=${groupBy}`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async cskhGetHistory() {
+        const response = await fetch(`${API_BASE}/admin/cskh/history`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async cskhSendEmail(body: any) {
+        const response = await fetch(`${API_BASE}/admin/cskh/send`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify(body)
+        });
+        return await readJsonResponse(response);
+    },
+
+    async supportGetList() {
+        const response = await fetch(`${API_BASE}/support/list`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async supportReply(id: string | number, reply: string) {
+        const response = await fetch(`${API_BASE}/support/reply`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ id: String(id), reply })
+        });
+        return await readJsonResponse(response);
+    },
+
+    async feedbackGetList() {
+        const response = await fetch(`${API_BASE}/feedback/list`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async reportCreate(content: string) {
+        const response = await fetch(`${API_BASE}/report/create`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ content })
+        });
+        return await readJsonResponse(response);
+    },
+
+    async reportGetList() {
+        const response = await fetch(`${API_BASE}/report/list`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async reportReply(id: string | number, adminReply: string) {
+        const response = await fetch(`${API_BASE}/report/reply`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ id: String(id), adminReply })
+        });
+        return await readJsonResponse(response);
     }
 };
