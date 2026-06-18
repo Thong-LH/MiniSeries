@@ -1,75 +1,508 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGenAI - H? Th?ng Qu?n Tr?</title>
+    <title>MSL - Hệ Thống Quản Trị</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0b0f19; }
-        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .nav-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; color: #94a3b8; font-size: 14px; font-weight: 500; transition: all 0.2s; cursor: pointer; text-decoration: none; }
-        .nav-item:hover { background: rgba(30, 41, 59, 0.6); color: #e2e8f0; }
-        .nav-item.active { background: #7c3aed; color: #fff; }
+        /* === COSMIC BASE === */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712;
+            background-image:
+                radial-gradient(ellipse 120% 80% at 50% -20%, rgba(99, 102, 241, 0.18) 0%, transparent 55%),
+                radial-gradient(ellipse 80% 50% at 100% 50%, rgba(124, 58, 237, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 0% 80%, rgba(6, 182, 212, 0.08) 0%, transparent 45%),
+                linear-gradient(180deg, #030712 0%, #0b0f19 45%, #020617 100%);
+            position: relative;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                radial-gradient(1px 1px at 20px 30px, rgba(255,255,255,0.35), transparent),
+                radial-gradient(1px 1px at 80px 120px, rgba(255,255,255,0.25), transparent),
+                radial-gradient(1.5px 1.5px at 160px 60px, rgba(167,139,250,0.4), transparent),
+                radial-gradient(1px 1px at 240px 180px, rgba(255,255,255,0.2), transparent),
+                radial-gradient(1px 1px at 320px 40px, rgba(56,189,248,0.35), transparent),
+                radial-gradient(1px 1px at 400px 140px, rgba(255,255,255,0.15), transparent);
+            background-size: 450px 220px;
+            opacity: 0.7;
+            animation: starDrift 120s linear infinite;
+        }
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 100%);
+        }
+        @keyframes starDrift {
+            from { transform: translateY(0); }
+            to { transform: translateY(-220px); }
+        }
+
+        /* === GLASSMORPHISM PHI THUYỀN === */
+        .glass {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+        .cyber-glass {
+            position: relative;
+            overflow: hidden;
+        }
+        .cyber-glass::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.6), rgba(124, 58, 237, 0.6), transparent);
+            pointer-events: none;
+        }
+
+        /* === NAV PLASMA === */
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid transparent;
+        }
+        .nav-item:hover {
+            background: rgba(30, 41, 59, 0.6);
+            color: #e2e8f0;
+            border-color: rgba(124, 58, 237, 0.15);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.08);
+        }
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.85) 0%, rgba(99, 102, 241, 0.75) 100%);
+            color: #fff;
+            border-color: rgba(167, 139, 250, 0.4);
+            box-shadow: 0 0 12px #7c3aed, 0 0 24px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+        }
         .nav-item.admin-only { border-left: 2px solid transparent; }
         .nav-item.admin-only.is-admin-visible { border-left-color: #f59e0b; }
-        .role-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 9999px; }
-        .role-badge.admin { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-        .role-badge.staff { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
-        .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+
+        /* === ROLE BADGES === */
+        .role-badge {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 8px;
+            border-radius: 9999px;
+        }
+        .role-badge.admin {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+        }
+        .role-badge.staff {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+        }
+
+        /* === STATUS PILLS NEON === */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
         .status-dot { width: 8px; height: 8px; border-radius: 9999px; display: inline-block; }
-        .status-online { background: rgba(34, 197, 94, 0.12); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.25); }
-        .status-online .status-dot { background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,0.12); }
-        .status-offline { background: rgba(148, 163, 184, 0.08); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
-        .status-offline .status-dot { background: #94a3b8; box-shadow: 0 0 0 4px rgba(148,163,184,0.12); }
+        .status-online {
+            background: rgba(34, 197, 94, 0.12);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.15);
+        }
+        .status-online .status-dot {
+            background: #22c55e;
+            box-shadow: 0 0 6px #22c55e, 0 0 0 4px rgba(34,197,94,0.12);
+        }
+        .status-offline {
+            background: rgba(148, 163, 184, 0.08);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            box-shadow: 0 0 8px rgba(148, 163, 184, 0.08);
+        }
+        .status-offline .status-dot {
+            background: #94a3b8;
+            box-shadow: 0 0 0 4px rgba(148,163,184,0.12);
+        }
+
+        /* === LOGOUT NÚT CẢNH BÁO HẠT NHÂN === */
+        #btnLogout {
+            animation: logoutPulse 2.5s ease-in-out infinite;
+        }
+        #btnLogout:hover {
+            animation: none;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.55), 0 0 40px rgba(239, 68, 68, 0.25);
+            color: #fca5a5 !important;
+            border-color: rgba(239, 68, 68, 0.8) !important;
+            text-shadow: 0 0 8px rgba(248, 113, 113, 0.8);
+        }
+        @keyframes logoutPulse {
+            0%, 100% { box-shadow: 0 0 6px rgba(239, 68, 68, 0.25); border-color: rgba(239, 68, 68, 0.35); }
+            50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.45), 0 0 28px rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.55); }
+        }
+
+        /* === CYBER BUTTONS === */
+        .cyber-btn-primary,
+        #btn-send-report,
+        button[data-admin-reply-btn],
+        button[data-support-action="confirm"],
+        button.bg-purple-600,
+        button.bg-green-600 {
+            background: linear-gradient(135deg, #06b6d4 0%, #7c3aed 100%) !important;
+            border: 1px solid rgba(6, 182, 212, 0.4) !important;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.25), 0 0 20px rgba(124, 58, 237, 0.15);
+            transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease !important;
+        }
+        .cyber-btn-primary:hover,
+        #btn-send-report:hover,
+        button[data-admin-reply-btn]:hover,
+        button[data-support-action="confirm"]:hover {
+            transform: scale(1.04);
+            filter: brightness(1.1);
+            box-shadow: 0 0 18px rgba(6, 182, 212, 0.45), 0 0 32px rgba(124, 58, 237, 0.35) !important;
+        }
+
+        /* === STAT CARDS HOLOGRAM === */
+        .stat-card .hologram-num,
+        .stat-card p[id$="-total"],
+        .stat-card p[id$="-online"],
+        .stat-card p[id$="-offline"],
+        .stat-card > p.text-2xl {
+            font-family: 'Orbitron', 'Inter', sans-serif;
+            text-shadow: 0 0 12px rgba(167, 139, 250, 0.45), 0 0 24px rgba(99, 102, 241, 0.2);
+        }
+
+        /* === TABLE CYBER LINE === */
+        .cyber-table tbody tr {
+            transition: background 0.2s ease, box-shadow 0.2s ease;
+        }
+        .cyber-table tbody tr:hover {
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.06) 0%, rgba(124, 58, 237, 0.08) 50%, rgba(6, 182, 212, 0.06) 100%);
+            box-shadow: inset 0 0 0 1px rgba(6, 182, 212, 0.12), 0 0 12px rgba(6, 182, 212, 0.06);
+        }
+        .cyber-table thead tr {
+            border-bottom: 1px solid rgba(124, 58, 237, 0.25) !important;
+        }
+
+        /* === TAG STATUS GLOW === */
+        .cyber-table span.rounded-full,
+        .cyber-table .px-2.py-1.text-xs.rounded-full {
+            border: 1px solid currentColor;
+            box-shadow: 0 0 8px currentColor;
+            opacity: 0.95;
+        }
+
+        /* === SIDEBAR & MAIN LAYER === */
+        aside, main { position: relative; z-index: 1; }
+        .cosmic-title span { text-shadow: 0 0 16px rgba(168, 85, 247, 0.6); }
+ @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@800;900&display=swap');
+
+/* ==========================================================================
+   A. BACKGROUND KHÔNG GIAN 3D ĐỘNG (BẮT BUỘC)
+   ========================================================================== */
+#space-matrix-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* Luôn nằm dưới cùng */
+    background: radial-gradient(circle at 50% 50%, #080616 0%, #020005 100%);
+    pointer-events: none;
+}
+
+/* Biến các mảng khối thành kính mờ để thấy hiệu ứng sao bay phía sau */
+body {
+    background: transparent !important;
+}
+aside, .main-content, main {
+    background: rgba(10, 8, 24, 0.45) !important;
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(147, 51, 234, 0.15) !important;
+}
+
+/* ==========================================================================
+   B. ĐIỀU CHỈNH KÍCH THƯỚC LOGO (FIX LỖI QUÁ TO/DÀI)
+   ========================================================================== */
+.cyber-logo-hud {
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 1.15rem !important; /* Giảm size từ 2xl xuống để vừa khít Sidebar w-72 */
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1.5px; /* Giảm khoảng cách chữ để bớt dài bẹt */
+    line-height: 1.4;      /* Tăng khoảng cách dòng để chữ Learning không đè lên Mini Series */
+    color: #e2e8f0;
+    display: block;        /* Chuyển thành khối để tự bẻ hàng chuẩn */
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    
+    /* Đổ bóng 3D thu nhỏ tinh tế hơn */
+    text-shadow: 
+        1px 1px 0px #334155,
+        0px 0px 6px rgba(226, 232, 240, 0.2);
+}
+
+/* Chữ Learning dòng dưới */
+.cyber-logo-hud .purple-text {
+    color: #c084fc; 
+    display: inline-block;
+    text-shadow: 
+        1px 1px 0px #581c87,
+        0px 0px 6px rgba(192, 132, 252, 0.3);
+}
+
+/* 3 lõi năng lượng M - S - L thu gọn */
+.cyber-logo-hud .core-node {
+    color: #00f2fe !important; 
+    font-weight: 900;
+    text-shadow: 
+        1px 1px 0px #005662,
+        0px 0px 10px rgba(0, 242, 254, 0.8) !important;
+}
+
+/* Tia quét năng lượng thanh thoát hơn */
+.cyber-logo-hud::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 30%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.4), transparent);
+    transform: skewX(-30deg);
+    animation: radarScan 4s infinite linear;
+}
+
+@keyframes radarScan {
+    0% { left: -100%; }
+    25%, 100% { left: 150%; }
+}
+
+        /* === TOAST === */
+        #toast-container {
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+        .toast-item {
+            pointer-events: auto;
+            min-width: 280px;
+            max-width: 420px;
+            padding: 0.875rem 1rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #e2e8f0;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(124, 58, 237, 0.35);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+            animation: toastIn 0.3s ease;
+        }
+        .toast-item.success { border-color: rgba(34, 197, 94, 0.45); box-shadow: 0 0 16px rgba(34, 197, 94, 0.2); }
+        .toast-item.error { border-color: rgba(239, 68, 68, 0.45); box-shadow: 0 0 16px rgba(239, 68, 68, 0.2); }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(24px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* === MODAL === */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(3, 7, 18, 0.75);
+            backdrop-filter: blur(6px);
+            padding: 1rem;
+        }
+        .modal-overlay.hidden { display: none !important; }
+        .modal-panel {
+            width: 100%;
+            max-width: 480px;
+            border-radius: 16px;
+            padding: 1.5rem;
+            background: rgba(15, 23, 42, 0.98);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
+        }
+        .modal-title { font-size: 1.125rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.5rem; }
+        .modal-desc { font-size: 0.875rem; color: #94a3b8; margin-bottom: 1rem; }
+        .modal-input {
+            width: 100%;
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(100, 116, 139, 0.4);
+            border-radius: 10px;
+            padding: 0.625rem 0.75rem;
+            color: #e2e8f0;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+        .modal-input:focus { outline: none; border-color: #7c3aed; }
+        .badge-blocked { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+        .badge-done { background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); }
+        .badge-pending { background: rgba(245, 158, 11, 0.12); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
+        .btn-action {
+            padding: 0.375rem 0.625rem;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-right: 0.25rem;
+        }
     </style>
 </head>
-<body class="text-slate-200 flex min-h-screen">
+<body class="text-slate-200 flex min-h-screen relative overflow-x-hidden cosmic-bg">
+    <canvas id="space-matrix-bg"></canvas>
+    <script>
+        const canvas = document.getElementById('space-matrix-bg');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            const numStars = 100; // Số lượng sao (chạy siêu mượt, không lo lag máy)
+            let speed = 0.8;      // Tốc độ di chuyển của tàu vũ trụ
 
-    <aside class="w-72 glass border-r border-slate-800 p-6 flex flex-col justify-between shrink-0">
+            function initCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                stars = [];
+                for (let i = 0; i < numStars; i++) {
+                    stars.push({
+                        x: Math.random() * canvas.width - canvas.width / 2,
+                        y: Math.random() * canvas.height - canvas.height / 2,
+                        z: Math.random() * canvas.width,
+                        // Tỷ lệ sinh ra sao màu Xanh Plasma hoặc Tím Nebula
+                        color: Math.random() > 0.3 ? 'rgba(0, 242, 254,' : 'rgba(147, 51, 234,' 
+                    });
+                }
+            }
+
+            function drawStars() {
+                // Tạo hiệu ứng đuôi sao kéo dài (motion blur) bằng lớp phủ trong suốt
+                ctx.fillStyle = 'rgba(4, 2, 14, 0.2)'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+
+                for (let i = 0; i < numStars; i++) {
+                    let star = stars[i];
+                    star.z -= speed; 
+
+                    // Nếu sao bay qua khỏi camera, hồi sinh nó lại ở đằng xa
+                    if (star.z <= 0) {
+                        star.z = canvas.width;
+                        star.x = Math.random() * canvas.width - cx;
+                        star.y = Math.random() * canvas.height - cy;
+                    }
+
+                    // Công thức toán học chiếu tọa độ 3D không gian ra màn hình 2D
+                    const px = (star.x / star.z) * cx + cx;
+                    const py = (star.y / star.z) * cy + cy;
+
+                    if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
+                        const size = (1 - star.z / canvas.width) * 2.5; // Càng gần càng to
+                        const alpha = (1 - star.z / canvas.width);      // Càng gần càng sáng
+
+                        ctx.beginPath();
+                        ctx.arc(px, py, size > 0 ? size : 0.5, 0, Math.PI * 2);
+                        ctx.fillStyle = `${star.color} ${alpha})`;
+                        ctx.fill();
+                    }
+                }
+                requestAnimationFrame(drawStars);
+            }
+
+            window.addEventListener('resize', initCanvas);
+            initCanvas();
+            drawStars();
+        }
+    </script>
+
+    <aside class="w-72 glass cyber-glass border-r border-slate-800/80 border-purple-500/10 p-6 flex flex-col justify-between shrink-0 shadow-[0_0_30px_rgba(99,102,241,0.08)]">
         <div>
-            <div class="text-2xl font-bold tracking-wider text-white mb-1">
-                Edu<span class="text-purple-500">Admin</span>
-            </div>
-            <p class="text-xs text-slate-500 mb-6">B?ng di?u khi?n n?i b?</p>
+            <div class="text-2xl font-bold tracking-wider mb-1 cyber-logo-hud" onclick="window.location.reload()">
+    <span class="core-node">M</span>ini 
+    <span class="core-node">S</span>eries<span class="purple-text">
+    <span class="core-node">L</span>earning</span>
+</div>
+            <p class="text-xs text-slate-500 mb-6">Bảng điều khiển nội bộ</p>
 
             <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2 px-2">Chung</p>
             <nav class="space-y-1 mb-6" id="nav-common">
                 <a href="#content" class="nav-item active" data-section="content" data-access="common">
-                    <span>??</span> Qu?n l� n?i dung
+                    <span>📚</span> Quản lý nội dung
                 </a>
                 <a href="#customers" class="nav-item" data-section="customers" data-access="common" id="menu-customers">
-                    <span>??</span> Qu?n l� Kh�ch h�ng
+                    <span>👥</span> Quản lý Khách hàng
                 </a>
                 <a href="#tokens" class="nav-item" data-section="tokens" data-access="common">
-                    <span>?</span> Qu?n l� Token
+                    <span>🪙</span> Quản lý Token
                 </a>
                 <a href="#support" class="nav-item" data-section="support" data-access="common">
-                    <span>??</span> H? tr? kh�ch h�ng
+                    <span>💬</span> Hỗ trợ khách hàng
                 </a>
                 <a href="#feedback" class="nav-item" data-section="feedback" data-access="common" id="menu-feedback">
-                    <span>?</span> Qu?n l� ��nh gi�
+                    <span>⭐</span> Quản lý Đánh giá
                 </a>
                 <a href="#reports-staff" class="nav-item staff-only" data-section="reports-staff" data-access="staff" id="menu-reports-staff">
-                    <span>??</span> B�o c�o c�ng vi?c
+                    <span>📋</span> Báo cáo công việc
                 </a>
             </nav>
 
-            <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2 px-2 admin-only-label">Qu?n tr? h? th?ng</p>
+            <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2 px-2 admin-only-label">Quản trị hệ thống</p>
             <nav class="space-y-1" id="nav-admin">
                 <a href="#payments" class="nav-item admin-only" data-section="payments" data-access="admin" id="menu-payments">
-                    <span>??</span> L?ch s? thanh to�n
+                    <span>💳</span> Lịch sử thanh toán
                 </a>
                 <a href="#revenue" class="nav-item admin-only" data-section="revenue" data-access="admin" id="menu-revenue">
-                    <span>??</span> Bi?u d? doanh thu
+                    <span>📈</span> Biểu đồ doanh thu
                 </a>
                 <a href="#staff" class="nav-item admin-only" data-section="staff" data-access="admin" id="menu-staff">
-                    <span>??</span> Qu?n l� Nh�n vi�n (Staff)
+                    <span>🛡️</span> Quản lý Nhân viên (Staff)
                 </a>
                 <a href="#reports-admin" class="nav-item admin-only" data-section="reports-admin" data-access="admin" id="menu-reports-admin">
-                    <span>??</span> Xem B�o c�o
+                    <span>📨</span> Xem Báo cáo
                 </a>
             </nav>
         </div>
@@ -79,281 +512,400 @@
                 <span id="roleBadge" class="role-badge staff">Staff</span>
             </div>
             <div class="text-xs text-slate-400 mb-3 px-1">
-                Xin ch�o, <span id="currentUserName" class="text-purple-400 font-bold">�</span>
+                Xin chào, <span id="currentUserName" class="text-purple-400 font-bold">—</span>
             </div>
-            <button type="button" id="btnLogout" class="w-full py-2 bg-red-950/40 text-red-400 border border-red-900 rounded-lg text-sm font-medium hover:bg-red-900/40 transition logout-btn" onclick="window.handleLogout(event)">
-                �ang xu?t
+            <button type="button" id="btnLogout" class="w-full py-2 bg-red-950/30 text-red-400 border border-red-500/50 rounded-lg text-sm font-medium hover:bg-red-900/50 transition logout-btn shadow-[0_0_10px_rgba(239,68,68,0.2)]" onclick="window.handleLogout(event)">
+                Đăng xuất
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 p-8 lg:p-10 overflow-y-auto">
+    <main class="flex-1 p-8 lg:p-10 overflow-y-auto relative z-[1]">
         <div id="access-denied-banner" class="hidden mb-6 p-4 rounded-xl border border-red-500/40 bg-red-950/30 text-red-300 text-sm font-medium"></div>
 
-        <!-- Qu?n l� n?i dung -->
+        <!-- Quản lý nội dung -->
         <section id="section-content" class="dashboard-section space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Qu?n l� n?i dung</h2>
-                <p class="text-slate-400 text-sm mt-1">Duy?t b�i h?c, truy?n Manga v� MiniSeries do ngu?i d�ng t?o.</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Quản lý nội dung</h2>
+                <p class="text-slate-400 text-sm mt-1">Duyệt bài học, truyền Manga và MiniSeries do người dùng tạo.</p>
             </header>
-            <div class="glass rounded-2xl border border-slate-800 p-6">
-                <p class="text-slate-300 text-sm">Danh s�ch n?i dung dang ch? duy?t: <strong class="text-purple-400">8</strong> m?c</p>
+            <div class="glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10 p-6">
+                <p class="text-slate-300 text-sm">Danh sách nội dung đang chờ duyệt: <strong class="text-purple-400">8</strong> mục</p>
             </div>
         </section>
 
-        <!-- Qu?n l� Kh�ch h�ng -->
+        <!-- Quản lý Khách hàng -->
         <section id="section-customers" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Qu?n l� Kh�ch h�ng</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh s�ch Customer v� tr?ng th�i Online/Offline realtime theo d? li?u API.</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Quản lý Khách hàng</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh sách Customer và trạng thái Online/Offline realtime theo dữ liệu API.</p>
             </header>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">T?ng s? kh�ch h�ng</p>
-                    <p class="text-2xl font-bold text-white mt-1" id="customers-total">�</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Tổng số khách hàng</p>
+                    <p class="text-2xl font-bold text-white mt-1 hologram-num" id="customers-total">—</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">�ang Online ??</p>
-                    <p class="text-2xl font-bold text-green-300 mt-1" id="customers-online">�</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Đang Online 🟢</p>
+                    <p class="text-2xl font-bold text-green-300 mt-1 hologram-num" id="customers-online">—</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Offline ?</p>
-                    <p class="text-2xl font-bold text-slate-300 mt-1" id="customers-offline">�</p>
-                </div>
-            </div>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Offline ⚪</p>
+                    <p class="text-2xl font-bold text-slate-300 mt-1 hologram-num" id="customers-offline">—</p>
+        </div>
+    </div>
 
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
-                            <th class="p-4">T�n kh�ch h�ng</th>
+                            <th class="p-4">Tên khách hàng</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">Token s? h?u</th>
-                            <th class="p-4">Tr?ng th�i</th>
-                            <th class="p-4">Ng�y dang k�</th>
+                            <th class="p-4">Token sở hữu</th>
+                            <th class="p-4">Trạng thái</th>
+                            <th class="p-4">Ngày đăng ký</th>
+                            <th class="p-4">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="customers-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="6">�ang t?i d? li?u kh�ch h�ng...</td>
+                            <td class="p-4 text-slate-400" colspan="7">Đang tải dữ liệu khách hàng...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Qu?n l� Token -->
+        <!-- Quản lý Token -->
         <section id="section-tokens" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Qu?n l� Token</h2>
-                <p class="text-slate-400 text-sm mt-1">Theo d�i s? du Token v� g�i n?p c?a kh�ch h�ng.</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Quản lý Token</h2>
+                <p class="text-slate-400 text-sm mt-1">Theo dõi số dư Token và gói nạp của khách hàng.</p>
             </header>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Token d� ph�t h�nh</p>
-                    <p class="text-2xl font-bold text-white mt-1">2.4M</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Token đã phát hành</p>
+                    <p class="text-2xl font-bold text-white mt-1 hologram-num" id="tokens-total-issued">—</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">G�i Plus (150K)</p>
-                    <p class="text-2xl font-bold text-purple-400 mt-1">124</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Gói Plus (150K)</p>
+                    <p class="text-2xl font-bold text-purple-400 mt-1 hologram-num" id="tokens-plus-count">—</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">G�i Pro Max (300K)</p>
-                    <p class="text-2xl font-bold text-amber-400 mt-1">47</p>
-                </div>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Gói Pro Max (300K)</p>
+                    <p class="text-2xl font-bold text-amber-400 mt-1 hologram-num" id="tokens-promax-count">—</p>
             </div>
-        </section>
-
-        <!-- H? tr? kh�ch h�ng -->
-        <section id="section-support" class="dashboard-section hidden space-y-6">
-            <header>
-                <h2 class="text-2xl font-bold text-white">H? tr? kh�ch h�ng</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh s�ch y�u c?u tu v?n t? Customer (luu tr�n Supabase PostgreSQL).</p>
-            </header>
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+        </div>
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
-                            <th class="p-4">ID</th>
-                            <th class="p-4">Email kh�ch</th>
-                            <th class="p-4">N?i dung</th>
-                            <th class="p-4">Ng�y g?i</th>
-                            <th class="p-4">Tr?ng th�i</th>
-                            <th class="p-4">Thao t�c</th>
+                            <th class="p-4">ID người dùng</th>
+                            <th class="p-4">Tên user</th>
+                            <th class="p-4">Email</th>
+                            <th class="p-4">Số token</th>
+                            <th class="p-4">Gói đang dùng</th>
+                            <th class="p-4">Thao tác</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800/60" id="support-tbody">
+                    <tbody class="divide-y divide-slate-800/60" id="tokens-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="6">�ang t?i d? li?u y�u c?u...</td>
+                            <td class="p-4 text-slate-400" colspan="6">Đang tải danh sách token...</td>
                         </tr>
                     </tbody>
                 </table>
+                
             </div>
         </section>
 
-        <!-- Qu?n l� ��nh gi� -->
+        <!-- Hỗ trợ khách hàng -->
+        <!-- Hỗ trợ khách hàng: Hệ thống quản lý Ticket & Gửi phản hồi -->
+        <section id="section-support" class="dashboard-section hidden space-y-8">
+            <header>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Hỗ trợ khách hàng</h2>
+                <p class="text-slate-400 text-sm mt-1">Xem các yêu cầu tư vấn từ khách hàng và gửi mail phản hồi trực tiếp.</p>
+            </header>
+
+            <!-- 1. BẢNG HỨNG PHIẾU YÊU CẦU TỪ CUSTOMER (Hệ thống cũ của ông) -->
+            <div class="space-y-3">
+                <h3 class="text-md font-bold text-amber-400 tracking-wider uppercase px-1 flex items-center gap-2">
+                    📥 Phiếu yêu cầu từ Khách hàng <span id="ticket-count" class="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">0</span>
+                </h3>
+                <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                    <table class="w-full text-left text-sm cyber-table">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
+                                <th class="p-4">ID</th>
+                                <th class="p-4">Email khách</th>
+                                <th class="p-4">Nội dung</th>
+                                <th class="p-4">Ngày gửi</th>
+                                <th class="p-4">Trạng thái</th>
+                                <th class="p-4">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60" id="support-tbody">
+                            <tr>
+                                <td class="p-4 text-slate-400" colspan="6">Đang tải dữ liệu yêu cầu...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. FORM SOẠN THƯ PHẢN HỒI (Tự động điền khi ấn "Phản hồi") -->
+            <div id="reply-form-container" class="glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10 p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-md font-bold text-purple-400 tracking-wider uppercase flex items-center gap-2">
+                        ✉️ Soạn thư phản hồi khách hàng
+                    </h3>
+                    <span id="replying-to-badge" class="hidden text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-md border border-purple-500/30">
+                        Đang trả lời Ticket #<span id="target-ticket-id">—</span>
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col space-y-1">
+                        <label class="text-xs text-slate-400 font-medium">Địa chỉ Email nhận:</label>
+                        <input type="email" id="cskh-email" class="bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="khachhang@gmail.com">
+                    </div>
+                    <div class="flex flex-col space-y-1">
+                        <label class="text-xs text-slate-400 font-medium">Tiêu đề email:</label>
+                        <input type="text" id="cskh-subject" class="bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="Phản hồi yêu cầu hỗ trợ từ MSL System...">
+                    </div>
+                </div>
+
+                <div class="flex flex-col space-y-1">
+                    <label class="text-xs text-slate-400 font-medium">Nội dung phản hồi:</label>
+                    <textarea id="cskh-content" rows="5" class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="Chào bạn, chúng tôi đã nhận được thông tin và xin phản hồi như sau..."></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" id="btn-cancel-reply" onclick="cancelReply()" class="hidden px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium text-sm transition">
+                        Hủy chọn
+                    </button>
+                    <button type="button" onclick="sendCskhEmail()" class="cyber-btn-primary px-6 py-2.5 rounded-xl font-bold text-white">
+                        🚀 Gửi Mail & Cập nhật trạng thái
+                    </button>
+                </div>
+            </div>
+        </section>
+        <!-- Quản lý Đánh giá -->
         <section id="section-feedback" class="dashboard-section hidden space-y-6">
             <header>
-                <h2 class="text-2xl font-bold text-white">Qu?n l� ��nh gi�</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh s�ch feedback kh�ch h�ng (luu tr�n Supabase PostgreSQL).</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Quản lý Đánh giá</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh sách feedback khách hàng.</p>
             </header>
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">S? sao</th>
-                            <th class="p-4">B�nh lu?n</th>
-                            <th class="p-4">Ng�y g?i</th>
+                            <th class="p-4">Số sao</th>
+                            <th class="p-4">Bình luận</th>
+                            <th class="p-4">Ngày gửi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="feedback-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="5">Chua c� d? li?u d�nh gi�.</td>
+                            <td class="p-4 text-slate-400" colspan="5">Chưa có dữ liệu đánh giá.</td>
                         </tr>
                     </tbody>
                 </table>
-            </div>
+                    </div>
         </section>
 
-        <!-- Staff: B�o c�o c�ng vi?c -->
+        <!-- Staff: Báo cáo công việc -->
         <section id="section-reports-staff" class="dashboard-section hidden space-y-6" data-access="staff">
             <header>
-                <h2 class="text-2xl font-bold text-white">B�o c�o c�ng vi?c</h2>
-                <p class="text-slate-400 text-sm mt-1">Staff g?i b�o c�o l�n Admin (luu tr�n Supabase PostgreSQL).</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Báo cáo công việc</h2>
+                <p class="text-slate-400 text-sm mt-1">Staff gửi báo cáo lên Admin.</p>
             </header>
-            <div class="glass rounded-2xl border border-slate-800 p-6 space-y-3">
-                <label class="text-sm font-semibold text-slate-200">N?i dung b�o c�o</label>
-                <textarea id="staff-report-content" rows="5" class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="V� d?: H�m nay d� x? l� 8 ticket h? tr?, 2 ticket c?n Admin duy?t ho�n ti?n..."></textarea>
+            <div class="glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10 p-6 space-y-3">
+                <label class="text-sm font-semibold text-slate-200">Nội dung báo cáo</label>
+                <textarea id="staff-report-content" rows="5" class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500 focus:shadow-[0_0_12px_rgba(124,58,237,0.25)]" placeholder="Ví dụ: Hôm nay đã xử lý 8 ticket hỗ trợ, 2 ticket cần Admin duyệt hoàn tiền..."></textarea>
                 <div class="flex justify-end">
-                    <button id="btn-send-report" class="px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition">G?i l�n Admin</button>
+                    <button id="btn-send-report" class="cyber-btn-primary px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition">Gửi lên Admin</button>
                 </div>
             </div>
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
-                            <th class="p-4">Ng�y g?i</th>
-                            <th class="p-4">N?i dung</th>
-                            <th class="p-4">Tr?ng th�i</th>
-                            <th class="p-4">Ph?n h?i Admin</th>
+                            <th class="p-4">Ngày gửi</th>
+                            <th class="p-4">Nội dung</th>
+                            <th class="p-4">Trạng thái</th>
+                            <th class="p-4">Phản hồi Admin</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="reports-staff-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="4">Chua c� b�o c�o n�o.</td>
+                            <td class="p-4 text-slate-400" colspan="4">Chưa có báo cáo nào.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Admin: Xem B�o c�o -->
+        <!-- Admin: Xem Báo cáo -->
         <section id="section-reports-admin" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">Xem B�o c�o</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh s�ch b�o c�o do Staff g?i (luu tr�n Supabase PostgreSQL).</p>
+                <h2 class="text-2xl font-bold text-white">Xem Báo cáo</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh sách báo cáo do Staff gửi.</p>
             </header>
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">Staff</th>
-                            <th class="p-4">Ng�y g?i</th>
-                            <th class="p-4">N?i dung</th>
+                            <th class="p-4">Ngày gửi</th>
+                            <th class="p-4">Nội dung</th>
+                            <th class="p-4">Trạng thái</th>
                             <th class="p-4">Reply</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="reports-admin-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="4">Chua c� b�o c�o n�o.</td>
+                            <td class="p-4 text-slate-400" colspan="5">Chưa có báo cáo nào.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Admin: L?ch s? thanh to�n -->
+        <!-- Admin: Lịch sử thanh toán -->
         <section id="section-payments" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">L?ch s? thanh to�n</h2>
-                <p class="text-slate-400 text-sm mt-1">To�n b? giao d?ch n?p Token qua c?ng thanh to�n.</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Lịch sử thanh toán</h2>
+                <p class="text-slate-400 text-sm mt-1">Toàn bộ giao dịch nạp Token qua cổng thanh toán.</p>
             </header>
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
-                            <th class="p-4">M� GD</th>
+                            <th class="p-4">Mã GD</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">S? ti?n</th>
-                            <th class="p-4">Tr?ng th�i</th>
+                            <th class="p-4">Số tiền</th>
+                            <th class="p-4">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="payments-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="4">�ang t?i l?ch s? thanh to�n...</td>
+                            <td class="p-4 text-slate-400" colspan="4">Đang tải lịch sử thanh toán...</td>
                         </tr>
                     </tbody>
                 </table>
-            </div>
+        </div>
         </section>
 
-        <!-- Admin: Bi?u d? doanh thu -->
+        <!-- Admin: Biểu đồ doanh thu -->
         <section id="section-revenue" class="dashboard-section hidden space-y-6" data-access="admin">
             <header>
-                <h2 class="text-2xl font-bold text-white">Bi?u d? doanh thu</h2>
-                <p class="text-slate-400 text-sm mt-1">Ph�n t�ch doanh thu theo th�ng (ch? Admin).</p>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Biểu đồ doanh thu</h2>
+                <p class="text-slate-400 text-sm mt-1">Phân tích doanh thu theo tháng.</p>
             </header>
-            <div class="p-6 glass rounded-2xl border border-slate-800 max-w-4xl">
+            <div class="p-6 glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10 max-w-4xl shadow-[0_0_20px_rgba(99,102,241,0.08)]">
                 <canvas id="revenueChart" height="120"></canvas>
             </div>
         </section>
 
-        <!-- Admin: Qu?n l� Nh�n vi�n (Staff) -->
+        <!-- Admin: Quản lý Nhân viên (Staff) -->
         <section id="section-staff" class="dashboard-section hidden space-y-6" data-access="admin">
-            <header>
-                <h2 class="text-2xl font-bold text-white">Qu?n l� Nh�n vi�n (Staff)</h2>
-                <p class="text-slate-400 text-sm mt-1">Danh s�ch Staff, tr?ng th�i Online/Offline v� ng�y tham gia.</p>
+            <header class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                <h2 class="text-2xl font-bold text-white tracking-wide drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">Quản lý Nhân viên (Staff)</h2>
+                <p class="text-slate-400 text-sm mt-1">Danh sách Staff, trạng thái Online/Offline và ngày tham gia.</p>
+                </div>
+                <button type="button" id="btn-add-staff" class="cyber-btn-primary px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition">+ Thêm Staff</button>
             </header>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">T?ng Staff</p>
-                    <p class="text-2xl font-bold text-white mt-1" id="staff-total">�</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Tổng Staff</p>
+                    <p class="text-2xl font-bold text-white mt-1 hologram-num" id="staff-total">—</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">�ang Online ??</p>
-                    <p class="text-2xl font-bold text-green-300 mt-1" id="staff-online">�</p>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Đang Online 🟢</p>
+                    <p class="text-2xl font-bold text-green-300 mt-1 hologram-num" id="staff-online">—</p>
                 </div>
-                <div class="glass rounded-xl p-5 border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase">Offline ?</p>
-                    <p class="text-2xl font-bold text-slate-300 mt-1" id="staff-offline">�</p>
-                </div>
+                <div class="glass cyber-glass stat-card rounded-xl p-5 border border-slate-800/80 border-purple-500/10">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider">Offline ⚪</p>
+                    <p class="text-2xl font-bold text-slate-300 mt-1 hologram-num" id="staff-offline">—</p>
             </div>
+        </div>
 
-            <div class="overflow-x-auto glass rounded-2xl border border-slate-800">
-                <table class="w-full text-left text-sm">
+            <div class="overflow-x-auto glass cyber-glass rounded-2xl border border-slate-800/80 border-purple-500/10">
+                <table class="w-full text-left text-sm cyber-table">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-900/40">
                             <th class="p-4">ID</th>
-                            <th class="p-4">T�n nh�n vi�n</th>
+                            <th class="p-4">Tên nhân viên</th>
                             <th class="p-4">Email</th>
-                            <th class="p-4">Vai tr�</th>
-                            <th class="p-4">Tr?ng th�i</th>
-                            <th class="p-4">Ng�y tham gia</th>
+                            <th class="p-4">Vai trò</th>
+                            <th class="p-4">Trạng thái</th>
+                            <th class="p-4">Ngày tham gia</th>
+                            <th class="p-4">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60" id="staff-tbody">
                         <tr>
-                            <td class="p-4 text-slate-400" colspan="6">�ang t?i d? li?u nh�n vi�n...</td>
+                            <td class="p-4 text-slate-400" colspan="7">Đang tải dữ liệu nhân viên...</td>
                         </tr>
                     </tbody>
                 </table>
-            </div>
+    </div>
         </section>
     </main>
+
+    <div id="toast-container" aria-live="polite"></div>
+
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-panel">
+            <div class="modal-title" id="confirm-modal-title">Xác nhận</div>
+            <div class="modal-desc" id="confirm-modal-message">Bạn có chắc chắn muốn thực hiện?</div>
+            <div class="flex justify-end gap-2 mt-4">
+                <button type="button" id="confirm-modal-cancel" class="px-4 py-2 rounded-xl text-slate-300 border border-slate-600 hover:bg-slate-800/50 transition">Hủy</button>
+                <button type="button" id="confirm-modal-ok" class="px-4 py-2 rounded-xl font-bold text-white bg-red-600 hover:bg-red-500 transition">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="staff-modal" class="modal-overlay hidden">
+        <div class="modal-panel">
+            <div class="modal-title">Thêm Staff mới</div>
+            <div class="modal-desc">Tạo tài khoản nhân viên qua Supabase Auth (Admin API).</div>
+            <label class="text-xs text-slate-400 uppercase tracking-wider">Tên nhân viên</label>
+            <input type="text" id="staff-modal-name" class="modal-input" placeholder="Nguyễn Văn A" />
+            <label class="text-xs text-slate-400 uppercase tracking-wider">Email</label>
+            <input type="email" id="staff-modal-email" class="modal-input" placeholder="staff@company.com" />
+            <label class="text-xs text-slate-400 uppercase tracking-wider">Mật khẩu</label>
+            <input type="password" id="staff-modal-password" class="modal-input" placeholder="Tối thiểu 6 ký tự" />
+            <div class="flex justify-end gap-2 mt-2">
+                <button type="button" id="staff-modal-cancel" class="px-4 py-2 rounded-xl text-slate-300 border border-slate-600 hover:bg-slate-800/50 transition">Hủy</button>
+                <button type="button" id="staff-modal-submit" class="px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition">Tạo Staff</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="token-modal" class="modal-overlay hidden">
+        <div class="modal-panel">
+            <div class="modal-title">Cập nhật Token & Gói</div>
+            <div class="modal-desc" id="token-modal-user-label">—</div>
+            <label class="text-xs text-slate-400 uppercase tracking-wider">Cộng / trừ token (số âm để trừ)</label>
+            <input type="number" id="token-modal-delta" class="modal-input" value="0" />
+            <label class="text-xs text-slate-400 uppercase tracking-wider">Gói dịch vụ</label>
+            <select id="token-modal-plan" class="modal-input">
+                <option value="Free">Free</option>
+                <option value="Plus">Plus</option>
+                <option value="Pro Max">Pro Max</option>
+            </select>
+            <div class="flex justify-end gap-2 mt-2">
+                <button type="button" id="token-modal-cancel" class="px-4 py-2 rounded-xl text-slate-300 border border-slate-600 hover:bg-slate-800/50 transition">Hủy</button>
+                <button type="button" id="token-modal-submit" class="px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 transition">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
 
 
     <script>
@@ -362,7 +914,7 @@
                 e.preventDefault();
                 e.stopPropagation();
             }
-            if (!confirm("B?n c� ch?c ch?n mu?n dang xu?t kh�ng?")) return;
+            if (!confirm("Bạn có chắc chắn muốn đăng xuất không?")) return;
             localStorage.removeItem("userId");
             localStorage.removeItem("userRole");
             localStorage.removeItem("user_role");
@@ -372,7 +924,7 @@
             window.location.href = "index.html";
         };
 
-        const API_BASE = "/api";
+        const API_BASE = "http://localhost:5137/api";
         function escapeHtml(value) {
             return String(value ?? "")
                 .replaceAll("&", "&amp;")
@@ -396,9 +948,9 @@
             return data;
         }
         function formatDateTime(value) {
-            if (!value) return "�";
+            if (!value) return "—";
             const d = new Date(value);
-            if (Number.isNaN(d.getTime())) return "�";
+            if (Number.isNaN(d.getTime())) return "—";
             return d.toLocaleString("vi-VN");
         }
         function showBanner(message) {
@@ -407,6 +959,62 @@
             banner.textContent = message || "";
             banner.classList.remove("hidden");
             setTimeout(() => banner.classList.add("hidden"), 3500);
+        }
+        function showToast(message, type = "success") {
+            const container = document.getElementById("toast-container");
+            if (!container) return;
+            const el = document.createElement("div");
+            el.className = `toast-item ${type === "error" ? "error" : "success"}`;
+            el.textContent = message;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = "0";
+                el.style.transform = "translateX(24px)";
+                el.style.transition = "all 0.3s ease";
+                setTimeout(() => el.remove(), 300);
+            }, 3200);
+        }
+        let confirmHandler = null;
+        function showConfirm(message, onConfirm, title = "Xác nhận") {
+            const modal = document.getElementById("confirm-modal");
+            const msgEl = document.getElementById("confirm-modal-message");
+            const titleEl = document.getElementById("confirm-modal-title");
+            if (!modal || !msgEl) return;
+            if (titleEl) titleEl.textContent = title;
+            msgEl.textContent = message;
+            confirmHandler = onConfirm;
+            modal.classList.remove("hidden");
+        }
+        function hideConfirm() {
+            const modal = document.getElementById("confirm-modal");
+            if (modal) modal.classList.add("hidden");
+            confirmHandler = null;
+        }
+        function renderReportStatusBadge(status) {
+            const s = String(status || "Chờ duyệt");
+            if (s === "Đã hoàn thành") {
+                return `<span class="px-2 py-1 text-xs rounded-full badge-done">Đã hoàn thành</span>`;
+            }
+            return `<span class="px-2 py-1 text-xs rounded-full badge-pending">${escapeHtml(s)}</span>`;
+        }
+        function renderAccountStatusBadge(accountStatus) {
+            const blocked = String(accountStatus || "Active").toLowerCase() === "blocked";
+            if (blocked) {
+                return `<span class="px-2 py-1 text-xs rounded-full badge-blocked">Blocked</span>`;
+            }
+            return `<span class="px-2 py-1 text-xs rounded-full bg-slate-500/10 text-slate-400 border border-slate-500/30">Offline</span>`;
+        }
+        function formatCompactNumber(value) {
+            const n = Number(value || 0);
+            if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+            if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+            return n.toLocaleString("vi-VN");
+        }
+        function pick(obj, ...keys) {
+            for (const k of keys) {
+                if (obj[k] !== undefined && obj[k] !== null) return obj[k];
+            }
+            return undefined;
         }
         function setTableMessage(tbodyId, colSpan, message) {
             const tbody = document.getElementById(tbodyId);
@@ -451,7 +1059,7 @@
             try {
                 customers = await fetchJson(`${API_BASE}/admin/customers`);
             } catch (err) {
-                setTableMessage("customers-tbody", 6, `Kh�ng t?i du?c danh s�ch kh�ch h�ng: ${err.message}`);
+                setTableMessage("customers-tbody", 7, `Không tải được danh sách khách hàng: ${err.message}`);
                 return;
             }
 
@@ -460,34 +1068,154 @@
             const offlineEl = document.getElementById("customers-offline");
 
             const total = customers.length;
+            const blockedCount = customers.filter((c) =>
+                String(pick(c, "accountStatus", "AccountStatus") || "Active").toLowerCase() === "blocked").length;
             const onlineCount = 0;
-            const offlineCount = total;
+            const offlineCount = total - onlineCount;
 
             if (totalEl) totalEl.textContent = String(total);
             if (onlineEl) onlineEl.textContent = String(onlineCount);
-            if (offlineEl) offlineEl.textContent = String(offlineCount);
+            if (offlineEl) offlineEl.textContent = String(Math.max(0, offlineCount - blockedCount));
 
             if (total === 0) {
-                setTableMessage("customers-tbody", 6, "Chua c� kh�ch h�ng (Role = Customer) tr�n Supabase.");
+                setTableMessage("customers-tbody", 7, "Chưa có khách hàng (Role = Customer) trên Supabase.");
                 return;
             }
 
             tbody.innerHTML = customers.map((c) => {
-                const id = escapeHtml(String(c.id || ""));
-                const name = escapeHtml(c.fullName || c.FullName || "�");
-                const email = escapeHtml(c.email || c.Email || "�");
-                const created = escapeHtml(formatDateTime(c.createdAt || c.CreatedAt));
+                const rawId = String(pick(c, "id", "Id") || "");
+                const id = escapeHtml(rawId);
+                const name = escapeHtml(pick(c, "fullName", "FullName") || "—");
+                const email = escapeHtml(pick(c, "email", "Email") || "—");
+                const tokens = Number(pick(c, "tokenBalance", "TokenBalance") || 0);
+                const accountStatus = pick(c, "accountStatus", "AccountStatus") || "Active";
+                const created = escapeHtml(formatDateTime(pick(c, "createdAt", "CreatedAt")));
+                const isBlocked = String(accountStatus).toLowerCase() === "blocked";
                 return `
                     <tr>
                         <td class="p-4 font-mono text-xs text-slate-400">${id}</td>
                         <td class="p-4 text-slate-200">${name}</td>
                         <td class="p-4 text-slate-300">${email}</td>
-                        <td class="p-4 text-amber-300">�</td>
-                        <td class="p-4"><span class="px-2 py-1 text-xs rounded-full bg-slate-500/10 text-slate-400">Offline</span></td>
+                        <td class="p-4 text-amber-300">${tokens.toLocaleString("vi-VN")}</td>
+                        <td class="p-4">${renderAccountStatusBadge(accountStatus)}</td>
                         <td class="p-4 text-slate-400">${created}</td>
+                        <td class="p-4 whitespace-nowrap">
+                            <button class="btn-action bg-amber-600/20 text-amber-300 border border-amber-500/40 hover:bg-amber-600/40" data-customer-block="${rawId}" data-blocked="${isBlocked}">${isBlocked ? "Mở khóa" : "Khóa"}</button>
+                            <button class="btn-action bg-red-600/20 text-red-300 border border-red-500/40 hover:bg-red-600/40" data-customer-delete="${rawId}">Xóa</button>
+                        </td>
                     </tr>
                 `;
             }).join("");
+
+            tbody.querySelectorAll("[data-customer-block]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const userId = btn.getAttribute("data-customer-block");
+                    const isBlocked = btn.getAttribute("data-blocked") === "true";
+                    const action = isBlocked ? "mở khóa" : "khóa";
+                    showConfirm(`Bạn có chắc chắn muốn ${action} tài khoản khách hàng này?`, async () => {
+                        hideConfirm();
+                        try {
+                            const result = await fetchJson(`${API_BASE}/admin/customers/${userId}/toggle-block`, { method: "POST" });
+                            showToast(result.message || (isBlocked ? "Đã mở khóa tài khoản thành công!" : "Đã khóa tài khoản thành công!"));
+                            await loadCustomers();
+                        } catch (err) {
+                            showToast(err.message, "error");
+                        }
+                    }, isBlocked ? "Mở khóa khách hàng" : "Khóa khách hàng");
+                });
+            });
+            tbody.querySelectorAll("[data-customer-delete]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const userId = btn.getAttribute("data-customer-delete");
+                    showConfirm("Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản khách hàng này?", async () => {
+                        hideConfirm();
+                        try {
+                            await fetchJson(`${API_BASE}/admin/customers/${userId}`, { method: "DELETE" });
+                            showToast("Đã xóa tài khoản thành công!");
+                            await loadCustomers();
+                        } catch (err) {
+                            showToast(err.message, "error");
+                        }
+                    }, "Xóa khách hàng");
+                });
+            });
+        }
+
+        async function loadTokens() {
+            const tbody = document.getElementById("tokens-tbody");
+            if (!tbody) return;
+
+            let summary = { totalTokensIssued: 0, plusPackageCount: 0, proMaxPackageCount: 0 };
+            let users = [];
+            try {
+                [summary, users] = await Promise.all([
+                    fetchJson(`${API_BASE}/admin/tokens/summary`),
+                    fetchJson(`${API_BASE}/admin/tokens/users`)
+                ]);
+            } catch (err) {
+                setTableMessage("tokens-tbody", 6, `Không tải được dữ liệu token: ${err.message}`);
+                return;
+            }
+
+            const totalEl = document.getElementById("tokens-total-issued");
+            const plusEl = document.getElementById("tokens-plus-count");
+            const proMaxEl = document.getElementById("tokens-promax-count");
+            if (totalEl) totalEl.textContent = formatCompactNumber(summary.totalTokensIssued);
+            if (plusEl) plusEl.textContent = String(summary.plusPackageCount ?? 0);
+            if (proMaxEl) proMaxEl.textContent = String(summary.proMaxPackageCount ?? 0);
+
+            if (!users.length) {
+                setTableMessage("tokens-tbody", 6, "Chưa có khách hàng nào.");
+                return;
+            }
+
+            tbody.innerHTML = users.map((u) => {
+                const rawId = String(pick(u, "id", "Id") || "");
+                const id = escapeHtml(rawId);
+                const name = escapeHtml(pick(u, "fullName", "FullName") || "—");
+                const email = escapeHtml(pick(u, "email", "Email") || "—");
+                const tokens = Number(pick(u, "tokenBalance", "TokenBalance") || 0);
+                const plan = escapeHtml(pick(u, "planName", "PlanName") || "Free");
+                return `
+                    <tr>
+                        <td class="p-4 font-mono text-xs text-slate-400">${id}</td>
+                        <td class="p-4 text-slate-200">${name}</td>
+                        <td class="p-4 text-slate-300">${email}</td>
+                        <td class="p-4 text-amber-300 font-semibold">${tokens.toLocaleString("vi-VN")}</td>
+                        <td class="p-4 text-purple-300">${plan}</td>
+                        <td class="p-4">
+                            <button class="btn-action bg-cyan-600/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-600/40" data-token-edit="${rawId}" data-name="${escapeHtml(pick(u, "fullName", "FullName") || "")}" data-plan="${plan}" data-tokens="${tokens}">Cập nhật</button>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            tbody.querySelectorAll("[data-token-edit]").forEach((btn) => {
+                btn.addEventListener("click", () => openTokenModal(
+                    btn.getAttribute("data-token-edit"),
+                    btn.getAttribute("data-name"),
+                    btn.getAttribute("data-plan"),
+                    Number(btn.getAttribute("data-tokens") || 0)
+                ));
+            });
+        }
+
+        let editingTokenUserId = null;
+        function openTokenModal(userId, userName, planName, currentTokens) {
+            editingTokenUserId = userId;
+            const modal = document.getElementById("token-modal");
+            const label = document.getElementById("token-modal-user-label");
+            const deltaInput = document.getElementById("token-modal-delta");
+            const planSelect = document.getElementById("token-modal-plan");
+            if (label) label.textContent = `${userName || "User"} — hiện có ${Number(currentTokens || 0).toLocaleString("vi-VN")} token`;
+            if (deltaInput) deltaInput.value = "0";
+            if (planSelect) planSelect.value = planName || "Free";
+            if (modal) modal.classList.remove("hidden");
+        }
+        function closeTokenModal() {
+            editingTokenUserId = null;
+            const modal = document.getElementById("token-modal");
+            if (modal) modal.classList.add("hidden");
         }
 
         async function renderSupportTable() {
@@ -497,24 +1225,24 @@
             try {
                 requests = await fetchJson(`${API_BASE}/support/list`);
             } catch (err) {
-                setTableMessage("support-tbody", 6, `Kh�ng t?i du?c y�u c?u tu v?n: ${err.message}`);
+                setTableMessage("support-tbody", 6, `Không tải được yêu cầu tư vấn: ${err.message}`);
                 return;
             }
             if (requests.length === 0) {
-                setTableMessage("support-tbody", 6, "Chua c� y�u c?u tu v?n n�o.");
+                setTableMessage("support-tbody", 6, "Chưa có yêu cầu tư vấn nào.");
                 return;
             }
             tbody.innerHTML = requests.map((r) => {
-                const status = r.status || "Ch? tr? l?i";
-                const statusHtml = status === "�� tr? l?i"
-                    ? `<span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">�� tr? l?i</span>`
-                    : `<span class="px-2 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400">Ch? tr? l?i</span>`;
+                const status = r.status || "Chưa trả lời";
+                const statusHtml = status === "Đã trả lời"
+                    ? `<span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">Đã trả lời</span>`
+                    : `<span class="px-2 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400">Chưa trả lời</span>`;
                 const rawId = String(r.id || "");
                 const id = escapeHtml(rawId);
                 const email = escapeHtml(r.customerEmail || "");
                 const noiDung = escapeHtml(r.content || "");
                 const ngayGui = escapeHtml(formatDateTime(r.createdAt));
-                const btnLabel = status === "�� tr? l?i" ? "Xem" : "Tr? l?i";
+                const btnLabel = status === "Đã trả lời" ? "Xem" : "Trả lời";
                 return `
                     <tr>
                         <td class="p-4 font-mono text-slate-300">${id}</td>
@@ -529,11 +1257,11 @@
                     <tr class="hidden" id="support-reply-row-${rawId}">
                         <td class="p-4" colspan="6">
                             <div class="glass border border-slate-800 rounded-xl p-4">
-                                <div class="text-sm text-slate-300 font-semibold mb-2">Ph?n h?i cho: <span class="font-mono text-slate-200">${email}</span></div>
-                                <textarea class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" rows="4" id="support-reply-input-${rawId}" placeholder="Nh?p n?i dung tr? l?i...">${escapeHtml(r.reply || "")}</textarea>
+                                <div class="text-sm text-slate-300 font-semibold mb-2">Phản hồi cho: <span class="font-mono text-slate-200">${email}</span></div>
+                                <textarea class="w-full bg-slate-950/40 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500" rows="4" id="support-reply-input-${rawId}" placeholder="Nhập nội dung trả lời...">${escapeHtml(r.reply || "")}</textarea>
                                 <div class="flex justify-end gap-2 mt-3">
-                                    <button class="px-4 py-2 rounded-xl font-bold text-slate-200 border border-slate-700 hover:bg-slate-800/40 transition" data-support-action="cancel" data-id="${rawId}">H?y</button>
-                                    <button class="px-4 py-2 rounded-xl font-bold text-white bg-green-600 hover:bg-green-500 transition" data-support-action="confirm" data-id="${rawId}">X�c nh?n g?i</button>
+                                    <button class="px-4 py-2 rounded-xl font-bold text-slate-200 border border-slate-700 hover:bg-slate-800/40 transition" data-support-action="cancel" data-id="${rawId}">Hủy</button>
+                                    <button class="px-4 py-2 rounded-xl font-bold text-white bg-green-600 hover:bg-green-500 transition" data-support-action="confirm" data-id="${rawId}">Xác nhận gửi</button>
                                 </div>
                             </div>
                         </td>
@@ -551,7 +1279,7 @@
                     if (action === "confirm") {
                         const input = document.getElementById(`support-reply-input-${id}`);
                         const reply = (input?.value || "").trim();
-                        if (!reply) { alert("Vui l�ng nh?p n?i dung ph?n h?i."); return; }
+                        if (!reply) { alert("Vui lòng nhập nội dung phản hồi."); return; }
                         try {
                             await fetchJson(`${API_BASE}/support/reply`, {
                                 method: "POST",
@@ -563,11 +1291,16 @@
                             });
                             await renderSupportTable();
                         } catch (err) {
-                            alert(`Ph?n h?i th?t b?i: ${err.message}`);
+                            alert(`Phản hồi thất bại: ${err.message}`);
                         }
                     }
                 });
             });
+        }
+
+        function renderStarRating(rating) {
+            const count = Math.max(0, Math.min(5, Number(rating) || 0));
+            return "⭐".repeat(count) + "☆".repeat(5 - count);
         }
 
         async function loadFeedbacks() {
@@ -577,26 +1310,115 @@
             try {
                 feedbacks = await fetchJson(`${API_BASE}/feedback/list`);
             } catch (err) {
-                setTableMessage("feedback-tbody", 5, `Kh�ng t?i du?c d�nh gi�: ${err.message}`);
+                setTableMessage("feedback-tbody", 5, `Không thể tải được đánh giá: ${err.message}`);
                 return;
             }
             if (feedbacks.length === 0) {
-                setTableMessage("feedback-tbody", 5, "Chua c� d? li?u d�nh gi�.");
+                setTableMessage("feedback-tbody", 5, "Chưa có dữ liệu đánh giá.");
                 return;
             }
             tbody.innerHTML = feedbacks.map((f) => {
-                const starCount = Number(f.rating || 0);
-                const stars = "?".repeat(starCount) + "?".repeat(Math.max(0, 5 - starCount));
+                const stars = renderStarRating(f.rating);
                 return `
                     <tr>
                         <td class="p-4 font-mono text-slate-300">${escapeHtml(f.id || "")}</td>
                         <td class="p-4 text-slate-200">${escapeHtml(f.email || "")}</td>
-                        <td class="p-4 text-amber-300 font-extrabold tracking-wide">${escapeHtml(stars)}</td>
+                        <td class="p-4 text-amber-300 font-extrabold tracking-wide" title="${Number(f.rating || 0)}/5">${stars}</td>
                         <td class="p-4 text-slate-400">${escapeHtml(f.comment || "")}</td>
                         <td class="p-4 text-slate-400">${escapeHtml(formatDateTime(f.createdAt))}</td>
                     </tr>
                 `;
             }).join("");
+        }
+
+        async function loadStaffs() {
+            const tbody = document.getElementById("staff-tbody");
+            if (!tbody) return;
+
+            let staffs = [];
+            try {
+                staffs = await fetchJson(`${API_BASE}/admin/staffs`);
+            } catch (err) {
+                setTableMessage("staff-tbody", 7, `Không tải được danh sách nhân viên: ${err.message}`);
+                return;
+            }
+
+            const totalEl = document.getElementById("staff-total");
+            const onlineEl = document.getElementById("staff-online");
+            const offlineEl = document.getElementById("staff-offline");
+
+            const total = staffs.length;
+            const blockedCount = staffs.filter((s) =>
+                String(pick(s, "accountStatus", "AccountStatus") || "Active").toLowerCase() === "blocked").length;
+            const onlineCount = 0;
+            const offlineCount = total;
+
+            if (totalEl) totalEl.textContent = String(total);
+            if (onlineEl) onlineEl.textContent = String(onlineCount);
+            if (offlineEl) offlineEl.textContent = String(Math.max(0, offlineCount - blockedCount));
+
+            if (total === 0) {
+                setTableMessage("staff-tbody", 7, "Chưa có nhân viên (Role = Staff). Nhấn \"Thêm Staff\" để tạo mới.");
+                return;
+            }
+
+            tbody.innerHTML = staffs.map((s) => {
+                const rawId = String(pick(s, "id", "Id") || "");
+                const id = escapeHtml(rawId);
+                const name = escapeHtml(pick(s, "fullName", "FullName") || "—");
+                const email = escapeHtml(pick(s, "email", "Email") || "—");
+                const role = escapeHtml(pick(s, "role", "Role") || "Staff");
+                const accountStatus = pick(s, "accountStatus", "AccountStatus") || "Active";
+                const created = escapeHtml(formatDateTime(pick(s, "createdAt", "CreatedAt")));
+                const isBlocked = String(accountStatus).toLowerCase() === "blocked";
+                return `
+                    <tr>
+                        <td class="p-4 font-mono text-xs text-slate-400">${id}</td>
+                        <td class="p-4 text-slate-200">${name}</td>
+                        <td class="p-4 text-slate-300">${email}</td>
+                        <td class="p-4 text-cyan-300">${role}</td>
+                        <td class="p-4">${renderAccountStatusBadge(accountStatus)}</td>
+                        <td class="p-4 text-slate-400">${created}</td>
+                        <td class="p-4 whitespace-nowrap">
+                            <button class="btn-action bg-amber-600/20 text-amber-300 border border-amber-500/40 hover:bg-amber-600/40" data-staff-block="${rawId}" data-blocked="${isBlocked}">${isBlocked ? "Mở khóa" : "Khóa"}</button>
+                            <button class="btn-action bg-red-600/20 text-red-300 border border-red-500/40 hover:bg-red-600/40" data-staff-delete="${rawId}">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            tbody.querySelectorAll("[data-staff-block]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const userId = btn.getAttribute("data-staff-block");
+                    const isBlocked = btn.getAttribute("data-blocked") === "true";
+                    const action = isBlocked ? "mở khóa" : "khóa";
+                    showConfirm(`Bạn có chắc chắn muốn ${action} tài khoản nhân viên này?`, async () => {
+                        hideConfirm();
+                        try {
+                            const result = await fetchJson(`${API_BASE}/admin/staffs/${userId}/toggle-block`, { method: "POST" });
+                            showToast(result.message || (isBlocked ? "Đã mở khóa tài khoản thành công!" : "Đã khóa tài khoản thành công!"));
+                            await loadStaffs();
+                        } catch (err) {
+                            showToast(err.message, "error");
+                        }
+                    }, isBlocked ? "Mở khóa Staff" : "Khóa Staff");
+                });
+            });
+            tbody.querySelectorAll("[data-staff-delete]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const userId = btn.getAttribute("data-staff-delete");
+                    showConfirm("Bạn có chắc chắn muốn xóa?", async () => {
+                        hideConfirm();
+                        try {
+                            await fetchJson(`${API_BASE}/admin/staffs/${userId}`, { method: "DELETE" });
+                            showToast("Đã xóa tài khoản thành công!");
+                            await loadStaffs();
+                        } catch (err) {
+                            showToast(err.message, "error");
+                        }
+                    }, "Xóa Staff");
+                });
+            });
         }
 
         async function renderReportsStaff(staffName) {
@@ -606,25 +1428,25 @@
             try {
                 reports = await fetchJson(`${API_BASE}/report/list`);
             } catch (err) {
-                setTableMessage("reports-staff-tbody", 4, `Kh�ng t?i du?c b�o c�o: ${err.message}`);
+                setTableMessage("reports-staff-tbody", 4, `Không thể tải được báo cáo: ${err.message}`);
                 return;
             }
             reports = reports.filter(r => (r.staffName || "") === staffName);
             if (reports.length === 0) {
-                setTableMessage("reports-staff-tbody", 4, "Chua c� b�o c�o n�o.");
+                setTableMessage("reports-staff-tbody", 4, "Chưa có báo cáo nào.");
                 return;
             }
             tbody.innerHTML = reports.map((r) => {
-                const status = r.adminReply ? "�� ph?n h?i" : (r.status || "Ch? duy?t");
-                const statusHtml = r.adminReply
-                    ? `<span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">�� ph?n h?i</span>`
-                    : `<span class="px-2 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400">${escapeHtml(status)}</span>`;
+                const status = r.status || (r.adminReply ? "Đã hoàn thành" : "Chờ duyệt");
+                const statusHtml = status === "Đã hoàn thành" || r.adminReply
+                    ? `<span class="px-2 py-1 text-xs rounded-full badge-done">Đã hoàn thành</span>`
+                    : `<span class="px-2 py-1 text-xs rounded-full badge-pending">${escapeHtml(status)}</span>`;
                 return `
                     <tr>
                         <td class="p-4 text-slate-400">${escapeHtml(formatDateTime(r.createdAt))}</td>
                         <td class="p-4 text-slate-200">${escapeHtml(r.content || "")}</td>
                         <td class="p-4">${statusHtml}</td>
-                        <td class="p-4 text-slate-300">${escapeHtml(r.adminReply || "�")}</td>
+                        <td class="p-4 text-slate-300">${escapeHtml(r.adminReply || "—")}</td>
                     </tr>
                 `;
             }).join("");
@@ -636,25 +1458,28 @@
             try {
                 reports = await fetchJson(`${API_BASE}/report/list`);
             } catch (err) {
-                setTableMessage("reports-admin-tbody", 4, `Kh�ng t?i du?c b�o c�o: ${err.message}`);
+                setTableMessage("reports-admin-tbody", 5, `Không thể tải được báo cáo: ${err.message}`);
                 return;
             }
             if (reports.length === 0) {
-                setTableMessage("reports-admin-tbody", 4, "Chua c� b�o c�o n�o.");
+                setTableMessage("reports-admin-tbody", 5, "Chưa có báo cáo nào.");
                 return;
             }
             tbody.innerHTML = reports.map((r) => {
                 const rawId = String(r.id || "");
                 const id = escapeHtml(rawId);
+                const status = r.status || (r.adminReply ? "Đã hoàn thành" : "Chờ duyệt");
+                const isDone = status === "Đã hoàn thành" || Boolean(r.adminReply);
                 return `
                     <tr>
                         <td class="p-4 text-slate-200">${escapeHtml(r.staffName || "Staff")}</td>
                         <td class="p-4 text-slate-400">${escapeHtml(formatDateTime(r.createdAt))}</td>
                         <td class="p-4 text-slate-200">${escapeHtml(r.content || "")}</td>
+                        <td class="p-4">${renderReportStatusBadge(status)}</td>
                         <td class="p-4">
-                            <textarea rows="3" class="w-72 max-w-full bg-slate-950/40 border border-slate-700 rounded-xl p-2 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="Nh?p ph?n h?i..." data-admin-reply="${rawId}">${escapeHtml(r.adminReply || "")}</textarea>
+                            <textarea rows="3" class="w-72 max-w-full bg-slate-950/40 border border-slate-700 rounded-xl p-2 text-sm text-slate-100 focus:outline-none focus:border-purple-500" placeholder="Nhập phản hồi..." data-admin-reply="${rawId}" ${isDone ? "disabled" : ""}>${escapeHtml(r.adminReply || "")}</textarea>
                             <div class="mt-2 flex justify-end">
-                                <button class="px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 hover:bg-green-500 text-white transition" data-admin-reply-btn="${rawId}">Ph?n h?i</button>
+                                <button class="px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 hover:bg-green-500 text-white transition disabled:opacity-40" data-admin-reply-btn="${rawId}" ${isDone ? "disabled" : ""}>Phản hồi</button>
                             </div>
                         </td>
                     </tr>
@@ -667,13 +1492,13 @@
                     const input = tbody.querySelector(`textarea[data-admin-reply="${id}"]`);
                     const reply = (input?.value || "").trim();
                     if (!reply) {
-                        alert("Vui l�ng nh?p n?i dung ph?n h?i.");
+                        alert("Vui lòng nhập nội dung phản hồi.");
                         return;
                     }
 
                     const originalLabel = btn.textContent;
                     btn.disabled = true;
-                    btn.textContent = "�ang g?i...";
+                    btn.textContent = "Đang gửi...";
 
                     try {
                         await fetchJson(`${API_BASE}/report/reply`, {
@@ -685,14 +1510,10 @@
                             })
                         });
 
-                        alert("Ph?n h?i b�o c�o th�nh c�ng!");
-                        if (input) {
-                            input.value = "";
-                            input.disabled = true;
-                        }
+                        showToast("Gửi phản hồi và cập nhật trạng thái thành công!");
                         await renderReportsAdmin();
                     } catch (err) {
-                        alert(`Ph?n h?i th?t b?i: ${err.message}`);
+                        alert(`Phản hồi thất bại: ${err.message}`);
                     } finally {
                         btn.disabled = false;
                         btn.textContent = originalLabel;
@@ -707,7 +1528,7 @@
                 const userName = localStorage.getItem("user_name") || "User";
 
                 if (!userRole || (userRole !== "Admin" && userRole !== "Staff")) {
-                    alert("B?n kh�ng c� quy?n truy c?p khu v?c qu?n tr?!");
+                    alert("Bạn không có quyền truy cập khu vực quản trị!");
                     window.location.href = "index.html";
                     return;
                 }
@@ -725,18 +1546,90 @@
                 enforceRoleUi(userRole);
                 void loadCustomers();
 
+                document.getElementById("confirm-modal-cancel")?.addEventListener("click", hideConfirm);
+                document.getElementById("confirm-modal-ok")?.addEventListener("click", () => {
+                    if (typeof confirmHandler === "function") confirmHandler();
+                });
+                document.getElementById("confirm-modal")?.addEventListener("click", (e) => {
+                    if (e.target?.id === "confirm-modal") hideConfirm();
+                });
+
+                document.getElementById("btn-add-staff")?.addEventListener("click", () => {
+                    document.getElementById("staff-modal")?.classList.remove("hidden");
+                });
+                document.getElementById("staff-modal-cancel")?.addEventListener("click", () => {
+                    document.getElementById("staff-modal")?.classList.add("hidden");
+                });
+                document.getElementById("staff-modal")?.addEventListener("click", (e) => {
+                    if (e.target?.id === "staff-modal") document.getElementById("staff-modal")?.classList.add("hidden");
+                });
+                document.getElementById("staff-modal-submit")?.addEventListener("click", async () => {
+                    const fullName = (document.getElementById("staff-modal-name")?.value || "").trim();
+                    const email = (document.getElementById("staff-modal-email")?.value || "").trim();
+                    const password = document.getElementById("staff-modal-password")?.value || "";
+                    if (!fullName || !email || !password) {
+                        showToast("Vui lòng nhập đầy đủ thông tin.", "error");
+                        return;
+                    }
+                    const btn = document.getElementById("staff-modal-submit");
+                    if (btn) { btn.disabled = true; btn.textContent = "Đang tạo..."; }
+                    try {
+                        await fetchJson(`${API_BASE}/admin/staffs`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ fullName, email, password })
+                        });
+                        document.getElementById("staff-modal")?.classList.add("hidden");
+                        document.getElementById("staff-modal-name").value = "";
+                        document.getElementById("staff-modal-email").value = "";
+                        document.getElementById("staff-modal-password").value = "";
+                        showToast("Đã tạo tài khoản Staff thành công!");
+                        await loadStaffs();
+                    } catch (err) {
+                        showToast(err.message, "error");
+                    } finally {
+                        if (btn) { btn.disabled = false; btn.textContent = "Tạo Staff"; }
+                    }
+                });
+
+                document.getElementById("token-modal-cancel")?.addEventListener("click", closeTokenModal);
+                document.getElementById("token-modal")?.addEventListener("click", (e) => {
+                    if (e.target?.id === "token-modal") closeTokenModal();
+                });
+                document.getElementById("token-modal-submit")?.addEventListener("click", async () => {
+                    if (!editingTokenUserId) return;
+                    const tokenDelta = Number(document.getElementById("token-modal-delta")?.value || 0);
+                    const planName = document.getElementById("token-modal-plan")?.value || "Free";
+                    const btn = document.getElementById("token-modal-submit");
+                    if (btn) { btn.disabled = true; btn.textContent = "Đang lưu..."; }
+                    try {
+                        await fetchJson(`${API_BASE}/admin/tokens/users/${editingTokenUserId}`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ tokenDelta, planName })
+                        });
+                        closeTokenModal();
+                        showToast("Cập nhật token và gói thành công!");
+                        await loadTokens();
+                    } catch (err) {
+                        showToast(err.message, "error");
+                    } finally {
+                        if (btn) { btn.disabled = false; btn.textContent = "Lưu thay đổi"; }
+                    }
+                });
+
                 document.querySelectorAll(".nav-item[data-section]").forEach((link) => {
                     link.addEventListener("click", (e) => {
-                        e.preventDefault();
+                    e.preventDefault();
                         const sectionKey = link.dataset.section;
                         const access = link.dataset.access;
 
                         if (access === "admin" && userRole !== "Admin") {
-                            showBanner("B?n kh�ng c� quy?n truy c?p ch?c nang n�y.");
+                            showBanner("Bạn không có quyền truy cập chức năng này.");
                             return;
                         }
                         if (access === "staff" && userRole !== "Staff") {
-                            showBanner("B?n kh�ng c� quy?n truy c?p ch?c nang n�y.");
+                            showBanner("Bạn không có quyền truy cập chức năng này.");
                             return;
                         }
 
@@ -746,6 +1639,8 @@
                         if (sectionKey === "reports-staff") void renderReportsStaff(userName);
                         if (sectionKey === "reports-admin") void renderReportsAdmin();
                         if (sectionKey === "customers") void loadCustomers();
+                        if (sectionKey === "tokens") void loadTokens();
+                        if (sectionKey === "staff") void loadStaffs();
                         if (sectionKey === "payments") void loadPaymentHistory();
                         if (sectionKey === "revenue") void loadRevenueChart();
                     });
@@ -756,7 +1651,7 @@
                     btnSendReport.addEventListener("click", async () => {
                         const contentEl = document.getElementById("staff-report-content");
                         const noiDung = (contentEl?.value || "").trim();
-                        if (!noiDung) { alert("Vui l�ng nh?p n?i dung b�o c�o."); return; }
+                        if (!noiDung) { alert("Vui lòng nhập nội dung báo cáo."); return; }
                         try {
                             await fetchJson(`${API_BASE}/report/create`, {
                                 method: "POST",
@@ -768,9 +1663,9 @@
                             });
                             if (contentEl) contentEl.value = "";
                             await renderReportsStaff(userName);
-                            alert("�� g?i b�o c�o l�n Admin.");
+                            alert("Đã gửi báo cáo lên Admin.");
                         } catch (err) {
-                            alert(`G?i b�o c�o th?t b?i: ${err.message}`);
+                            alert(`Gửi báo cáo thất bại: ${err.message}`);
                         }
                     });
                 }
@@ -782,6 +1677,7 @@
                 if (userRole === "Staff") void renderReportsStaff(userName);
                 if (userRole === "Admin") {
                     void renderReportsAdmin();
+                    void loadStaffs();
                     void loadPaymentHistory();
                     void loadRevenueChart();
                 }
@@ -794,7 +1690,7 @@
 
         function formatVnd(amount) {
             const n = Number(amount || 0);
-            return n.toLocaleString("vi-VN") + " VN�";
+            return n.toLocaleString("vi-VN") + " VNĐ";
         }
 
         async function loadPaymentHistory() {
@@ -803,7 +1699,7 @@
             try {
                 const rows = await fetchJson(`${API_BASE}/admin/payment-history`);
                 if (!Array.isArray(rows) || rows.length === 0) {
-                    tbody.innerHTML = `<tr><td class="p-4 text-slate-400" colspan="4">Chua c� giao d?ch n�o.</td></tr>`;
+                    tbody.innerHTML = `<tr><td class="p-4 text-slate-400" colspan="4">Chưa có giao dịch nào.</td></tr>`;
                     return;
                 }
                 tbody.innerHTML = rows.map((p) => `
@@ -811,11 +1707,11 @@
                         <td class="p-4 font-mono text-amber-400">${escapeHtml(p.transactionCode || "")}</td>
                         <td class="p-4 text-slate-400">${escapeHtml(p.userEmail || "")}</td>
                         <td class="p-4 text-green-400">${escapeHtml(formatVnd(p.amount))}</td>
-                        <td class="p-4"><span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">Ho�n t?t</span></td>
+                        <td class="p-4"><span class="px-2 py-1 text-xs rounded-full bg-green-500/10 text-green-400">Hoàn tất</span></td>
                     </tr>
                 `).join("");
             } catch (err) {
-                tbody.innerHTML = `<tr><td class="p-4 text-red-400" colspan="4">L?i t?i d? li?u: ${escapeHtml(err.message)}</td></tr>`;
+                tbody.innerHTML = `<tr><td class="p-4 text-red-400" colspan="4">Lỗi tải dữ liệu: ${escapeHtml(err.message)}</td></tr>`;
             }
         }
 
@@ -833,29 +1729,29 @@
 
                 revenueChartInstance = new Chart(canvas.getContext("2d"), {
                     type: "line",
-                    data: {
+                data: {
                         labels: labels,
-                        datasets: [{
-                            label: "Doanh thu (VN�)",
+                    datasets: [{
+                            label: "Doanh thu (VNĐ)",
                             data: amounts,
                             borderColor: "#a855f7",
                             backgroundColor: "rgba(168, 85, 247, 0.35)",
                             borderWidth: 2,
                             tension: 0.35,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
                         plugins: {
                             legend: { labels: { color: "#94a3b8" } },
                             title: {
                                 display: true,
-                                text: `T?ng doanh thu: ${formatVnd(stats.totalRevenue)} (${stats.transactionCount || 0} giao d?ch)`,
+                                text: `Tổng doanh thu: ${formatVnd(stats.totalRevenue)} (${stats.transactionCount || 0} giao dịch)`,
                                 color: "#e2e8f0"
                             }
                         },
-                        scales: {
+                    scales: {
                             y: {
                                 ticks: { color: "#94a3b8", callback: (v) => Number(v).toLocaleString("vi-VN") },
                                 grid: { color: "#1e293b" }
@@ -871,6 +1767,203 @@
                 console.error("Chart error:", err);
             }
         }
+       async function loadTokenSummary() {
+    try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:5137/api/admin/tokens/summary", {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("=== DATA TỪ API TOKENS SUMMARY ===", data); // Xem dữ liệu thực tế tại F12 Console
+            
+            // Hãy chắc chắn rằng các ID này tồn tại 100% trong file HTML của bạn
+            const totalElem = document.getElementById("tokens-total-issued");
+            const plusElem = document.getElementById("tokens-plus-count");
+            const promaxElem = document.getElementById("tokens-promax-count");
+
+            if (totalElem) totalElem.innerText = data.totalTokens ?? data.totalTokensIssued ?? 0;
+            if (plusElem) plusElem.innerText = data.totalPlus ?? data.plusPackageCount ?? 0;
+            if (promaxElem) promaxElem.innerText = data.totalProMax ?? data.proMaxPackageCount ?? 0;
+
+        } else {
+            console.error("Không thể tải dữ liệu thống kê Token từ API. Status:", response.status);
+        }
+    } catch (error) {
+        console.error("Lỗi kết nối API thống kê:", error);
+    }
+}
+
+// Lắng nghe sự kiện click chuyển tab
+const tokenTab = document.querySelector('[data-section="tokens"]');
+if (tokenTab) {
+    tokenTab.addEventListener('click', loadTokenSummary);
+    
+    // Nếu tab này đang có class 'active' (đang hiển thị sẵn khi vừa vào trang), gọi luôn hàm load dữ liệu
+    if (tokenTab.classList.contains('active')) {
+        loadTokenSummary();
+    }
+}
+// ==========================================
+// 1. TẢI DANH SÁCH PHIẾU KHÁCH HÀNG (GIỮ NGUYÊN - FIX NHẸ ĐƯỜNG DẪN HOẶC HIỂN THỊ)
+// ==========================================
+async function loadTickets() {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    const tbody = document.getElementById("support-tbody");
+    const ticketCount = document.getElementById("ticket-count");
+    if (!tbody) return;
+
+    try {
+        const response = await fetch("http://localhost:5137/api/admin/cskh/history", {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const tickets = await response.json();
+            tbody.innerHTML = "";
+            if (ticketCount) ticketCount.innerText = tickets.length;
+
+            if (tickets.length === 0) {
+                tbody.innerHTML = `<tr><td class="p-4 text-slate-500 text-center" colspan="6">Không có phiếu hỗ trợ nào đang chờ.</td></tr>`;
+                return;
+            }
+
+            tickets.forEach(ticket => {
+                const isDone = ticket.status === 'done';
+                const customerEmail = ticket.customer_email || ticket.email_customer || ticket.customerEmail || "khachhang_an_danh@gmail.com";
+                const statusBadge = isDone 
+                    ? `<span class="badge-done px-2 py-1 text-xs rounded-full">Đã xử lý</span>`
+                    : `<span class="badge-pending px-2 py-1 text-xs rounded-full">Đang chờ</span>`;
+
+                const tr = document.createElement("tr");
+                tr.className = "cyber-row";
+                tr.innerHTML = `
+                    <td class="p-4 text-slate-400 font-mono text-xs">#${ticket.id}</td>
+                    <td class="p-4 text-cyan-400 font-medium">${customerEmail}</td>
+                    <td class="p-4 text-slate-300 max-w-xs truncate" title="${ticket.content}">${ticket.content}</td>
+                    <td class="p-4 text-slate-500 text-xs">${new Date(ticket.createdAt || ticket.created_at).toLocaleString('vi-VN')}</td>
+                    <td class="p-4">${statusBadge}</td>
+                    <td class="p-4">
+                        <button onclick="replyTicket(${ticket.id}, '${customerEmail}')" class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded hover:bg-cyan-500/40 transition text-xs">Phản hồi</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    } catch (error) {
+        console.error("Lỗi tải danh sách Ticket:", error);
+        tbody.innerHTML = `<tr><td class="p-4 text-red-400 text-center" colspan="6">Lỗi kết nối dữ liệu phiếu hỗ trợ.</td></tr>`;
+    }
+}
+
+// ==========================================
+// 2. CLICK NÚT PHẢN HỒI (Đã gộp prepareReply và replyTicket làm một)
+// ==========================================
+function replyTicket(ticketId, email) {
+    if (document.getElementById("cskh-email")) document.getElementById("cskh-email").value = email;
+    if (document.getElementById("cskh-subject")) document.getElementById("cskh-subject").value = `Phản hồi yêu cầu hỗ trợ (Ticket #${ticketId})`;
+    
+    // Hiện badge thông tin đang trả lời ticket nào
+    const targetIdBadge = document.getElementById("target-ticket-id");
+    if (targetIdBadge) targetIdBadge.innerText = ticketId;
+    
+    if (document.getElementById("replying-to-badge")) document.getElementById("replying-to-badge").classList.remove("hidden");
+    if (document.getElementById("btn-cancel-reply")) document.getElementById("btn-cancel-reply").classList.remove("hidden");
+
+    // Cuộn màn hình xuống Form soạn thư mượt mà
+    const formContainer = document.getElementById("reply-form-container");
+    if (formContainer) formContainer.scrollIntoView({ behavior: 'smooth' });
+    
+    const contentInput = document.getElementById("cskh-content");
+    if (contentInput) contentInput.focus();
+}
+
+// HỦY TRẠNG THÁI LIÊN KẾT TICKET
+function cancelReply() {
+    if (document.getElementById("cskh-email")) document.getElementById("cskh-email").value = "";
+    if (document.getElementById("cskh-subject")) document.getElementById("cskh-subject").value = "";
+    
+    const targetIdBadge = document.getElementById("target-ticket-id");
+    if (targetIdBadge) targetIdBadge.innerText = "—";
+    
+    if (document.getElementById("replying-to-badge")) document.getElementById("replying-to-badge").classList.add("hidden");
+    if (document.getElementById("btn-cancel-reply")) document.getElementById("btn-cancel-reply").classList.add("hidden");
+}
+
+// ==========================================
+// 3. PHÁT LỆNH GỬI MAIL (Đã tối ưu bẫy lỗi JSON + Truyền TicketId sang .NET)
+// ==========================================
+async function sendCskhEmail() {
+    const email = document.getElementById("cskh-email").value.trim();
+    const subject = document.getElementById("cskh-subject").value.trim();
+    const content = document.getElementById("cskh-content").value.trim();
+    
+    const targetIdBadge = document.getElementById("target-ticket-id");
+    const ticketId = targetIdBadge ? targetIdBadge.innerText : "—";
+    
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+
+    if (!email || !content) {
+        alert("Vui lòng nhập đầy đủ địa chỉ nhận và nội dung phản hồi!");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:5137/api/admin/cskh/send", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                customerEmail: email,
+                subject: subject,
+                content: content,
+                ticketId: (ticketId !== "—" && ticketId !== "") ? parseInt(ticketId) : null // Truyền số Id hoặc null sang .NET xử lý đổi trạng thái status='done'
+            })
+        });
+
+        // Xử lý các mã lỗi phân quyền hệ thống công tâm
+        if (response.status === 404) {
+            alert("Lỗi 404: Không tìm thấy API gửi mail. Hãy chắc chắn backend .NET đang bật.");
+            return;
+        }
+        if (response.status === 401 || response.status === 403) {
+            alert(`Lỗi ${response.status}: Tài khoản không đủ quyền`);
+            return;
+        }
+
+        // Đọc dữ liệu dạng Text an toàn để không bị vỡ JSON phòng khi .NET phản hồi chuỗi rỗng
+        const rawText = await response.text();
+        let data = {};
+        if (rawText) {
+            try { data = JSON.parse(rawText); } catch(e) { data = { message: rawText }; }
+        }
+
+        if (response.ok) {
+            alert(data.message || "Hệ thống đã gửi mail phản hồi thành công!");
+            
+            // Xóa sạch nội dung text phản hồi cũ
+            if (document.getElementById("cskh-content")) document.getElementById("cskh-content").value = "";
+            
+            // Đóng badge liên kết và nạp lại bảng dữ liệu mới
+            cancelReply();
+            if (typeof loadTickets === "function") loadTickets();
+        } else {
+            alert("Thất bại: " + (data.message || `Server trả về lỗi code ${response.status}`));
+        }
+
+    } catch (error) {
+        console.error("Lỗi kết nối mạng:", error);
+        alert("Không thể kết nối tới Server .NET!");
+    }
+}
     </script>
 </body>
 </html>

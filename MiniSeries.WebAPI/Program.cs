@@ -1,5 +1,6 @@
  using MiniSeries.WebAPI.Extensions;
 using MiniSeries.WebAPI.Middleware;
+using MiniSeries.Infrastructure.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,7 @@ builder.Configuration.AddJsonFile(
     reloadOnChange: true);
 
 builder.Services.AddMiniSeriesServices(builder.Configuration);
-
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
