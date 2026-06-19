@@ -11,6 +11,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Mail;
+using System.Threading;
 
 namespace MiniSeries.WebAPI.Controllers;
 
@@ -68,6 +69,8 @@ public sealed class AuthController(
             SupabaseUserId = dto.SupabaseUserId
         };
 
+        logger.LogInformation("Yêu cầu gửi OTP cho Email: {Email}. Mã OTP tạo ra: {OtpCode}", email, otpCode);
+
         var emailSettings = config.GetSection("EmailSettings");
         var senderEmail = emailSettings["SenderEmail"];
         var appPassword = emailSettings["AppPassword"];
@@ -104,13 +107,22 @@ public sealed class AuthController(
             };
             mailMessage.To.Add(email);
 
-            await smtpClient.SendMailAsync(mailMessage);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await smtpClient.SendMailAsync(mailMessage, cts.Token);
             return Ok(new { message = "Ma OTP da duoc gui den Email." });
+        }
+        catch (OperationCanceledException)
+        {
+            TempOtpStore.TryRemove(email, out _);
+            PendingRegistrations.TryRemove(email, out _);
+            logger.LogError("Gửi mail OTP cho {Email} thất bại: Quá thời gian chờ (Timeout 10s). Có thể cổng SMTP 587 bị chặn.", email);
+            return BadRequest(new { message = "Lỗi gửi Email xác thực: Quá thời gian chờ (10 giây). Có thể do nhà cung cấp host chặn cổng SMTP 587 hoặc cấu hình sai. Vui lòng kiểm tra log server để lấy mã OTP nếu cần." });
         }
         catch (Exception ex)
         {
             TempOtpStore.TryRemove(email, out _);
             PendingRegistrations.TryRemove(email, out _);
+            logger.LogError(ex, "Lỗi gửi mail OTP cho {Email}", email);
             return BadRequest(new { message = "Loi he thong khong gui duoc Email: " + ex.Message });
         }
     }

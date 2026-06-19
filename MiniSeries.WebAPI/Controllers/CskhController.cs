@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Net.Mail;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MiniSeries.WebAPI.Controllers;
@@ -52,7 +53,6 @@ public class CskhController : ControllerBase
                 smtpClient.Port = int.TryParse(_emailSettings.Port, out var p) ? p : 587;
                 smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
                 smtpClient.EnableSsl = true;
-                smtpClient.Timeout = 10000; // Giới hạn chờ 10 giây tránh treo luồng
 
                 var mailMessage = new MailMessage
                 {
@@ -63,7 +63,8 @@ public class CskhController : ControllerBase
                 };
                 mailMessage.To.Add(req.CustomerEmail);
 
-                await smtpClient.SendMailAsync(mailMessage);
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                await smtpClient.SendMailAsync(mailMessage, cts.Token);
             }
 
             // 2. Lấy Role của người đăng nhập từ Token (Admin/Staff)
@@ -95,6 +96,10 @@ public class CskhController : ControllerBase
             }
 
             return Ok(new { message = $"Đã gửi thư hỗ trợ thành công từ tổng đài {_emailSettings.SenderName}!" });
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(500, new { message = "Lỗi gửi Email CSKH: Quá thời gian chờ (10 giây). Có thể do cổng SMTP 587 bị chặn hoặc cấu hình sai." });
         }
         catch (Exception ex)
         {
