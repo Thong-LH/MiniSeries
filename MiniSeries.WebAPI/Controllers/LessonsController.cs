@@ -84,16 +84,21 @@ public sealed class LessonsController(
         }
 
         var lesson = access.Lesson!;
-        var reservation = await quotaService.TryReserveGenerationAsync(currentUserId.Value, lesson.OutputMode);
-        if (!reservation.IsAllowed)
+        bool isRetry = lesson.ScriptStatus == Domain.Enums.ScriptStatus.Approved;
+
+        if (!isRetry)
         {
-            return StatusCode(StatusCodes.Status402PaymentRequired, new
+            var reservation = await quotaService.TryReserveGenerationAsync(currentUserId.Value, lesson.OutputMode);
+            if (!reservation.IsAllowed)
             {
-                message = lesson.OutputMode == Domain.Enums.OutputMode.Video
-                    ? "Ban da het luot generate video trong ky hien tai. Vui long nang cap goi hoac doi ky moi."
-                    : "Ban da het luot generate manga trong ky hien tai. Vui long nang cap goi hoac doi ky moi.",
-                quota = reservation.Quota
-            });
+                return StatusCode(StatusCodes.Status402PaymentRequired, new
+                {
+                    message = lesson.OutputMode == Domain.Enums.OutputMode.Video
+                        ? "Ban da het luot generate video trong ky hien tai. Vui long nang cap goi hoac doi ky moi."
+                        : "Ban da het luot generate manga trong ky hien tai. Vui long nang cap goi hoac doi ky moi.",
+                    quota = reservation.Quota
+                });
+            }
         }
 
         try
@@ -108,7 +113,10 @@ public sealed class LessonsController(
         }
         catch
         {
-            await quotaService.RefundGenerationAsync(currentUserId.Value, lesson.OutputMode);
+            if (!isRetry)
+            {
+                await quotaService.RefundGenerationAsync(currentUserId.Value, lesson.OutputMode);
+            }
             throw;
         }
     }

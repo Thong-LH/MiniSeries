@@ -22,7 +22,6 @@ public static class ServiceCollectionExtensions
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
         services.Configure<SupabaseOptions>(configuration.GetSection(SupabaseOptions.SectionName));
         services.Configure<PexelsOptions>(configuration.GetSection(PexelsOptions.SectionName));
-        services.AddHttpClient<SupabaseRestService>();
         services.AddHttpClient<SupabaseAuthService>();
         services.AddHttpClient<SupabaseAdminAuthService>();
 

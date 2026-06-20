@@ -1,14 +1,19 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniSeries.Infrastructure.ExternalServices;
+using Microsoft.EntityFrameworkCore;
+using MiniSeries.Domain.Entities;
+using MiniSeries.Infrastructure.Persistence;
 using MiniSeries.WebAPI.Contracts;
 using MiniSeries.WebAPI.Security;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MiniSeries.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/support")]
-public sealed class SupportController(SupabaseRestService supabase) : ControllerBase
+public sealed class SupportController(MiniSeriesDbContext dbContext) : ControllerBase
 {
     [Authorize(Policy = "AuthenticatedUser")]
     [HttpPost("create")]
@@ -22,8 +27,20 @@ public sealed class SupportController(SupabaseRestService supabase) : Controller
 
         try
         {
-            var item = await supabase.CreateSupportAsync(customerEmail.Trim(), req.Content.Trim());
-            return item is null ? StatusCode(500) : Ok(item);
+            var item = new SupportRequest
+            {
+                Id = Guid.NewGuid(),
+                CustomerEmail = customerEmail.Trim(),
+                Content = req.Content.Trim(),
+                Reply = "",
+                Status = "Chờ trả lời",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            dbContext.SupportRequests.Add(item);
+            await dbContext.SaveChangesAsync();
+
+            return Ok(item);
         }
         catch (Exception ex)
         {
@@ -37,7 +54,9 @@ public sealed class SupportController(SupabaseRestService supabase) : Controller
     {
         try
         {
-            var list = await supabase.ListSupportAsync();
+            var list = await dbContext.SupportRequests
+                .OrderBy(s => s.CreatedAt)
+                .ToListAsync();
             return Ok(list);
         }
         catch (Exception ex)
@@ -63,10 +82,18 @@ public sealed class SupportController(SupabaseRestService supabase) : Controller
 
         try
         {
-            var item = await supabase.ReplySupportAsync(supportId.Value, replyText.Trim());
-            return item is null
-                ? NotFound(new { message = "Khong tim thay yeu cau tu van." })
-                : Ok(item);
+            var item = await dbContext.SupportRequests.FirstOrDefaultAsync(s => s.Id == supportId.Value);
+            if (item is null)
+            {
+                return NotFound(new { message = "Khong tim thay yeu cau tu van." });
+            }
+
+            item.Reply = replyText.Trim();
+            item.Status = "Đã trả lời";
+            
+            await dbContext.SaveChangesAsync();
+
+            return Ok(item);
         }
         catch (Exception ex)
         {

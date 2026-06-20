@@ -124,8 +124,11 @@ public sealed class CreateStaffRequest
 
 public sealed class UpdateTokenRequest
 {
-    [JsonPropertyName("tokenDelta")]
-    public int? TokenDelta { get; set; }
+    [JsonPropertyName("mangaDelta")]
+    public int? MangaDelta { get; set; }
+
+    [JsonPropertyName("videoDelta")]
+    public int? VideoDelta { get; set; }
 
     [JsonPropertyName("planName")]
     public string? PlanName { get; set; }

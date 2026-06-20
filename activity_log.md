@@ -1,4 +1,35 @@
-﻿## [2026-06-12] - Toi uu login lan dau
+## [2026-06-21] - Tai cau truc EF Core, dong nhat schema, xoa RLS & cache tre (nhanh AnKhang2)
+
+### Da hoan thanh:
+1. Dong nhat database schema va map EF Core:
+   - Anh xa entity `PaymentHistory` vao bang `"PaymentHistory"` (so it) de tranh trung lap voi bang `"PaymentHistories"`.
+   - Them cot `TokenBalance` va `AccountStatus` vao entity `UserProfile`.
+   - Tao entity `CskhMessage` map vao bang `"cskh_messages"`.
+   - Tao va ap dung migration `ConsolidateDbSchema` de dong bo hoa ca database local va cloud.
+2. Refactor toan bo controller va middleware sang EF Core:
+   - Thay the truy van REST trong JWT Middleware (`AuthenticationExtensions.cs`) bang EF Core.
+   - Refactor `AdminController` de thuc hien moi thao tac CRUD nguoi dung, lich su giao dich, token qua EF Core.
+   - Refactor `CskhController` de ghi lich su mail gui vao DB thong qua `CskhMessages` EF Core.
+   - Refactor `SupportController`, `ReportsController`, `FeedbackController` sang su dung truc tiep `MiniSeriesDbContext`.
+   - Refactor `PaymentsController` (webhook va check-status) de dong bo thanh toan truc tiep voi bang `"PaymentHistory"`.
+   - Refactor `AuthController` dang ky profile moi luu vao DB.
+   - Xoa bo hoan toan service REST cu `SupabaseRestService.cs` va go khoi DI Container.
+3. Chuyen doi quan ly Token sang hai loai han ngach Manga & Video:
+   - Thay the `TokenDelta` duy nhat (cột tàn dư) bang hai tham so `MangaDelta` va `VideoDelta` trong DTO `UpdateTokenRequest`.
+   - Thay doi logic backend trong `AdminController.UpdateUserToken` de khi tang/giam, gia tri se cong/tru truc tiep vao `MangaMonthlyLimit` va `VideoMonthlyLimit` cua user thay vi `TokenBalance`.
+   - Cap nhat MapProfile de tra ve `mangaLimit`, `usedManga`, `videoLimit`, `usedVideo` giup client hien thi.
+   - Cap nhat UI Admin Dashboard: thay o "Cộng / trừ token" bang 2 o "Cộng/trừ Manga" va "Cộng/trừ Video".
+   - Cap nhat bang danh sach nguoi dung trong Tab "Quản lý Hạn ngạch & Gói" de hien thi dung so luot con lai cua Manga/Video thuc te (tinh bang Limit - Used) theo format (Còn lại / Tổng) thay vi so luot da dung.
+4. Xu ly triet de tre cache:
+   - Them logic chu dong xoa RAM cache `_memoryCache.Remove($"user-profile-{id}")` ngay khi Admin thay doi quyen, goi cuoc hoac status de thay doi co hieu luc ngay lap tuc cho phien dang nhap cua user.
+5. Jira Integration:
+   - Tao va cap nhat parent task `KAN-34` va 5 subtasks `KAN-35` den `KAN-39` sang trang thai Done tren Jira Board.
+6. Kiem tra:
+   - `dotnet build MiniSeries.sln` thanh cong voi 0 loi, 0 canh bao.
+   - Build frontend `npm run build` thanh cong mượt mà, khong loi typescript.
+   - API Server Backend vao trang thai hoat dong on dinh tren local.
+
+## [2026-06-12] - Toi uu login lan dau
 
 ### Da hoan thanh:
 1. Do timing login backend:
@@ -728,6 +759,20 @@ File nÃ y ghi láº¡i cÃ¡c bÆ°á»›c thá»±c hiá»‡n cá»§a trá
 5. Kiem tra:
    - `rg "alert\\(|login-error-alert|login-success-alert" MiniSeries.Frontend/src` khong con ket qua.
    - `npm run build` trong `MiniSeries.Frontend` thanh cong.
+
+## [2026-06-21] - Fix lỗi duyệt kịch bản (400 Bad Request) & Fallback Cloudinary
+
+### Đã hoàn thành:
+1.  **Sửa lỗi duyệt kịch bản (400 Bad Request):**
+    - Cho phép duyệt lại kịch bản (Approve) nếu kịch bản đã ở trạng thái `Approved` nhưng việc tạo media bị lỗi hoặc chưa hoàn thành.
+    - Cập nhật [ApproveLessonScriptCommandHandler.cs](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/MiniSeries.Application/Lessons/Commands/ApproveLessonScript/ApproveLessonScriptCommandHandler.cs) để cho phép chạy lệnh Approve khi kịch bản ở trạng thái `AwaitingReview` hoặc `Approved`.
+    - Cập nhật [LessonsController.cs](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/MiniSeries.WebAPI/Controllers/LessonsController.cs) để phát hiện và xử lý trường hợp duyệt lại (retry), không trừ thêm quota manga/video của người dùng và không refund nếu xảy ra lỗi.
+2.  **Cấu hình tự động Fallback khi Cloudinary upload lỗi:**
+    - Cập nhật [CloudinaryStorageService.cs](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/MiniSeries.Infrastructure/ExternalServices/CloudinaryStorageService.cs) để tự động bắt các lỗi liên quan đến Cloudinary (như sai hoặc hết hạn API key/secret, lỗi kết nối Cloudinary).
+    - Khi Cloudinary lỗi, hệ thống sẽ log cảnh báo và trả về trực tiếp URL ảnh/video được tạo từ Pollinations/Pexels ban đầu, giúp tiến trình Approve và sinh manga/video hoàn tất 100% thay vì làm treo hoặc lỗi pipeline generation.
+3.  **Xác minh & Biên dịch:**
+    - Build dự án thành công với **0 lỗi, 0 cảnh báo**.
+    - Chạy thử quy trình tạo và duyệt thành công.
 
 
 

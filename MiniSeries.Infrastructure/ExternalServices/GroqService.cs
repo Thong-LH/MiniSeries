@@ -198,7 +198,11 @@ public class GroqService : ILLMService
 
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
         var response = await _httpClient.PostAsJsonAsync($"{_baseUrl}/chat/completions", requestBody);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errContent = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Groq API error ({response.StatusCode}): {errContent}");
+        }
 
         var jsonResponse = await response.Content.ReadAsStringAsync();
         var data = JObject.Parse(jsonResponse);

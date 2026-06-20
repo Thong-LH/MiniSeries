@@ -18,7 +18,6 @@ namespace MiniSeries.WebAPI.Controllers;
 [ApiController]
 [Route("api/auth")]
 public sealed class AuthController(
-    SupabaseRestService supabaseDb,
     SupabaseAuthService auth,
     IConfiguration config,
     MiniSeriesDbContext dbContext,
@@ -47,7 +46,7 @@ public sealed class AuthController(
 
         try
         {
-            var existing = await supabaseDb.GetUserProfileByEmailAsync(email);
+            var existing = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Email == email);
             if (existing is not null)
             {
                 return BadRequest(new { message = "Email nay da duoc dang ky tren he thong." });
@@ -151,11 +150,26 @@ public sealed class AuthController(
         try
         {
             var session = await auth.SignUpAsync(email, pending.Password, fullName);
-            var profile = await supabaseDb.CreateUserProfileAsync(session.UserId, email, fullName, pending.Role);
-            if (profile is null)
+            var profile = new UserProfile
             {
-                return StatusCode(500, new { message = "Tao Auth thanh cong nhung khong ghi duoc UserProfiles tren Supabase." });
-            }
+                Id = session.UserId,
+                Email = email,
+                FullName = fullName,
+                Role = pending.Role,
+                PlanName = "Free",
+                MangaMonthlyLimit = 3,
+                UsedMangaCount = 0,
+                VideoMonthlyLimit = 1,
+                UsedVideoCount = 0,
+                AccountStatus = "Active",
+                TokenBalance = 0,
+                CurrentPeriodStart = DateTime.UtcNow,
+                CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            dbContext.UserProfiles.Add(profile);
+            await dbContext.SaveChangesAsync();
 
             TempOtpStore.TryRemove(email, out _);
             PendingRegistrations.TryRemove(email, out _);
@@ -191,7 +205,7 @@ public sealed class AuthController(
 
         try
         {
-            var profile = await supabaseDb.GetUserProfileByIdAsync(userId);
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == userId);
             return profile is null
                 ? NotFound(new { message = "Khong tim thay thong tin phan quyen." })
                 : Ok(profile);
@@ -221,25 +235,16 @@ public sealed class AuthController(
                 sw.ElapsedMilliseconds,
                 email);
 
-            try
-            {
-                var supabaseProfile = await supabaseDb.GetUserProfileByIdAsync(session.UserId);
-                if (supabaseProfile is not null &&
-                    string.Equals(supabaseProfile.AccountStatus, "Blocked", StringComparison.OrdinalIgnoreCase))
-                {
-                    return StatusCode(StatusCodes.Status403Forbidden,
-                        new { message = "Tai khoan da bi khoa. Vui long lien he Admin." });
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "LoginProfile: khong kiem tra duoc AccountStatus tren Supabase cho {Email}.", email);
-            }
-
             var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == session.UserId);
             logger.LogInformation("LoginProfile timing: UserProfiles lookup completed in {ElapsedMs}ms for {Email}.",
                 sw.ElapsedMilliseconds,
                 email);
+
+            if (profile is not null && string.Equals(profile.AccountStatus, "Blocked", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    new { message = "Tai khoan da bi khoa. Vui long lien he Admin." });
+            }
 
             if (profile is null)
             {
@@ -313,24 +318,16 @@ public sealed class AuthController(
 
             logger.LogInformation("Xác thực thành công token Google cho email: {Email}, UserId: {UserId}", email, userId);
 
-            // 2. Kiểm tra tài khoản đã bị khóa trong Database/Supabase chưa
-            try
+            // 2. Kiểm tra tài khoản đã bị khóa trong Database chưa
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == userId);
+            if (profile is not null &&
+                string.Equals(profile.AccountStatus, "Blocked", StringComparison.OrdinalIgnoreCase))
             {
-                var supabaseProfile = await supabaseDb.GetUserProfileByIdAsync(userId);
-                if (supabaseProfile is not null &&
-                    string.Equals(supabaseProfile.AccountStatus, "Blocked", StringComparison.OrdinalIgnoreCase))
-                {
-                    return StatusCode(StatusCodes.Status403Forbidden,
-                        new { message = "Tài khoản đã bị khóa. Vui lòng liên hệ Admin." });
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "GoogleSignIn: không kiểm tra được AccountStatus trên Supabase cho {Email}.", email);
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    new { message = "Tài khoản đã bị khóa. Vui lòng liên hệ Admin." });
             }
 
-            // 3. Đảm bảo UserProfile tồn tại trong SQLite/PostgreSQL local db
-            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == userId);
+            // 3. Đảm bảo UserProfile tồn tại trong Database
             if (profile is null)
             {
                 profile = new UserProfile
@@ -344,22 +341,14 @@ public sealed class AuthController(
                     UsedMangaCount = 0,
                     VideoMonthlyLimit = 1,
                     UsedVideoCount = 0,
+                    AccountStatus = "Active",
+                    TokenBalance = 0,
                     CurrentPeriodStart = DateTime.UtcNow,
                     CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1),
                     CreatedAt = DateTime.UtcNow
                 };
                 dbContext.UserProfiles.Add(profile);
                 await dbContext.SaveChangesAsync();
-
-                // Đồng thời tạo user profile trên Supabase Db nếu chưa có
-                try
-                {
-                    await supabaseDb.CreateUserProfileAsync(userId, email, fullName, "Customer");
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "GoogleSignIn: không đồng bộ được profile lên Supabase db cho {Email}.", email);
-                }
 
                 logger.LogInformation("Đã tạo UserProfile mới cho người dùng Google đăng nhập lần đầu: {Email}.", email);
             }

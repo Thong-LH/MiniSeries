@@ -14,7 +14,6 @@ namespace MiniSeries.WebAPI.Controllers;
 [ApiController]
 [Route("api/payment")]
 public sealed class PaymentsController(
-    SupabaseRestService supabaseDb,
     MiniSeriesDbContext dbContext,
     UserPlanQuotaService quotaService) : ControllerBase
 {
@@ -33,7 +32,7 @@ public sealed class PaymentsController(
 
         try
         {
-            var profile = await supabaseDb.GetUserProfileByIdAsync(currentUserId.Value);
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Id == currentUserId.Value);
             userEmail = profile?.Email ?? AuthUser.GetCurrentUserEmail(User) ?? string.Empty;
             if (string.IsNullOrWhiteSpace(userEmail))
             {
@@ -166,19 +165,7 @@ public sealed class PaymentsController(
 
             var quota = await quotaService.ApplyPaidPlanAsync(Guid.Parse(matched.UserId), matched.PlanName);
 
-            try
-            {
-                await supabaseDb.InsertPaymentHistoryAsync(
-                    matched.UserEmail,
-                    amount,
-                    matched.PaymentCode,
-                    content);
-            }
-            catch
-            {
-                // EF PaymentHistories is the primary history source. Keep the old
-                // Supabase REST table best-effort for existing admin/demo screens.
-            }
+            // EF PaymentHistories is the primary history source. Table mapping handles unification.
 
             return Ok(new
             {
@@ -316,10 +303,9 @@ public sealed class PaymentsController(
 
         try
         {
-            var historyList = await supabaseDb.ListPaymentHistoryAsync();
-            var hasPaidOnCloud = historyList.Any(h =>
-                h.TransactionCode == code ||
-                (h.Content != null && h.Content.Contains(code, StringComparison.OrdinalIgnoreCase)));
+            var hasPaidOnCloud = await dbContext.PaymentHistories.AnyAsync(h =>
+                h.PaymentCode == code ||
+                (h.Content != null && h.Content.Contains(code)));
 
             return Ok(new { isPaid = hasPaidOnCloud, status = hasPaidOnCloud ? "Paid" : "NotFound" });
         }

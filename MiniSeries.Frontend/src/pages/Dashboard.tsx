@@ -12,6 +12,10 @@ interface CustomerProfile {
   accountStatus: string;
   createdAt: string;
   role: string;
+  mangaLimit?: number;
+  usedManga?: number;
+  videoLimit?: number;
+  usedVideo?: number;
 }
 
 interface SupportTicket {
@@ -98,7 +102,8 @@ export default function Dashboard() {
   const [tokenUsers, setTokenUsers] = useState<CustomerProfile[]>([]);
   const [tokensLoading, setTokensLoading] = useState<boolean>(false);
   const [editingTokenUser, setEditingTokenUser] = useState<CustomerProfile | null>(null);
-  const [tokenDelta, setTokenDelta] = useState<number>(0);
+  const [mangaDelta, setMangaDelta] = useState<number>(0);
+  const [videoDelta, setVideoDelta] = useState<number>(0);
   const [tokenPlan, setTokenPlan] = useState<string>('Free');
 
   const [supportTab, setSupportTab] = useState<'support-tickets' | 'cskh-emails'>('support-tickets');
@@ -405,19 +410,20 @@ export default function Dashboard() {
   // Token Management actions
   const handleOpenTokenModal = (user: CustomerProfile) => {
     setEditingTokenUser(user);
-    setTokenDelta(0);
+    setMangaDelta(0);
+    setVideoDelta(0);
     setTokenPlan(user.planName || 'Free');
   };
 
   const handleTokenUpdateSubmit = async () => {
     if (!editingTokenUser) return;
     try {
-      await api.adminUpdateUserToken(editingTokenUser.id, tokenDelta, tokenPlan);
-      showToast('Cập nhật token và gói thành công!');
+      await api.adminUpdateUserToken(editingTokenUser.id, mangaDelta, videoDelta, tokenPlan);
+      showToast('Cập nhật hạn mức và gói thành công!');
       setEditingTokenUser(null);
       loadTokens();
     } catch (err: any) {
-      showToast(err.message || 'Lỗi cập nhật token/gói', 'error');
+      showToast(err.message || 'Lỗi cập nhật hạn mức/gói', 'error');
     }
   };
 
@@ -723,7 +729,7 @@ export default function Dashboard() {
               onClick={() => setActiveTab('tokens')}
             >
               <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 5.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg>
-              Quản lý Token
+              Quản lý Hạn ngạch
             </div>
             <div 
               className={`sidebar-item ${activeTab === 'support' ? 'active' : ''}`}
@@ -853,7 +859,7 @@ export default function Dashboard() {
                       <th>ID</th>
                       <th>Tên khách hàng</th>
                       <th>Email</th>
-                      <th>Token sở hữu</th>
+                      <th>Gói cước</th>
                       <th>Trạng thái</th>
                       <th>Ngày đăng ký</th>
                       <th>Thao tác</th>
@@ -870,7 +876,7 @@ export default function Dashboard() {
                           <td className="font-semibold text-slate-200">{c.fullName}</td>
                           <td>{c.email}</td>
                           <td style={{ color: '#cbd5e1', fontWeight: '600' }}>
-                            {c.tokenBalance?.toLocaleString('vi-VN')}
+                            {c.planName || 'Free'}
                           </td>
                           <td>
                             {isBlocked ? (
@@ -916,14 +922,14 @@ export default function Dashboard() {
         {activeTab === 'tokens' && (
           <section className="space-y-6">
             <div className="section-header">
-              <h2 className="section-title">Quản lý Token & Gói</h2>
-              <p className="section-subtitle">Theo dõi số dư Token và gói nạp của khách hàng.</p>
+              <h2 className="section-title">Quản lý Hạn ngạch & Gói</h2>
+              <p className="section-subtitle">Theo dõi số lượt Manga, Video và gói nạp của khách hàng.</p>
             </div>
 
             <div className="stats-grid">
               <div className="stat-card">
-                <div className="stat-title">Token đã phát hành</div>
-                <div className="stat-value">{tokenSummary.totalTokens?.toLocaleString('vi-VN')}</div>
+                <div className="stat-title">Tổng khách hàng</div>
+                <div className="stat-value">{tokenUsers.length}</div>
               </div>
               <div className="stat-card">
                 <div className="stat-title">Gói Basic / Plus</div>
@@ -949,7 +955,8 @@ export default function Dashboard() {
                       <th>ID người dùng</th>
                       <th>Tên user</th>
                       <th>Email</th>
-                      <th>Số token</th>
+                      <th>Lượt Manga (Còn lại / Tổng)</th>
+                      <th>Lượt Video (Còn lại / Tổng)</th>
                       <th>Gói đang dùng</th>
                       <th>Thao tác</th>
                     </tr>
@@ -963,7 +970,10 @@ export default function Dashboard() {
                         <td className="font-semibold text-slate-200">{u.fullName}</td>
                         <td>{u.email}</td>
                         <td style={{ color: '#cbd5e1', fontWeight: '600' }}>
-                          {u.tokenBalance?.toLocaleString('vi-VN')}
+                          {(u.mangaLimit ?? 3) - (u.usedManga ?? 0)} / {(u.mangaLimit ?? 3)}
+                        </td>
+                        <td style={{ color: '#cbd5e1', fontWeight: '600' }}>
+                          {(u.videoLimit ?? 1) - (u.usedVideo ?? 0)} / {(u.videoLimit ?? 1)}
                         </td>
                         <td style={{ color: '#818cf8', fontWeight: '600' }}>{u.planName || 'Free'}</td>
                         <td>
@@ -1678,20 +1688,33 @@ export default function Dashboard() {
       {editingTokenUser && (
         <div className="modal-overlay" onClick={() => setEditingTokenUser(null)}>
           <div className="modal-panel animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">Cập nhật Token & Gói</div>
+            <div className="modal-title">Cập nhật Hạn mức & Gói</div>
             <div className="modal-desc">
-              Thay đổi số dư token và phân cấp hạn mức gói dịch vụ cho <span className="text-cyan-400 font-bold">{editingTokenUser.fullName}</span>.
+              Thay đổi số lượt tạo truyện/video và phân cấp gói dịch vụ cho <span className="text-cyan-400 font-bold">{editingTokenUser.fullName}</span>.
             </div>
             
             <div className="space-y-4">
-              <div>
-                <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Cộng / trừ token (số âm để trừ)</label>
-                <input 
-                  type="number" 
-                  value={tokenDelta} 
-                  onChange={(e) => setTokenDelta(Number(e.target.value))} 
-                  className="modal-input" 
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Cộng/trừ Manga</label>
+                  <input 
+                    type="number" 
+                    value={mangaDelta} 
+                    onChange={(e) => setMangaDelta(Number(e.target.value))} 
+                    className="modal-input" 
+                    placeholder="Ví dụ: 5 hoặc -2"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Cộng/trừ Video</label>
+                  <input 
+                    type="number" 
+                    value={videoDelta} 
+                    onChange={(e) => setVideoDelta(Number(e.target.value))} 
+                    className="modal-input" 
+                    placeholder="Ví dụ: 2 hoặc -1"
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Gói dịch vụ</label>

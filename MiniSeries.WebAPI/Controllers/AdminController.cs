@@ -1,6 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using MiniSeries.Domain.Entities;
 using MiniSeries.Infrastructure.ExternalServices;
+using MiniSeries.Infrastructure.Persistence;
+using MiniSeries.Infrastructure.Services;
 using MiniSeries.WebAPI.Contracts;
 using System;
 using System.Linq;
@@ -11,10 +16,11 @@ namespace MiniSeries.WebAPI.Controllers;
 [ApiController]
 [Route("api/admin")]
 public sealed class AdminController(
-    SupabaseRestService supabaseDb,
-    SupabaseAdminAuthService adminAuth) : ControllerBase
+    MiniSeriesDbContext dbContext,
+    SupabaseAdminAuthService adminAuth,
+    IMemoryCache memoryCache) : ControllerBase
 {
-    private static object MapProfile(SupabaseUserProfileRow p) => new
+    private static object MapProfile(UserProfile p) => new
     {
         id = p.Id,
         email = p.Email,
@@ -23,6 +29,10 @@ public sealed class AdminController(
         accountStatus = string.IsNullOrWhiteSpace(p.AccountStatus) ? "Active" : p.AccountStatus,
         planName = string.IsNullOrWhiteSpace(p.PlanName) ? "Free" : p.PlanName,
         tokenBalance = p.TokenBalance,
+        mangaLimit = p.MangaMonthlyLimit,
+        usedManga = p.UsedMangaCount,
+        videoLimit = p.VideoMonthlyLimit,
+        usedVideo = p.UsedVideoCount,
         createdAt = p.CreatedAt == default ? DateTime.UtcNow : p.CreatedAt
     };
 
@@ -32,7 +42,10 @@ public sealed class AdminController(
     {
         try
         {
-            var customers = await supabaseDb.ListCustomersAsync();
+            var customers = await dbContext.UserProfiles
+                .Where(u => u.Role == "Customer")
+                .OrderByDescending(u => u.CreatedAt)
+                .ToListAsync();
             return Ok(customers.Select(MapProfile).ToList());
         }
         catch (Exception ex)
@@ -47,7 +60,11 @@ public sealed class AdminController(
     {
         try
         {
-            var staffs = await supabaseDb.ListStaffsAsync();
+            var staffs = await dbContext.UserProfiles
+                .Where(s => s.Role == "Staff")
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+            
             var safeList = staffs
                 .Where(s => s.Id != Guid.Empty && !string.IsNullOrWhiteSpace(s.Email))
                 .Select(MapProfile)
@@ -79,29 +96,30 @@ public sealed class AdminController(
 
         try
         {
-            var existing = await supabaseDb.GetUserProfileByEmailAsync(email);
+            var existing = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Email == email);
             if (existing is not null)
             {
                 return BadRequest(new { message = "Email này đã tồn tại trên hệ thống." });
             }
 
             var userId = await adminAuth.CreateUserAsync(email, password, fullName);
-            var profile = await supabaseDb.CreateUserProfileAsync(userId, email, fullName, "Staff");
-            if (profile is null)
+            
+            var profile = new UserProfile
             {
-                await adminAuth.DeleteUserAsync(userId);
-                return StatusCode(500, new { message = "Tạo Auth thành công nhưng không ghi được UserProfiles." });
-            }
-
-            await supabaseDb.UpdateUserProfileAsync(userId, new
-            {
+                Id = userId,
+                Email = email,
+                FullName = fullName,
+                Role = "Staff",
                 AccountStatus = "Active",
                 PlanName = "Free",
-                TokenBalance = 0
-            });
+                TokenBalance = 0,
+                CreatedAt = DateTime.UtcNow
+            };
 
-            var updated = await supabaseDb.GetUserProfileByIdAsync(userId);
-            return Ok(MapProfile(updated ?? profile));
+            dbContext.UserProfiles.Add(profile);
+            await dbContext.SaveChangesAsync();
+
+            return Ok(MapProfile(profile));
         }
         catch (Exception ex)
         {
@@ -115,14 +133,19 @@ public sealed class AdminController(
     {
         try
         {
-            var profile = await supabaseDb.GetUserProfileByIdAsync(id);
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Id == id);
             if (profile is null || !string.Equals(profile.Role, "Staff", StringComparison.OrdinalIgnoreCase))
             {
                 return NotFound(new { message = "Không tìm thấy nhân viên." });
             }
 
-            await supabaseDb.DeleteUserProfileAsync(id);
+            dbContext.UserProfiles.Remove(profile);
+            await dbContext.SaveChangesAsync();
             await adminAuth.DeleteUserAsync(id);
+            
+            // Xóa cache
+            memoryCache.Remove($"user-profile-{id}");
+
             return Ok(new { message = "Đã xóa tài khoản nhân viên." });
         }
         catch (Exception ex)
@@ -144,14 +167,19 @@ public sealed class AdminController(
     {
         try
         {
-            var profile = await supabaseDb.GetUserProfileByIdAsync(id);
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Id == id);
             if (profile is null || !string.Equals(profile.Role, "Customer", StringComparison.OrdinalIgnoreCase))
             {
                 return NotFound(new { message = "Không tìm thấy khách hàng." });
             }
 
-            await supabaseDb.DeleteUserProfileAsync(id);
+            dbContext.UserProfiles.Remove(profile);
+            await dbContext.SaveChangesAsync();
             await adminAuth.DeleteUserAsync(id);
+            
+            // Xóa cache
+            memoryCache.Remove($"user-profile-{id}");
+
             return Ok(new { message = "Đã xóa tài khoản khách hàng." });
         }
         catch (Exception ex)
@@ -167,16 +195,15 @@ public sealed class AdminController(
         return await ToggleBlockUserAsync(id, "Customer");
     }
 
-    // ==========================================================
-    // 🌟 API LẤY THỐNG KÊ TOKEN CHUẨN: FREE - BASIC - PRO MAX
-    // ==========================================================
     [Authorize(Policy = "StaffOrAdmin")]
     [HttpGet("tokens/summary")]
     public async Task<IActionResult> GetTokenSummary()
     {
         try
         {
-            var customers = await supabaseDb.ListCustomersAsync();
+            var customers = await dbContext.UserProfiles
+                .Where(u => u.Role == "Customer")
+                .ToListAsync();
             
             int totalFree = 0;
             int totalBasic = 0;
@@ -185,18 +212,17 @@ public sealed class AdminController(
 
             if (customers != null)
             {
-                // Tổng số lượng token thực tế của tất cả user cộng lại
                 totalTokens = customers.Sum(c => c.TokenBalance);
 
                 foreach (var customer in customers)
                 {
                     var plan = (customer.PlanName ?? "").Trim();
 
-                    if (string.Equals(plan, "Basic", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(plan, "Basic", StringComparison.OrdinalIgnoreCase) || string.Equals(plan, "Plus", StringComparison.OrdinalIgnoreCase))
                     {
                         totalBasic++;
                     }
-                    else if (string.Equals(plan, "Pro Max", StringComparison.OrdinalIgnoreCase))
+                    else if (string.Equals(plan, "Pro Max", StringComparison.OrdinalIgnoreCase) || string.Equals(plan, "ProMax", StringComparison.OrdinalIgnoreCase) || string.Equals(plan, "Premium", StringComparison.OrdinalIgnoreCase))
                     {
                         totalProMax++;
                     }
@@ -207,21 +233,14 @@ public sealed class AdminController(
                 }
             }
 
-            // Map linh hoạt các thuộc tính để Frontend viết kiểu gì cũng đọc được số liệu đúng
             return Ok(new
             {
                 totalTokens = totalTokens,
                 totalTokensIssued = totalTokens,
-
-                // Map số lượng gói Basic vào ô hiển thị thứ 2 (Gói Plus/Basic cũ)
                 totalPlus = totalBasic,
                 plusPackageCount = totalBasic,
-
-                // Map số lượng gói Pro Max vào ô hiển thị thứ 3
                 totalProMax = totalProMax,
                 proMaxPackageCount = totalProMax,
-
-                // Thêm trường tường minh phòng hờ nếu frontend dùng gói Free
                 freePackageCount = totalFree,
                 totalFree = totalFree
             });
@@ -254,7 +273,10 @@ public sealed class AdminController(
     {
         try
         {
-            var customers = await supabaseDb.ListCustomersAsync();
+            var customers = await dbContext.UserProfiles
+                .Where(u => u.Role == "Customer")
+                .OrderByDescending(u => u.CreatedAt)
+                .ToListAsync();
             return Ok(customers.Select(MapProfile).ToList());
         }
         catch (Exception ex)
@@ -269,16 +291,40 @@ public sealed class AdminController(
     {
         try
         {
-            var profile = await supabaseDb.GetUserProfileByIdAsync(id);
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Id == id);
             if (profile is null || !string.Equals(profile.Role, "Customer", StringComparison.OrdinalIgnoreCase))
             {
                 return NotFound(new { message = "Không tìm thấy khách hàng." });
             }
 
-            var updated = await supabaseDb.AdjustUserTokenAndPlanAsync(id, req.TokenDelta, req.PlanName);
-            return updated is null
-                ? NotFound(new { message = "Không thể cập nhật token/gói." })
-                : Ok(MapProfile(updated));
+            if (req.MangaDelta is not null && req.MangaDelta.Value != 0)
+            {
+                profile.MangaMonthlyLimit = Math.Max(0, profile.MangaMonthlyLimit + req.MangaDelta.Value);
+            }
+
+            if (req.VideoDelta is not null && req.VideoDelta.Value != 0)
+            {
+                profile.VideoMonthlyLimit = Math.Max(0, profile.VideoMonthlyLimit + req.VideoDelta.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(req.PlanName))
+            {
+                var plan = UserPlanQuotaService.ResolvePlan(req.PlanName);
+                profile.PlanName = plan.Name;
+                profile.MangaMonthlyLimit = plan.MangaMonthlyLimit;
+                profile.VideoMonthlyLimit = plan.VideoMonthlyLimit;
+                profile.UsedMangaCount = 0;
+                profile.UsedVideoCount = 0;
+                profile.CurrentPeriodStart = DateTime.UtcNow;
+                profile.CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1);
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            // Xóa cache
+            memoryCache.Remove($"user-profile-{id}");
+
+            return Ok(MapProfile(profile));
         }
         catch (Exception ex)
         {
@@ -292,7 +338,9 @@ public sealed class AdminController(
     {
         try
         {
-            var list = await supabaseDb.ListPaymentHistoryAsync();
+            var list = await dbContext.PaymentHistories
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
             return Ok(list);
         }
         catch (Exception ex)
@@ -307,8 +355,26 @@ public sealed class AdminController(
     {
         try
         {
-            var stats = await supabaseDb.GetPaymentStatsAsync(groupBy ?? "month");
-            return Ok(stats);
+            var rows = await dbContext.PaymentHistories.ToListAsync();
+            var grouped = rows
+                .GroupBy(r =>
+                {
+                    var dt = r.CreatedAt;
+                    return (groupBy ?? "month").Equals("day", StringComparison.OrdinalIgnoreCase)
+                        ? dt.ToString("yyyy-MM-dd")
+                        : dt.ToString("yyyy-MM");
+                })
+                .OrderBy(g => g.Key)
+                .Select(g => new { Label = g.Key, Amount = g.Sum(x => x.Amount) })
+                .ToList();
+
+            return Ok(new
+            {
+                labels = grouped.Select(x => x.Label).ToList(),
+                amounts = grouped.Select(x => x.Amount).ToList(),
+                totalRevenue = rows.Sum(x => x.Amount),
+                transactionCount = rows.Count
+            });
         }
         catch (Exception ex)
         {
@@ -320,7 +386,7 @@ public sealed class AdminController(
     {
         try
         {
-            var profile = await supabaseDb.GetUserProfileByIdAsync(id);
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Id == id);
             if (profile is null || !string.Equals(profile.Role, expectedRole, StringComparison.OrdinalIgnoreCase))
             {
                 return NotFound(new { message = "Không tìm thấy tài khoản." });
@@ -330,13 +396,18 @@ public sealed class AdminController(
             var newStatus = isBlocked ? "Active" : "Blocked";
 
             await adminAuth.SetUserBannedAsync(id, !isBlocked);
-            var updated = await supabaseDb.UpdateUserProfileAsync(id, new { AccountStatus = newStatus });
+            
+            profile.AccountStatus = newStatus;
+            await dbContext.SaveChangesAsync();
+
+            // Xóa cache
+            memoryCache.Remove($"user-profile-{id}");
 
             return Ok(new
             {
                 message = isBlocked ? "Đã mở khóa tài khoản." : "Đã khóa tài khoản.",
                 accountStatus = newStatus,
-                profile = updated is null ? null : MapProfile(updated)
+                profile = MapProfile(profile)
             });
         }
         catch (Exception ex)

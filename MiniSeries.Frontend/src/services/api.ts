@@ -328,11 +328,11 @@ export const api = {
         return await readJsonResponse(response);
     },
 
-    async adminUpdateUserToken(id: string, tokenDelta: number, planName: string) {
+    async adminUpdateUserToken(id: string, mangaDelta: number, videoDelta: number, planName: string) {
         const response = await fetch(`${API_BASE}/admin/tokens/users/${id}`, {
             method: "PATCH",
             headers: getAuthHeaders(),
-            body: JSON.stringify({ tokenDelta, planName })
+            body: JSON.stringify({ mangaDelta, videoDelta, planName })
         });
         return await readJsonResponse(response);
     },

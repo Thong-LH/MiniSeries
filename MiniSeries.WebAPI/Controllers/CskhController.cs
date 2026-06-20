@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using MiniSeries.Infrastructure.ExternalServices; 
-using MiniSeries.Infrastructure.Options; 
+using MiniSeries.Domain.Entities;
+using MiniSeries.Infrastructure.Options;
+using MiniSeries.Infrastructure.Persistence;
 using System;
+using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,24 +19,18 @@ namespace MiniSeries.WebAPI.Controllers;
 [Authorize(Policy = "StaffOrAdmin")]
 public class CskhController : ControllerBase
 {
-    private readonly SupabaseRestService _supabaseRestService;
+    private readonly MiniSeriesDbContext _dbContext;
     private readonly EmailSettings _emailSettings;
-    private readonly string _supabaseUrl;
-    private readonly string _supabaseKey;
 
     public CskhController(
-        SupabaseRestService supabaseRestService, 
-        IConfiguration configuration, 
+        MiniSeriesDbContext dbContext,
         IOptions<EmailSettings> emailSettings)
     {
-        _supabaseRestService = supabaseRestService;
+        _dbContext = dbContext;
         _emailSettings = emailSettings.Value;
-        
-        _supabaseUrl = configuration["Supabase:Url"] ?? "";
-        _supabaseKey = configuration["Supabase:AnonKey"] ?? "";
     }
 
-    // 🚀 API 1: TIẾN HÀNH GỬI MAIL VÀ LƯU VÀO SUPABASE
+    // 🚀 API 1: TIẾN HÀNH GỬI MAIL VÀ LƯU VÀO DATABASE
     [HttpPost("send")]
     public async Task<IActionResult> SendCskhEmail([FromBody] SendEmailRequest req)
     {
@@ -47,7 +41,7 @@ public class CskhController : ControllerBase
 
         try
         {
-            // 1. Thực hiện gửi mail bằng hòm thư công ty Thousand Sunsilk
+            // 1. Thực hiện gửi mail bằng hòm thư công ty
             using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer))
             {
                 smtpClient.Port = int.TryParse(_emailSettings.Port, out var p) ? p : 587;
@@ -70,30 +64,19 @@ public class CskhController : ControllerBase
             // 2. Lấy Role của người đăng nhập từ Token (Admin/Staff)
             var currentRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Staff";
 
-            // 3. Sử dụng HttpClient bắn trực tiếp lên Database REST API của Supabase để ghi nhận lịch sử
-            using (var httpClient = new HttpClient())
+            // 3. Sử dụng EF Core để lưu vào database
+            var messageLog = new CskhMessage
             {
-                var targetUrl = $"{_supabaseUrl.TrimEnd('/')}/rest/v1/cskh_messages";
-                
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("apikey", _supabaseKey);
-                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_supabaseKey}");
+                Id = Guid.NewGuid(),
+                CustomerEmail = req.CustomerEmail,
+                Subject = string.IsNullOrWhiteSpace(req.Subject) ? "Hỗ trợ khách hàng từ Thousand Sunsilk" : req.Subject,
+                Content = req.Content,
+                SenderRole = currentRole,
+                CreatedAt = DateTime.UtcNow
+            };
 
-                var logData = new
-                {
-                    customer_email = req.CustomerEmail,
-                    subject = req.Subject,
-                    content = req.Content,
-                    sender_role = currentRole
-                };
-
-                var response = await httpClient.PostAsJsonAsync(targetUrl, logData);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errContent = await response.Content.ReadAsStringAsync();
-                    return StatusCode((int)response.StatusCode, new { message = "Gửi mail OK nhưng lưu lịch sử lỗi: " + errContent });
-                }
-            }
+            _dbContext.CskhMessages.Add(messageLog);
+            await _dbContext.SaveChangesAsync();
 
             return Ok(new { message = $"Đã gửi thư hỗ trợ thành công từ tổng đài {_emailSettings.SenderName}!" });
         }
@@ -113,23 +96,19 @@ public class CskhController : ControllerBase
     {
         try
         {
-            using (var httpClient = new HttpClient())
+            var list = await _dbContext.CskhMessages
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+
+            return Ok(list.Select(h => new
             {
-                var targetUrl = $"{_supabaseUrl.TrimEnd('/')}/rest/v1/cskh_messages?select=*";
-                
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("apikey", _supabaseKey);
-                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_supabaseKey}");
-
-                var response = await httpClient.GetAsync(targetUrl);
-                if (!response.IsSuccessStatusCode)
-                {
-                    return BadRequest(new { message = "Không thể tải lịch sử từ Supabase." });
-                }
-
-                var jsonResult = await response.Content.ReadFromJsonAsync<object>();
-                return Ok(jsonResult);
-            }
+                id = h.Id,
+                customer_email = h.CustomerEmail,
+                subject = h.Subject,
+                content = h.Content,
+                sender_role = h.SenderRole,
+                created_at = h.CreatedAt
+            }));
         }
         catch (Exception ex)
         {
@@ -138,7 +117,6 @@ public class CskhController : ControllerBase
     }
 }
 
-// ĐÃ SỬA: Chuyển từ Record sang Class thường để gán thuộc tính JsonPropertyName hợp lệ 100%
 public class SendEmailRequest
 {
     [System.Text.Json.Serialization.JsonPropertyName("customerEmail")]
