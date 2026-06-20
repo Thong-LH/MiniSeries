@@ -130,3 +130,9 @@ public sealed class UpdateTokenRequest
     [JsonPropertyName("planName")]
     public string? PlanName { get; set; }
 }
+
+public sealed class GoogleSignInRequest
+{
+    [JsonPropertyName("accessToken")]
+    public string? AccessToken { get; set; }
+}

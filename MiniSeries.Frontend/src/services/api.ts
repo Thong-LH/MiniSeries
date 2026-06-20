@@ -136,6 +136,32 @@ export const api = {
         return data;
     },
 
+    async googleSignIn(accessToken: string) {
+        const response = await fetch(`${API_BASE}/auth/google-signin`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ accessToken })
+        });
+        const data = await readJsonResponse(response);
+        const previousUserId = localStorage.getItem("userId");
+        if (data.accessToken) {
+            localStorage.setItem("token", data.accessToken);
+        }
+        if (data.userId) localStorage.setItem("userId", data.userId);
+        if (previousUserId && data.userId && previousUserId !== data.userId) {
+            localStorage.removeItem(PROFILE_CACHE_KEY);
+        }
+        if (data.role) {
+            localStorage.setItem("userRole", data.role);
+            localStorage.setItem("user_role", data.role);
+        }
+        if (data.fullName) localStorage.setItem("user_name", data.fullName);
+        if (data.email) localStorage.setItem("user_email", data.email);
+        return data;
+    },
+
     async register(email: string, password: string, fullName: string, supabaseUserId: string) {
         const response = await fetch(`${API_BASE}/auth/register-profile`, {
             method: "POST",

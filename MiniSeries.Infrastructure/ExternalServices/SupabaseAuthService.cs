@@ -116,6 +116,24 @@ public sealed class SupabaseAuthService
         return ParseSession(body) ?? throw new InvalidOperationException("Đăng nhập thất bại: không nhận được session.");
     }
 
+    public async Task<SupabaseAuthSession> GetUserByTokenAsync(string accessToken)
+    {
+        EnsureConfigured();
+        var url = $"{_options.Url.TrimEnd('/')}/auth/v1/user";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("apikey", _options.AnonKey);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        using var response = await _http.SendAsync(request);
+        var body = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException(ParseAuthError(body));
+        }
+
+        return ParseSession(body) ?? throw new InvalidOperationException("Không thể giải mã thông tin user từ token.");
+    }
+
     public async Task WarmupAsync(CancellationToken cancellationToken = default)
     {
         EnsureConfigured();
@@ -131,6 +149,7 @@ public sealed class SupabaseAuthService
 
         Guid? userId = null;
         string? userEmail = null;
+        string? fullName = null;
 
         if (root.TryGetProperty("user", out var userEl))
         {
@@ -142,6 +161,20 @@ public sealed class SupabaseAuthService
             {
                 userEmail = emailEl.GetString();
             }
+            if (userEl.TryGetProperty("user_metadata", out var metaEl))
+            {
+                if (metaEl.TryGetProperty("full_name", out var fnEl))
+                {
+                    fullName = fnEl.GetString();
+                }
+            }
+            else if (userEl.TryGetProperty("raw_user_meta_data", out var rawEl))
+            {
+                if (rawEl.TryGetProperty("full_name", out var fnEl))
+                {
+                    fullName = fnEl.GetString();
+                }
+            }
         }
         else if (root.TryGetProperty("id", out var rootId) && Guid.TryParse(rootId.GetString(), out var rid))
         {
@@ -149,6 +182,20 @@ public sealed class SupabaseAuthService
             if (root.TryGetProperty("email", out var rootEmail))
             {
                 userEmail = rootEmail.GetString();
+            }
+            if (root.TryGetProperty("user_metadata", out var metaEl))
+            {
+                if (metaEl.TryGetProperty("full_name", out var fnEl))
+                {
+                    fullName = fnEl.GetString();
+                }
+            }
+            else if (root.TryGetProperty("raw_user_meta_data", out var rawEl))
+            {
+                if (rawEl.TryGetProperty("full_name", out var fnEl))
+                {
+                    fullName = fnEl.GetString();
+                }
             }
         }
 
@@ -161,8 +208,8 @@ public sealed class SupabaseAuthService
             ? tokenEl.GetString()
             : null;
 
-        return new SupabaseAuthSession(userId.Value, userEmail ?? "", accessToken);
+        return new SupabaseAuthSession(userId.Value, userEmail ?? "", accessToken, fullName);
     }
 }
 
-public sealed record SupabaseAuthSession(Guid UserId, string Email, string? AccessToken);
+public sealed record SupabaseAuthSession(Guid UserId, string Email, string? AccessToken, string? FullName = null);

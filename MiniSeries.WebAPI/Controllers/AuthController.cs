@@ -293,5 +293,103 @@ public sealed class AuthController(
             return StatusCode(StatusCodes.Status401Unauthorized, new { message = ex.Message });
         }
     }
+
+    [HttpPost("google-signin")]
+    public async Task<IActionResult> GoogleSignIn([FromBody] GoogleSignInRequest dto)
+    {
+        var token = (dto.AccessToken ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return BadRequest(new { message = "Thiếu Access Token từ Google." });
+        }
+
+        try
+        {
+            // 1. Xác thực access token với Supabase và lấy thông tin user
+            var userSession = await auth.GetUserByTokenAsync(token);
+            var email = userSession.Email.Trim().ToLowerInvariant();
+            var userId = userSession.UserId;
+            var fullName = userSession.FullName ?? email.Split('@')[0];
+
+            logger.LogInformation("Xác thực thành công token Google cho email: {Email}, UserId: {UserId}", email, userId);
+
+            // 2. Kiểm tra tài khoản đã bị khóa trong Database/Supabase chưa
+            try
+            {
+                var supabaseProfile = await supabaseDb.GetUserProfileByIdAsync(userId);
+                if (supabaseProfile is not null &&
+                    string.Equals(supabaseProfile.AccountStatus, "Blocked", StringComparison.OrdinalIgnoreCase))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden,
+                        new { message = "Tài khoản đã bị khóa. Vui lòng liên hệ Admin." });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "GoogleSignIn: không kiểm tra được AccountStatus trên Supabase cho {Email}.", email);
+            }
+
+            // 3. Đảm bảo UserProfile tồn tại trong SQLite/PostgreSQL local db
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == userId);
+            if (profile is null)
+            {
+                profile = new UserProfile
+                {
+                    Id = userId,
+                    Email = email,
+                    FullName = fullName,
+                    Role = "Customer",
+                    PlanName = "Free",
+                    MangaMonthlyLimit = 3,
+                    UsedMangaCount = 0,
+                    VideoMonthlyLimit = 1,
+                    UsedVideoCount = 0,
+                    CurrentPeriodStart = DateTime.UtcNow,
+                    CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1),
+                    CreatedAt = DateTime.UtcNow
+                };
+                dbContext.UserProfiles.Add(profile);
+                await dbContext.SaveChangesAsync();
+
+                // Đồng thời tạo user profile trên Supabase Db nếu chưa có
+                try
+                {
+                    await supabaseDb.CreateUserProfileAsync(userId, email, fullName, "Customer");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "GoogleSignIn: không đồng bộ được profile lên Supabase db cho {Email}.", email);
+                }
+
+                logger.LogInformation("Đã tạo UserProfile mới cho người dùng Google đăng nhập lần đầu: {Email}.", email);
+            }
+
+            // 4. Lấy thông tin quota và trả về kết quả đăng nhập giống hệt login-profile
+            var quota = await quotaService.GetSnapshotAsync(profile);
+
+            return Ok(new
+            {
+                userId = profile.Id.ToString(),
+                email = profile.Email,
+                fullName = profile.FullName,
+                role = AuthUser.NormalizeRole(profile.Role),
+                accessToken = token, // Sử dụng luôn access token Google/Supabase
+
+                // Quota properties
+                planName = quota.PlanName,
+                remainingMangaCount = quota.RemainingMangaCount,
+                mangaMonthlyLimit = quota.MangaMonthlyLimit,
+                remainingVideoCount = quota.RemainingVideoCount,
+                videoMonthlyLimit = quota.VideoMonthlyLimit,
+                currentPeriodEnd = quota.CurrentPeriodEnd,
+                avatarUrl = $"https://api.dicebear.com/7.x/bottts/svg?seed={Uri.EscapeDataString(profile.FullName ?? "User")}"
+            });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Lỗi khi xử lý Google Sign-In");
+            return StatusCode(StatusCodes.Status401Unauthorized, new { message = "Xác thực token Google thất bại: " + ex.Message });
+        }
+    }
 }
 
