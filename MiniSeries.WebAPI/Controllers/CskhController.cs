@@ -66,7 +66,12 @@ public class CskhController : ControllerBase
                 var customerEmail = req.CustomerEmail;
                 var emailContent = req.Content;
                 var emailSubject = subject;
-                var emailHtmlBody = Helpers.EmailTemplateHelper.BuildCskhMessage(emailContent, _emailSettings.SenderName ?? "Mini Series");
+
+                // Lookup customer name synchronously before starting background task
+                var userProfile = await _dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Email == customerEmail);
+                var customerName = userProfile?.FullName ?? customerEmail;
+
+                var emailHtmlBody = Helpers.EmailTemplateHelper.BuildCskhMessage(customerName, emailContent, _emailSettings.SenderName ?? "Mini Series");
 
                 _ = Task.Run(async () =>
                 {

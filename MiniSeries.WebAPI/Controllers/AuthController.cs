@@ -459,7 +459,7 @@ public sealed class AuthController(
             }
 
             var emailSubject = $"[{otpCode}] Mã xác thực đặt lại mật khẩu";
-            var emailHtmlBody = Helpers.EmailTemplateHelper.BuildResetPasswordOtp(email, otpCode);
+            var emailHtmlBody = Helpers.EmailTemplateHelper.BuildResetPasswordOtp(profile.FullName, email, otpCode);
 
             if (!string.IsNullOrWhiteSpace(apiKey))
             {

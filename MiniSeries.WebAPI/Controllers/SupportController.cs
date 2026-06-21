@@ -109,12 +109,16 @@ public sealed class SupportController(
                 var ticketContent = item.Content;
                 var ticketReply = item.Reply;
                 
+                // Lookup customer name synchronously before starting background task
+                var userProfile = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Email == customerEmail);
+                var customerName = userProfile?.FullName ?? customerEmail;
+                
                 _ = Task.Run(async () =>
                 {
                     try
                     {
                         var emailSubject = $"Phản hồi yêu cầu tư vấn - Phiếu #{ticketId}";
-                        var emailHtmlBody = Helpers.EmailTemplateHelper.BuildSupportTicketReply(ticketContent, ticketReply, _emailSettings.SenderName ?? "Mini Series");
+                        var emailHtmlBody = Helpers.EmailTemplateHelper.BuildSupportTicketReply(customerName, ticketContent, ticketReply, _emailSettings.SenderName ?? "Mini Series");
 
                         if (!string.IsNullOrWhiteSpace(_emailSettings.ApiKey))
                         {

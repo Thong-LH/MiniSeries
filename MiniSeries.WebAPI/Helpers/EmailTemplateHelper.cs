@@ -37,7 +37,7 @@ namespace MiniSeries.WebAPI.Helpers
                             <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""border-top: 1px solid #e4e2db; padding-top: 20px;"">
                                 <tr>
                                     <td align=""center"" style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; color: #8c8a82; line-height: 1.5;"">
-                                        <p style=""margin: 0 0 4px 0; color: #8c8a82;"">Đây là thư được gửi tự động từ hệ thống MiniSeriesLearning.</p>
+                                        <p style=""margin: 0 0 4px 0; color: #8c8a82;"">{EMAIL_FOOTER}</p>
                                         <p style=""margin: 0; color: #a19f96;"">© 2026 MiniSeries. All rights reserved.</p>
                                     </td>
                                 </tr>
@@ -55,7 +55,7 @@ namespace MiniSeries.WebAPI.Helpers
         {
             var body = $@"
             <h2 style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; color: #24292f; margin-top: 0; margin-bottom: 16px; line-height: 1.4;"">Kích Hoạt Tài Khoản</h2>
-            <p style=""margin-top: 0; margin-bottom: 12px;"">Chào bạn <strong>{fullName}</strong>,</p>
+            <p style=""margin-top: 0; margin-bottom: 12px;"">Chào <strong>{fullName}</strong>,</p>
             <p style=""margin-top: 0; margin-bottom: 12px;"">Mã xác thực OTP để hoàn tất đăng ký tài khoản của bạn là:</p>
 
             <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin: 20px 0;"">
@@ -74,14 +74,16 @@ namespace MiniSeries.WebAPI.Helpers
                 Mã xác nhận này được áp dụng riêng cho tài khoản đăng ký: <span style=""color: #24292f; font-weight: 600;"">{email}</span>. Vui lòng hoàn tất xác minh sớm để bắt đầu sử dụng dịch vụ.
             </p>";
 
-            return CommonLayout.Replace("{EMAIL_BODY}", body);
+            return CommonLayout
+                .Replace("{EMAIL_BODY}", body)
+                .Replace("{EMAIL_FOOTER}", "Đây là thư được gửi tự động từ hệ thống MiniSeriesLearning.");
         }
 
-        public static string BuildResetPasswordOtp(string email, string otpCode)
+        public static string BuildResetPasswordOtp(string fullName, string email, string otpCode)
         {
             var body = $@"
             <h2 style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; color: #24292f; margin-top: 0; margin-bottom: 16px; line-height: 1.4;"">Khôi Phục Mật Khẩu</h2>
-            <p style=""margin-top: 0; margin-bottom: 12px;"">Chào bạn,</p>
+            <p style=""margin-top: 0; margin-bottom: 12px;"">Chào <strong>{fullName}</strong>,</p>
             <p style=""margin-top: 0; margin-bottom: 12px;"">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Mã OTP xác thực là:</p>
 
             <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin: 20px 0;"">
@@ -100,14 +102,16 @@ namespace MiniSeries.WebAPI.Helpers
                 Áp dụng cho tài khoản: <span style=""color: #24292f; font-weight: 600;"">{email}</span>. Nếu bạn không gửi yêu cầu này, vui lòng bỏ qua thư này để đảm bảo an toàn cho tài khoản.
             </p>";
 
-            return CommonLayout.Replace("{EMAIL_BODY}", body);
+            return CommonLayout
+                .Replace("{EMAIL_BODY}", body)
+                .Replace("{EMAIL_FOOTER}", "Đây là thư được gửi tự động từ hệ thống MiniSeriesLearning.");
         }
 
-        public static string BuildSupportTicketReply(string ticketContent, string ticketReply, string senderName)
+        public static string BuildSupportTicketReply(string customerName, string ticketContent, string ticketReply, string senderName)
         {
             var body = $@"
             <h2 style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; color: #24292f; margin-top: 0; margin-bottom: 16px; line-height: 1.4;"">Phản Hồi Yêu Cầu Hỗ Trợ</h2>
-            <p style=""margin-top: 0; margin-bottom: 12px;"">Chào bạn,</p>
+            <p style=""margin-top: 0; margin-bottom: 12px;"">Chào <strong>{customerName}</strong>,</p>
             <p style=""margin-top: 0; margin-bottom: 16px;"">Ban quản trị đã phản hồi yêu cầu hỗ trợ của bạn:</p>
 
             <div style=""margin-top: 16px; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; color: #8c8a82; font-weight: 700; letter-spacing: 0.5px;"">Yêu cầu của bạn:</div>
@@ -117,18 +121,10 @@ namespace MiniSeries.WebAPI.Helpers
                 </tr>
             </table>
 
-            <div style=""margin-bottom: 6px; font-size: 11px; text-transform: uppercase; color: #8c8a82; font-weight: 700; letter-spacing: 0.5px;"">Phản hồi từ hỗ trợ:</div>
+            <div style=""margin-bottom: 6px; font-size: 11px; text-transform: uppercase; color: #8c8a82; font-weight: 700; letter-spacing: 0.5px;"">Phản hồi từ Ban quản trị:</div>
             <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin-bottom: 24px; background-color: #ffffff; border: 1px solid #e4e2db; border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);"">
                 <tr>
-                    <td style=""padding: 16px 20px;"">
-                        <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin-bottom: 10px; border-bottom: 1px solid #f0eee8; padding-bottom: 6px;"">
-                            <tr>
-                                <td style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; font-weight: 700; color: #6366f1;"">BAN QUẢN TRỊ MINISERIES</td>
-                                <td align=""right"" style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; color: #8c8a82; font-weight: 500;"">Phản hồi chính thức</td>
-                            </tr>
-                        </table>
-                        <div style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: #24292f; white-space: pre-wrap;"">{ticketReply}</div>
-                    </td>
+                    <td style=""padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14.5px; line-height: 1.6; color: #24292f; white-space: pre-wrap;"">{ticketReply}</td>
                 </tr>
             </table>
 
@@ -137,26 +133,21 @@ namespace MiniSeries.WebAPI.Helpers
                 <strong style=""color: #24292f;"">Đội ngũ hỗ trợ {senderName}</strong>
             </p>";
 
-            return CommonLayout.Replace("{EMAIL_BODY}", body);
+            return CommonLayout
+                .Replace("{EMAIL_BODY}", body)
+                .Replace("{EMAIL_FOOTER}", "Thư này được gửi từ ban quản trị hệ thống MiniSeriesLearning.");
         }
 
-        public static string BuildCskhMessage(string cskhContent, string senderName)
+        public static string BuildCskhMessage(string customerName, string cskhContent, string senderName)
         {
             var body = $@"
             <h2 style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; color: #24292f; margin-top: 0; margin-bottom: 16px; line-height: 1.4;"">Thông Tin Chăm Sóc Khách Hàng</h2>
-            <p style=""margin-top: 0; margin-bottom: 12px;"">Chào bạn,</p>
+            <p style=""margin-top: 0; margin-bottom: 12px;"">Chào <strong>{customerName}</strong>,</p>
 
-            <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin-top: 16px; margin-bottom: 24px; background-color: #ffffff; border: 1px solid #e4e2db; border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);"">
+            <div style=""margin-top: 16px; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; color: #8c8a82; font-weight: 700; letter-spacing: 0.5px;"">Thông tin từ Ban quản trị:</div>
+            <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin-top: 6px; margin-bottom: 24px; background-color: #ffffff; border: 1px solid #e4e2db; border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);"">
                 <tr>
-                    <td style=""padding: 16px 20px;"">
-                        <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin-bottom: 10px; border-bottom: 1px solid #f0eee8; padding-bottom: 6px;"">
-                            <tr>
-                                <td style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; font-weight: 700; color: #a855f7;"">THÔNG BÁO CHĂM SÓC KHÁCH HÀNG</td>
-                                <td align=""right"" style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; color: #8c8a82; font-weight: 500;"">Chính thức</td>
-                            </tr>
-                        </table>
-                        <div style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: #24292f; white-space: pre-wrap;"">{cskhContent}</div>
-                    </td>
+                    <td style=""padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14.5px; line-height: 1.6; color: #24292f; white-space: pre-wrap;"">{cskhContent}</td>
                 </tr>
             </table>
 
@@ -165,7 +156,9 @@ namespace MiniSeries.WebAPI.Helpers
                 <strong style=""color: #24292f;"">Ban quản trị {senderName}</strong>
             </p>";
 
-            return CommonLayout.Replace("{EMAIL_BODY}", body);
+            return CommonLayout
+                .Replace("{EMAIL_BODY}", body)
+                .Replace("{EMAIL_FOOTER}", "Thư này được gửi từ ban quản trị hệ thống MiniSeriesLearning.");
         }
     }
 }
