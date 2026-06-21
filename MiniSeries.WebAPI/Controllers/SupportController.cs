@@ -114,7 +114,7 @@ public sealed class SupportController(
                     try
                     {
                         var emailSubject = $"Phản hồi yêu cầu tư vấn - Phiếu #{ticketId}";
-                        var emailContent = $"Chào bạn,\n\nYêu cầu hỗ trợ của bạn với nội dung:\n\"{ticketContent}\"\n\nĐã được ban quản trị phản hồi:\n\"{ticketReply}\"\n\nTrân trọng,\nĐội ngũ hỗ trợ {_emailSettings.SenderName ?? "Mini Series"}.";
+                        var emailHtmlBody = Helpers.EmailTemplateHelper.BuildSupportTicketReply(ticketContent, ticketReply, _emailSettings.SenderName ?? "Mini Series");
 
                         if (!string.IsNullOrWhiteSpace(_emailSettings.ApiKey))
                         {
@@ -128,7 +128,7 @@ public sealed class SupportController(
                                     sender = new { name = _emailSettings.SenderName ?? "Mini Series Learning", email = _emailSettings.SenderEmail },
                                     to = new[] { new { email = customerEmail } },
                                     subject = emailSubject,
-                                    textContent = emailContent
+                                    htmlContent = emailHtmlBody
                                 };
                                 
                                 var json = System.Text.Json.JsonSerializer.Serialize(payload);
@@ -154,8 +154,8 @@ public sealed class SupportController(
                                 {
                                     From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Mini Series Learning"),
                                     Subject = emailSubject,
-                                    Body = emailContent,
-                                    IsBodyHtml = false
+                                    Body = emailHtmlBody,
+                                    IsBodyHtml = true
                                 };
                                 mailMessage.To.Add(customerEmail);
 

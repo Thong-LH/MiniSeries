@@ -66,6 +66,7 @@ public class CskhController : ControllerBase
                 var customerEmail = req.CustomerEmail;
                 var emailContent = req.Content;
                 var emailSubject = subject;
+                var emailHtmlBody = Helpers.EmailTemplateHelper.BuildCskhMessage(emailContent, _emailSettings.SenderName ?? "Mini Series");
 
                 _ = Task.Run(async () =>
                 {
@@ -80,10 +81,10 @@ public class CskhController : ControllerBase
                                 
                                 var payload = new
                                 {
-                                    sender = new { name = _emailSettings.SenderName ?? "Thousand Sunsilk", email = _emailSettings.SenderEmail },
+                                    sender = new { name = _emailSettings.SenderName ?? "Mini Series Learning", email = _emailSettings.SenderEmail },
                                     to = new[] { new { email = customerEmail } },
                                     subject = emailSubject,
-                                    textContent = emailContent
+                                    htmlContent = emailHtmlBody
                                 };
                                 
                                 var json = System.Text.Json.JsonSerializer.Serialize(payload);
@@ -107,10 +108,10 @@ public class CskhController : ControllerBase
 
                                 var mailMessage = new MailMessage
                                 {
-                                    From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Thousand Sunsilk"),
+                                    From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Mini Series Learning"),
                                     Subject = emailSubject,
-                                    Body = emailContent,
-                                    IsBodyHtml = false
+                                    Body = emailHtmlBody,
+                                    IsBodyHtml = true
                                 };
                                 mailMessage.To.Add(customerEmail);
 

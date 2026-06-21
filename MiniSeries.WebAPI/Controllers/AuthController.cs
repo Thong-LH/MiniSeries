@@ -83,17 +83,8 @@ public sealed class AuthController(
             return BadRequest(new { message = "Chua cau hinh EmailSettings (SenderEmail)." });
         }
 
-        var emailSubject = $"[{otpCode}] Ma xac thuc tai khoan moi";
-        var emailHtmlBody = $@"
-        <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
-            <h2 style='color: #8b5cf6; text-align: center;'>Kich Hoat Tai Khoan</h2>
-            <p>Chao <b>{fullName}</b>,</p>
-            <p>Ma OTP de hoan tat dang ky tai khoan cua ban la:</p>
-            <div style='background: #f3f4f6; padding: 15px; text-align: center; font-size: 26px; font-weight: bold; color: #333; letter-spacing: 2px;'>
-                {otpCode}
-            </div>
-            <p style='font-size: 12px; color: #777;'>Ma nay ap dung cho Email: {email}.</p>
-        </div>";
+        var emailSubject = $"[{otpCode}] Mã xác thực tài khoản mới";
+        var emailHtmlBody = Helpers.EmailTemplateHelper.BuildActivationOtp(fullName, otpCode, email);
 
         try
         {
@@ -467,18 +458,8 @@ public sealed class AuthController(
                 return BadRequest(new { message = "Chưa cấu hình EmailSettings (SenderEmail)." });
             }
 
-            var emailSubject = $"[{otpCode}] Ma xac thuc dat lai mat khau";
-            var emailHtmlBody = $@"
-            <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
-                <h2 style='color: #8b5cf6; text-align: center;'>Lay Lai Mat Khau</h2>
-                <p>Chao ban,</p>
-                <p>Ma OTP de dat lai mat khau tai khoan cua ban la:</p>
-                <div style='background: #f3f4f6; padding: 15px; text-align: center; font-size: 26px; font-weight: bold; color: #333; letter-spacing: 2px;'>
-                    {otpCode}
-                </div>
-                <p style='font-size: 12px; color: #777;'>Ma nay ap dung cho Email: {email}.</p>
-                <p style='font-size: 12px; color: #ff3333;'>Luu y: Vui long khong chia se ma nay voi bat ky ai.</p>
-            </div>";
+            var emailSubject = $"[{otpCode}] Mã xác thực đặt lại mật khẩu";
+            var emailHtmlBody = Helpers.EmailTemplateHelper.BuildResetPasswordOtp(email, otpCode);
 
             if (!string.IsNullOrWhiteSpace(apiKey))
             {
