@@ -11,7 +11,7 @@ namespace MiniSeries.WebAPI.Helpers
     <meta charset=""utf-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
     <title>MiniSeriesLearning</title>
-    <link href=""https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,700;1,400&display=swap"" rel=""stylesheet"">
+    <link href=""https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"" rel=""stylesheet"">
     <style>
         body {
             margin: 0;
@@ -98,7 +98,7 @@ namespace MiniSeries.WebAPI.Helpers
         public static string BuildActivationOtp(string fullName, string otpCode, string email)
         {
             var body = $@"
-            <h2 style=""font-family: 'Lora', Georgia, serif; font-size: 22px; font-weight: 500; color: #fb923c; margin-top: 0; margin-bottom: 20px; line-height: 1.4;"">Kích Hoạt Tài Khoản</h2>
+            <h2 style=""font-family: 'Outfit', -apple-system, sans-serif; font-size: 20px; font-weight: 700; color: #f8fafc; margin-top: 0; margin-bottom: 16px; line-height: 1.4;"">Kích Hoạt Tài Khoản</h2>
             <p style=""margin-top: 0; margin-bottom: 16px;"">Chào bạn <strong>{fullName}</strong>,</p>
             <p style=""margin-top: 0; margin-bottom: 16px;"">Mã xác thực OTP để hoàn tất đăng ký tài khoản của bạn là:</p>
 
@@ -107,9 +107,7 @@ namespace MiniSeries.WebAPI.Helpers
                     <td align=""center"">
                         <table border=""0"" cellpadding=""0"" cellspacing=""0"" class=""otp-display"" style=""background-color: #09090b; border: 1px solid #3f3f46; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);"">
                             <tr>
-                                <td align=""center"" style=""padding: 20px 40px; font-family: 'Outfit', 'Courier New', monospace; font-size: 32px; font-weight: 700; color: #38bdf8; letter-spacing: 8px;"">
-                                    {otpCode}
-                                </td>
+                                <td align=""center"" style=""padding: 20px 40px; font-family: 'Outfit', 'Courier New', monospace; font-size: 32px; font-weight: 700; color: #38bdf8; letter-spacing: 8px;"">{otpCode}</td>
                             </tr>
                         </table>
                     </td>
@@ -126,7 +124,7 @@ namespace MiniSeries.WebAPI.Helpers
         public static string BuildResetPasswordOtp(string email, string otpCode)
         {
             var body = $@"
-            <h2 style=""font-family: 'Lora', Georgia, serif; font-size: 22px; font-weight: 500; color: #fb923c; margin-top: 0; margin-bottom: 20px; line-height: 1.4;"">Khôi Phục Mật Khẩu</h2>
+            <h2 style=""font-family: 'Outfit', -apple-system, sans-serif; font-size: 20px; font-weight: 700; color: #f8fafc; margin-top: 0; margin-bottom: 16px; line-height: 1.4;"">Khôi Phục Mật Khẩu</h2>
             <p style=""margin-top: 0; margin-bottom: 16px;"">Chào bạn,</p>
             <p style=""margin-top: 0; margin-bottom: 16px;"">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Mã OTP xác thực là:</p>
 
@@ -135,9 +133,7 @@ namespace MiniSeries.WebAPI.Helpers
                     <td align=""center"">
                         <table border=""0"" cellpadding=""0"" cellspacing=""0"" class=""otp-display"" style=""background-color: #09090b; border: 1px solid #3f3f46; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);"">
                             <tr>
-                                <td align=""center"" style=""padding: 20px 40px; font-family: 'Outfit', 'Courier New', monospace; font-size: 32px; font-weight: 700; color: #38bdf8; letter-spacing: 8px;"">
-                                    {otpCode}
-                                </td>
+                                <td align=""center"" style=""padding: 20px 40px; font-family: 'Outfit', 'Courier New', monospace; font-size: 32px; font-weight: 700; color: #38bdf8; letter-spacing: 8px;"">{otpCode}</td>
                             </tr>
                         </table>
                     </td>
@@ -154,25 +150,21 @@ namespace MiniSeries.WebAPI.Helpers
         public static string BuildSupportTicketReply(string ticketContent, string ticketReply, string senderName)
         {
             var body = $@"
-            <h2 style=""font-family: 'Lora', Georgia, serif; font-size: 22px; font-weight: 500; color: #fb923c; margin-top: 0; margin-bottom: 20px; line-height: 1.4;"">Phản Hồi Yêu Cầu Hỗ Trợ</h2>
+            <h2 style=""font-family: 'Outfit', -apple-system, sans-serif; font-size: 20px; font-weight: 700; color: #f8fafc; margin-top: 0; margin-bottom: 16px; line-height: 1.4;"">Phản Hồi Yêu Cầu Hỗ Trợ</h2>
             <p style=""margin-top: 0; margin-bottom: 16px;"">Chào bạn,</p>
             <p style=""margin-top: 0; margin-bottom: 16px;"">Yêu cầu hỗ trợ của bạn đã nhận được phản hồi từ Ban quản trị:</p>
 
             <div style=""margin-top: 20px; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; color: #71717a; font-weight: 700; letter-spacing: 1px;"">Yêu cầu của bạn:</div>
             <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin-bottom: 20px;"">
                 <tr>
-                    <td style=""background-color: #09090b; border-left: 3px solid #38bdf8; border-radius: 0 6px 6px 0; padding: 14px 18px; color: #a1a1aa; font-family: 'Lora', Georgia, serif; font-size: 14px; font-style: italic; line-height: 1.6;"">
-                        ""{ticketContent}""
-                    </td>
+                    <td style=""background-color: #09090b; border-left: 3px solid #38bdf8; border-radius: 0 6px 6px 0; padding: 14px 18px; color: #a1a1aa; font-family: 'Outfit', -apple-system, sans-serif; font-size: 14px; font-style: italic; line-height: 1.6;"">""{ticketContent}""</td>
                 </tr>
             </table>
 
             <div style=""margin-bottom: 4px; font-size: 11px; text-transform: uppercase; color: #71717a; font-weight: 700; letter-spacing: 1px;"">Phản hồi từ hỗ trợ:</div>
             <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin-bottom: 24px;"">
                 <tr>
-                    <td style=""background-color: #1c1917; border-left: 3px solid #fb923c; border-radius: 0 6px 6px 0; padding: 16px 20px; color: #fafafa; font-size: 14.5px; line-height: 1.6; white-space: pre-wrap;"">
-                        {ticketReply}
-                    </td>
+                    <td style=""background-color: #1c1917; border-left: 3px solid #fb923c; border-radius: 0 6px 6px 0; padding: 16px 20px; color: #fafafa; font-size: 14.5px; line-height: 1.6; white-space: pre-wrap;"">{ticketReply}</td>
                 </tr>
             </table>
 
@@ -187,14 +179,12 @@ namespace MiniSeries.WebAPI.Helpers
         public static string BuildCskhMessage(string cskhContent, string senderName)
         {
             var body = $@"
-            <h2 style=""font-family: 'Lora', Georgia, serif; font-size: 22px; font-weight: 500; color: #fb923c; margin-top: 0; margin-bottom: 20px; line-height: 1.4;"">Thông Tin Chăm Sóc Khách Hàng</h2>
+            <h2 style=""font-family: 'Outfit', -apple-system, sans-serif; font-size: 20px; font-weight: 700; color: #f8fafc; margin-top: 0; margin-bottom: 16px; line-height: 1.4;"">Thông Tin Chăm Sóc Khách Hàng</h2>
             <p style=""margin-top: 0; margin-bottom: 16px;"">Chào bạn,</p>
 
             <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin-top: 16px; margin-bottom: 24px;"">
                 <tr>
-                    <td style=""background-color: #121214; border: 1px solid #27272a; border-left: 4px solid #a855f7; border-radius: 6px; padding: 20px; color: #e4e4e7; font-size: 15px; line-height: 1.7; white-space: pre-wrap;"">
-                        {cskhContent}
-                    </td>
+                    <td style=""background-color: #121214; border: 1px solid #27272a; border-left: 4px solid #a855f7; border-radius: 6px; padding: 20px; color: #e4e4e7; font-size: 15px; line-height: 1.7; white-space: pre-wrap;"">{cskhContent}</td>
                 </tr>
             </table>
 
