@@ -174,7 +174,12 @@ export default function Dashboard() {
   // Sorting helper handler
   const handleSort = (column: string) => {
     if (sortColumn === column) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else {
+        setSortColumn('');
+        setSortDirection('desc');
+      }
     } else {
       setSortColumn(column);
       setSortDirection('asc');
@@ -371,6 +376,28 @@ export default function Dashboard() {
             Sau
           </button>
         </div>
+      </div>
+    );
+  };
+
+  // UI Helper for Loading State
+  const renderLoadingState = (message: string) => {
+    return (
+      <div className="cyber-loading-state">
+        <div className="cyber-spinner"></div>
+        <p className="cyber-loading-text">{message}</p>
+      </div>
+    );
+  };
+
+  // UI Helper for Empty State
+  const renderEmptyState = (message: string) => {
+    return (
+      <div className="cyber-empty-state">
+        <svg className="cyber-empty-icon" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.008 1.24l.885 1.77a2.25 2.25 0 002.007 1.24h1.98a2.25 2.25 0 002.007-1.24l.885-1.77a2.25 2.25 0 012.007-1.24h3.86m-18 0h18a2.25 2.25 0 012.25 2.25v4.5A2.25 2.25 0 0118 21H6a2.25 2.25 0 01-2.25-2.25v-4.5a2.25 2.25 0 012.25-2.25zM6 7.5l6-6 6 6m-6-6v12" />
+        </svg>
+        <p className="cyber-empty-text">{message}</p>
       </div>
     );
   };
@@ -1104,9 +1131,9 @@ export default function Dashboard() {
 
             <div className="data-table-container">
               {customersLoading ? (
-                <div className="p-8 text-center text-slate-400">Đang tải danh sách khách hàng...</div>
+                renderLoadingState("Đang tải danh sách khách hàng...")
               ) : customers.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">Chưa có khách hàng (Role = Customer) trên Supabase.</div>
+                renderEmptyState("Chưa có khách hàng (Role = Customer) trên Supabase.")
               ) : (() => {
                 const filtered = customers.filter(c => {
                   const matchesSearch = !searchTerm || 
@@ -1128,7 +1155,7 @@ export default function Dashboard() {
                 const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
-                  return <div className="p-8 text-center text-slate-400">Không tìm thấy khách hàng phù hợp.</div>;
+                  return renderEmptyState("Không tìm thấy khách hàng phù hợp.");
                 }
 
                 return (
@@ -1233,9 +1260,9 @@ export default function Dashboard() {
 
             <div className="data-table-container">
               {tokensLoading ? (
-                <div className="p-8 text-center text-slate-400">Đang tải danh sách token...</div>
+                renderLoadingState("Đang tải danh sách token...")
               ) : tokenUsers.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">Chưa có khách hàng nào.</div>
+                renderEmptyState("Chưa có khách hàng nào.")
               ) : (() => {
                 const filtered = tokenUsers.filter(u => {
                   const matchesSearch = !searchTerm || 
@@ -1252,7 +1279,7 @@ export default function Dashboard() {
                 const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
-                  return <div className="p-8 text-center text-slate-400">Không tìm thấy người dùng phù hợp.</div>;
+                  return renderEmptyState("Không tìm thấy người dùng phù hợp.");
                 }
 
                 return (
@@ -1349,9 +1376,9 @@ export default function Dashboard() {
                 ])}
                 <div className="data-table-container">
                   {supportLoading ? (
-                    <div className="p-8 text-center text-slate-400">Đang tải dữ liệu yêu cầu...</div>
+                    renderLoadingState("Đang tải dữ liệu yêu cầu...")
                   ) : supportTickets.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400">Chưa có yêu cầu tư vấn nào.</div>
+                    renderEmptyState("Chưa có yêu cầu tư vấn nào.")
                   ) : (() => {
                     const filtered = supportTickets.filter(t => {
                       const matchesSearch = !searchTerm || 
@@ -1371,7 +1398,7 @@ export default function Dashboard() {
                     const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                     if (filtered.length === 0) {
-                      return <div className="p-8 text-center text-slate-400">Không tìm thấy ticket phù hợp.</div>;
+                      return renderEmptyState("Không tìm thấy ticket phù hợp.");
                     }
 
                     return (
@@ -1495,9 +1522,9 @@ export default function Dashboard() {
                   ])}
                   <div className="data-table-container">
                     {supportLoading ? (
-                      <div className="p-8 text-center text-slate-400">Đang tải dữ liệu yêu cầu...</div>
+                      renderLoadingState("Đang tải dữ liệu yêu cầu...")
                     ) : cskhHistory.length === 0 ? (
-                      <div className="p-8 text-center text-slate-500">Chưa có email CSKH nào được gửi.</div>
+                      renderEmptyState("Chưa có email CSKH nào được gửi.")
                     ) : (() => {
                       const filtered = cskhHistory.filter(h => {
                         const email = h.customer_email || h.email_customer || h.customerEmail || "khachhang_an_danh@gmail.com";
@@ -1518,7 +1545,7 @@ export default function Dashboard() {
                       const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                       if (filtered.length === 0) {
-                        return <div className="p-8 text-center text-slate-400">Không tìm thấy email CSKH phù hợp.</div>;
+                        return renderEmptyState("Không tìm thấy email CSKH phù hợp.");
                       }
 
                       return (
@@ -1633,9 +1660,9 @@ export default function Dashboard() {
 
             <div className="data-table-container">
               {feedbacksLoading ? (
-                <div className="p-8 text-center text-slate-400">Đang tải dữ liệu đánh giá...</div>
+                renderLoadingState("Đang tải dữ liệu đánh giá...")
               ) : feedbacks.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">Chưa có đánh giá nào.</div>
+                renderEmptyState("Chưa có đánh giá nào.")
               ) : (() => {
                 const filtered = feedbacks.filter(f => {
                   const matchesSearch = !searchTerm ||
@@ -1651,7 +1678,7 @@ export default function Dashboard() {
                 const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
-                  return <div className="p-8 text-center text-slate-400">Không tìm thấy đánh giá phù hợp.</div>;
+                  return renderEmptyState("Không tìm thấy đánh giá phù hợp.");
                 }
 
                 return (
@@ -1730,9 +1757,9 @@ export default function Dashboard() {
               ])}
               <div className="data-table-container">
                 {reportsLoading ? (
-                  <div className="p-8 text-center text-slate-400">Đang tải lịch sử báo cáo...</div>
+                  renderLoadingState("Đang tải lịch sử báo cáo...")
                 ) : staffReports.length === 0 ? (
-                  <div className="p-8 text-center text-slate-400">Chưa có báo cáo nào.</div>
+                  renderEmptyState("Chưa có báo cáo nào.")
                 ) : (() => {
                   const filtered = staffReports.filter(r => {
                     const matchesSearch = !searchTerm ||
@@ -1751,7 +1778,7 @@ export default function Dashboard() {
                   const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                   if (filtered.length === 0) {
-                    return <div className="p-8 text-center text-slate-400">Không tìm thấy báo cáo phù hợp.</div>;
+                    return renderEmptyState("Không tìm thấy báo cáo phù hợp.");
                   }
 
                   return (
@@ -1818,9 +1845,9 @@ export default function Dashboard() {
 
             <div className="data-table-container">
               {reportsLoading ? (
-                <div className="p-8 text-center text-slate-400">Đang tải danh sách báo cáo...</div>
+                renderLoadingState("Đang tải danh sách báo cáo...")
               ) : adminReports.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">Chưa có báo cáo nào.</div>
+                renderEmptyState("Chưa có báo cáo nào.")
               ) : (() => {
                 const filtered = adminReports.filter(r => {
                   const name = r.staffName || 'Staff';
@@ -1841,7 +1868,7 @@ export default function Dashboard() {
                 const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
-                  return <div className="p-8 text-center text-slate-400">Không tìm thấy báo cáo phù hợp.</div>;
+                  return renderEmptyState("Không tìm thấy báo cáo phù hợp.");
                 }
 
                 return (
@@ -1919,9 +1946,9 @@ export default function Dashboard() {
 
             <div className="data-table-container">
               {paymentsLoading ? (
-                <div className="p-8 text-center text-slate-400">Đang tải lịch sử thanh toán...</div>
+                renderLoadingState("Đang tải lịch sử thanh toán...")
               ) : payments.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">Chưa có giao dịch nào.</div>
+                renderEmptyState("Chưa có giao dịch nào.")
               ) : (() => {
                 const filtered = payments.filter(p => {
                   return !searchTerm ||
@@ -1933,7 +1960,7 @@ export default function Dashboard() {
                 const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
-                  return <div className="p-8 text-center text-slate-400">Không tìm thấy giao dịch phù hợp.</div>;
+                  return renderEmptyState("Không tìm thấy giao dịch phù hợp.");
                 }
 
                 return (
@@ -2052,11 +2079,9 @@ export default function Dashboard() {
 
             <div className="data-table-container">
               {staffsLoading ? (
-                <div className="p-8 text-center text-slate-400">Đang tải danh sách nhân viên...</div>
+                renderLoadingState("Đang tải danh sách nhân viên...")
               ) : staffs.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">
-                  Chưa có nhân viên nào. Nhấn nút "Thêm Staff" để tạo mới.
-                </div>
+                renderEmptyState("Chưa có nhân viên nào. Nhấn nút \"Thêm Staff\" để tạo mới.")
               ) : (() => {
                 const filtered = staffs.filter(s => {
                   const matchesSearch = !searchTerm ||
@@ -2075,7 +2100,7 @@ export default function Dashboard() {
                 const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
-                  return <div className="p-8 text-center text-slate-400">Không tìm thấy nhân viên phù hợp.</div>;
+                  return renderEmptyState("Không tìm thấy nhân viên phù hợp.");
                 }
 
                 return (
