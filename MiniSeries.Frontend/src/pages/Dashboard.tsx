@@ -1395,20 +1395,6 @@ export default function Dashboard() {
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                       Nhật ký gửi Email CSKH
                     </h3>
-                    <button
-                      type="button"
-                      className="btn-table-action btn-table-action-cyan flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md"
-                      onClick={() => {
-                        handleCancelCskhReply();
-                        setIsComposeOpen(true);
-                        setIsComposeMinimized(false);
-                      }}
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                      </svg>
-                      Soạn Email mới
-                    </button>
                   </div>
                   {renderSearchFilterBar("Tìm kiếm email theo tiêu đề, nội dung, email...", [
                     {
