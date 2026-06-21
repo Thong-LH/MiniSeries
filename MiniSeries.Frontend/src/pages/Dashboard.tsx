@@ -33,11 +33,14 @@ interface CskhMessage {
   email_customer?: string;
   customerEmail?: string;
   subject?: string;
+  Subject?: string;
   content: string;
   createdAt?: string;
   created_at?: string;
   status?: string;
   reply?: string;
+  sender_role?: string;
+  senderRole?: string;
 }
 
 interface FeedbackItem {
@@ -120,6 +123,7 @@ export default function Dashboard() {
 
   const [activeReplySupportId, setActiveReplySupportId] = useState<number | string | null>(null);
   const [supportReplyText, setSupportReplyText] = useState<string>('');
+  const [activeViewCskhId, setActiveViewCskhId] = useState<number | null>(null);
 
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState<boolean>(false);
@@ -445,13 +449,7 @@ export default function Dashboard() {
     }
   };
 
-  const handlePrepareCskhReply = (ticketId: number, email: string) => {
-    setCskhEmail(email);
-    setCskhSubject(`Phản hồi yêu cầu hỗ trợ (Ticket #${ticketId})`);
-    setSelectedCskhTicketId(ticketId);
-    setIsComposeOpen(true);
-    setIsComposeMinimized(false);
-  };
+
 
   const handleCancelCskhReply = () => {
     setCskhEmail('');
@@ -1133,60 +1131,114 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Phiếu yêu cầu Email CSKH
-                  </h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      Nhật ký gửi Email CSKH
+                    </h3>
+                    <button
+                      type="button"
+                      className="btn-table-action btn-table-action-cyan"
+                      style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      onClick={() => {
+                        handleCancelCskhReply();
+                        setIsComposeOpen(true);
+                        setIsComposeMinimized(false);
+                      }}
+                    >
+                      <svg style={{ width: '12px', height: '12px' }} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                      </svg>
+                      Soạn Email mới
+                    </button>
+                  </div>
                   <div className="data-table-container">
                     {supportLoading ? (
                       <div className="p-8 text-center text-slate-400">Đang tải dữ liệu yêu cầu...</div>
                     ) : cskhHistory.length === 0 ? (
-                      <div className="p-8 text-center text-slate-500">Không có phiếu hỗ trợ nào đang chờ.</div>
+                      <div className="p-8 text-center text-slate-500">Chưa có email CSKH nào được gửi.</div>
                     ) : (
                       <table className="cyber-table">
                         <thead>
                           <tr>
                             <th>ID</th>
                             <th>Email khách</th>
-                            <th>Nội dung</th>
+                            <th>Tiêu đề</th>
+                            <th>Người gửi</th>
                             <th>Ngày gửi</th>
-                            <th>Trạng thái</th>
                             <th>Thao tác</th>
                           </tr>
                         </thead>
                         <tbody>
                           {cskhHistory.map((h) => {
-                            const isDone = h.status === 'done';
                             const email = h.customer_email || h.email_customer || h.customerEmail || "khachhang_an_danh@gmail.com";
                             const created = h.createdAt || h.created_at || '';
+                            const subject = h.subject || h.Subject || '(Không có tiêu đề)';
+                            const sender = h.sender_role || h.senderRole || 'Staff';
+                            const isViewing = activeViewCskhId === h.id;
+
                             return (
-                              <tr key={h.id}>
-                                <td style={{ fontFamily: 'monospace', color: '#94a3b8' }}>#{h.id}</td>
-                                <td className="font-semibold text-slate-200">{email}</td>
-                                <td style={{ maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={h.content}>
-                                  {h.content}
-                                </td>
-                                <td style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{formatDate(created)}</td>
-                                <td>
-                                  {isDone ? (
-                                    <span className="status-badge badge-done">
-                                      Đã xử lý
-                                    </span>
-                                  ) : (
-                                    <span className="status-badge badge-pending">
-                                      Đang chờ
-                                    </span>
-                                  )}
-                                </td>
-                                <td>
-                                  <button
-                                    type="button"
-                                    className="btn-table-action btn-table-action-cyan"
-                                    onClick={() => handlePrepareCskhReply(h.id, email)}
-                                  >
-                                    Phản hồi
-                                  </button>
-                                </td>
-                              </tr>
+                              <Fragment key={h.id}>
+                                <tr>
+                                  <td style={{ fontFamily: 'monospace', color: '#94a3b8' }}>#{h.id}</td>
+                                  <td className="font-semibold text-slate-200">{email}</td>
+                                  <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={subject}>
+                                    {subject}
+                                  </td>
+                                  <td style={{ color: '#818cf8', fontWeight: '600' }}>{sender}</td>
+                                  <td style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{formatDate(created)}</td>
+                                  <td>
+                                    <button
+                                      type="button"
+                                      className="btn-table-action btn-table-action-cyan"
+                                      onClick={() => {
+                                        if (isViewing) {
+                                          setActiveViewCskhId(null);
+                                        } else {
+                                          setActiveViewCskhId(h.id);
+                                        }
+                                      }}
+                                    >
+                                      {isViewing ? "Đóng" : "Xem"}
+                                    </button>
+                                  </td>
+                                </tr>
+                                {isViewing && (
+                                  <tr key={`view-${h.id}`}>
+                                    <td colSpan={6} style={{ background: '#090d16', padding: '16px' }}>
+                                      <div className="reply-box">
+                                        <div className="reply-title" style={{ color: '#38bdf8' }}>
+                                          Tiêu đề: <span>{subject}</span>
+                                        </div>
+                                        <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '8px' }}>
+                                          Người gửi: <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>{sender}</span> | Gửi tới: <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>{email}</span>
+                                        </div>
+                                        <div style={{ 
+                                          background: 'rgba(0,0,0,0.4)', 
+                                          padding: '12px', 
+                                          borderRadius: '8px', 
+                                          border: '1px solid #1e293b',
+                                          color: '#e2e8f0',
+                                          whiteSpace: 'pre-wrap',
+                                          fontSize: '0.9rem',
+                                          lineHeight: '1.5'
+                                        }}>
+                                          {h.content}
+                                        </div>
+                                        <div style={{ marginTop: '12px', textAlign: 'right' }}>
+                                          <button
+                                            type="button"
+                                            className="btn-cancel"
+                                            style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                                            onClick={() => setActiveViewCskhId(null)}
+                                          >
+                                            Đóng
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </Fragment>
                             );
                           })}
                         </tbody>
@@ -1194,8 +1246,6 @@ export default function Dashboard() {
                     )}
                   </div>
                 </div>
-
-                {/* CSKH Email Composer Form is now a Gmail-style floating compose window */}
               </div>
             )}
           </section>

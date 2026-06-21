@@ -85,6 +85,11 @@ export function writeProfileSnapshot(data: any) {
         avatarUrl: data.avatarUrl || buildAvatarUrl(fullName)
     };
 
+    if (data.role) {
+        localStorage.setItem("userRole", data.role);
+        localStorage.setItem("user_role", data.role);
+    }
+
     localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(snapshot));
     window.dispatchEvent(new Event(PROFILE_UPDATED_EVENT));
     return snapshot;
@@ -366,6 +371,15 @@ export const api = {
             method: "POST",
             headers: getAuthHeaders(),
             body: JSON.stringify(body)
+        });
+        return await readJsonResponse(response);
+    },
+
+    async supportCreate(customerEmail: string, content: string) {
+        const response = await fetch(`${API_BASE}/support/create`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ customerEmail, content })
         });
         return await readJsonResponse(response);
     },

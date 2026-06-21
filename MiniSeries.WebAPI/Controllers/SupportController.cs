@@ -1,20 +1,28 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MiniSeries.Domain.Entities;
+using MiniSeries.Infrastructure.Options;
 using MiniSeries.Infrastructure.Persistence;
 using MiniSeries.WebAPI.Contracts;
 using MiniSeries.WebAPI.Security;
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MiniSeries.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/support")]
-public sealed class SupportController(MiniSeriesDbContext dbContext) : ControllerBase
+public sealed class SupportController(
+    MiniSeriesDbContext dbContext,
+    IOptions<EmailSettings> emailSettings) : ControllerBase
 {
+    private readonly EmailSettings _emailSettings = emailSettings.Value;
     [Authorize(Policy = "AuthenticatedUser")]
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] SupportCreateRequest req)
@@ -92,6 +100,35 @@ public sealed class SupportController(MiniSeriesDbContext dbContext) : Controlle
             item.Status = "Đã trả lời";
             
             await dbContext.SaveChangesAsync();
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) && !string.IsNullOrWhiteSpace(_emailSettings.AppPassword))
+                {
+                    using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer ?? "smtp.gmail.com"))
+                    {
+                        smtpClient.Port = int.TryParse(_emailSettings.Port, out var port) ? port : 587;
+                        smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
+                        smtpClient.EnableSsl = true;
+
+                        var mailMessage = new MailMessage
+                        {
+                            From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Mini Series Learning"),
+                            Subject = $"Phản hồi yêu cầu tư vấn - Phiếu #{item.Id}",
+                            Body = $"Chào bạn,\n\nYêu cầu hỗ trợ của bạn với nội dung:\n\"{item.Content}\"\n\nĐã được ban quản trị phản hồi:\n\"{item.Reply}\"\n\nTrân trọng,\nĐội ngũ hỗ trợ {_emailSettings.SenderName ?? "Mini Series"}.",
+                            IsBodyHtml = false
+                        };
+                        mailMessage.To.Add(item.CustomerEmail);
+
+                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                        await smtpClient.SendMailAsync(mailMessage, cts.Token);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SMTP Error] Failed to send support reply email to {item.CustomerEmail}: {ex.Message}");
+            }
 
             return Ok(item);
         }
