@@ -101,33 +101,42 @@ public sealed class SupportController(
             
             await dbContext.SaveChangesAsync();
 
-            try
+            if (!string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) && !string.IsNullOrWhiteSpace(_emailSettings.AppPassword))
             {
-                if (!string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) && !string.IsNullOrWhiteSpace(_emailSettings.AppPassword))
+                // Capture variables needed for the background thread
+                var customerEmail = item.CustomerEmail;
+                var ticketId = item.Id;
+                var ticketContent = item.Content;
+                var ticketReply = item.Reply;
+                
+                _ = Task.Run(async () =>
                 {
-                    using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer ?? "smtp.gmail.com"))
+                    try
                     {
-                        smtpClient.Port = int.TryParse(_emailSettings.Port, out var port) ? port : 587;
-                        smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
-                        smtpClient.EnableSsl = true;
-
-                        var mailMessage = new MailMessage
+                        using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer ?? "smtp.gmail.com"))
                         {
-                            From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Mini Series Learning"),
-                            Subject = $"Phản hồi yêu cầu tư vấn - Phiếu #{item.Id}",
-                            Body = $"Chào bạn,\n\nYêu cầu hỗ trợ của bạn với nội dung:\n\"{item.Content}\"\n\nĐã được ban quản trị phản hồi:\n\"{item.Reply}\"\n\nTrân trọng,\nĐội ngũ hỗ trợ {_emailSettings.SenderName ?? "Mini Series"}.",
-                            IsBodyHtml = false
-                        };
-                        mailMessage.To.Add(item.CustomerEmail);
+                            smtpClient.Port = int.TryParse(_emailSettings.Port, out var port) ? port : 587;
+                            smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
+                            smtpClient.EnableSsl = true;
 
-                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                        await smtpClient.SendMailAsync(mailMessage, cts.Token);
+                            var mailMessage = new MailMessage
+                            {
+                                From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Mini Series Learning"),
+                                Subject = $"Phản hồi yêu cầu tư vấn - Phiếu #{ticketId}",
+                                Body = $"Chào bạn,\n\nYêu cầu hỗ trợ của bạn với nội dung:\n\"{ticketContent}\"\n\nĐã được ban quản trị phản hồi:\n\"{ticketReply}\"\n\nTrân trọng,\nĐội ngũ hỗ trợ {_emailSettings.SenderName ?? "Mini Series"}.",
+                                IsBodyHtml = false
+                            };
+                            mailMessage.To.Add(customerEmail);
+
+                            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                            await smtpClient.SendMailAsync(mailMessage, cts.Token);
+                        }
                     }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[SMTP Error] Failed to send support reply email to {item.CustomerEmail}: {ex.Message}");
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[SMTP Background Error] Failed to send support reply email to {customerEmail}: {ex.Message}");
+                    }
+                });
             }
 
             return Ok(item);

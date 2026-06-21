@@ -41,35 +41,17 @@ public class CskhController : ControllerBase
 
         try
         {
-            // 1. Thực hiện gửi mail bằng hòm thư công ty
-            using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer))
-            {
-                smtpClient.Port = int.TryParse(_emailSettings.Port, out var p) ? p : 587;
-                smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
-                smtpClient.EnableSsl = true;
-
-                var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName),
-                    Subject = string.IsNullOrWhiteSpace(req.Subject) ? "Hỗ trợ khách hàng từ Thousand Sunsilk" : req.Subject,
-                    Body = req.Content,
-                    IsBodyHtml = false
-                };
-                mailMessage.To.Add(req.CustomerEmail);
-
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                await smtpClient.SendMailAsync(mailMessage, cts.Token);
-            }
-
-            // 2. Lấy Role của người đăng nhập từ Token (Admin/Staff)
+            // 1. Lấy Role của người đăng nhập từ Token (Admin/Staff)
             var currentRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Staff";
 
-            // 3. Sử dụng EF Core để lưu vào database
+            var subject = string.IsNullOrWhiteSpace(req.Subject) ? "Hỗ trợ khách hàng từ Thousand Sunsilk" : req.Subject;
+
+            // 2. Sử dụng EF Core để lưu vào database trước
             var messageLog = new CskhMessage
             {
                 Id = Guid.NewGuid(),
                 CustomerEmail = req.CustomerEmail,
-                Subject = string.IsNullOrWhiteSpace(req.Subject) ? "Hỗ trợ khách hàng từ Thousand Sunsilk" : req.Subject,
+                Subject = subject,
                 Content = req.Content,
                 SenderRole = currentRole,
                 CreatedAt = DateTime.UtcNow
@@ -78,15 +60,48 @@ public class CskhController : ControllerBase
             _dbContext.CskhMessages.Add(messageLog);
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new { message = $"Đã gửi thư hỗ trợ thành công từ tổng đài {_emailSettings.SenderName}!" });
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(500, new { message = "Lỗi gửi Email CSKH: Quá thời gian chờ (10 giây). Có thể do cổng SMTP 587 bị chặn hoặc cấu hình sai." });
+            // 3. Thực hiện gửi mail bất đồng bộ ở background
+            if (!string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) && !string.IsNullOrWhiteSpace(_emailSettings.AppPassword))
+            {
+                var customerEmail = req.CustomerEmail;
+                var emailContent = req.Content;
+                var emailSubject = subject;
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer ?? "smtp.gmail.com"))
+                        {
+                            smtpClient.Port = int.TryParse(_emailSettings.Port, out var p) ? p : 587;
+                            smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
+                            smtpClient.EnableSsl = true;
+
+                            var mailMessage = new MailMessage
+                            {
+                                From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Thousand Sunsilk"),
+                                Subject = emailSubject,
+                                Body = emailContent,
+                                IsBodyHtml = false
+                            };
+                            mailMessage.To.Add(customerEmail);
+
+                            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                            await smtpClient.SendMailAsync(mailMessage, cts.Token);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[SMTP Background Error] Failed to send CSKH email to {customerEmail}: {ex.Message}");
+                    }
+                });
+            }
+
+            return Ok(new { message = $"Đã ghi nhận nhật ký và tiến hành gửi thư CSKH thành công!" });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = $"Hệ thống gặp lỗi: {ex.Message}", errorDetail = ex.ToString() });
+            return StatusCode(500, new { message = $"Hệ thống gặp lỗi lưu nhật ký hoặc xử lý gửi: {ex.Message}", errorDetail = ex.ToString() });
         }
     }
 

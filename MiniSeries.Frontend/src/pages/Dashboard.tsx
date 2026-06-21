@@ -124,6 +124,8 @@ export default function Dashboard() {
   const [activeReplySupportId, setActiveReplySupportId] = useState<number | string | null>(null);
   const [supportReplyText, setSupportReplyText] = useState<string>('');
   const [activeViewCskhId, setActiveViewCskhId] = useState<number | null>(null);
+  const [replyingSupportId, setReplyingSupportId] = useState<number | null>(null);
+  const [isSendingCskhEmail, setIsSendingCskhEmail] = useState<boolean>(false);
 
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState<boolean>(false);
@@ -438,6 +440,7 @@ export default function Dashboard() {
       alert("Vui lòng nhập nội dung phản hồi.");
       return;
     }
+    setReplyingSupportId(ticketId);
     try {
       await api.supportReply(ticketId, reply);
       showToast('Phản hồi ticket hỗ trợ thành công!');
@@ -446,6 +449,8 @@ export default function Dashboard() {
       loadSupportData();
     } catch (err: any) {
       showToast(err.message || 'Phản hồi thất bại', 'error');
+    } finally {
+      setReplyingSupportId(null);
     }
   };
 
@@ -467,6 +472,7 @@ export default function Dashboard() {
       alert("Vui lòng nhập đầy đủ địa chỉ nhận và nội dung phản hồi!");
       return;
     }
+    setIsSendingCskhEmail(true);
     try {
       await api.cskhSendEmail({
         customerEmail: email,
@@ -480,6 +486,8 @@ export default function Dashboard() {
       loadSupportData();
     } catch (err: any) {
       showToast(err.message || 'Gửi mail thất bại', 'error');
+    } finally {
+      setIsSendingCskhEmail(false);
     }
   };
 
@@ -1096,13 +1104,14 @@ export default function Dashboard() {
                                         onChange={(e) => setSupportReplyText(e.target.value)}
                                         className="reply-textarea"
                                         placeholder="Nhập nội dung phản hồi..."
-                                        disabled={isDone}
+                                        disabled={isDone || replyingSupportId === t.id}
                                       />
                                       {!isDone && (
                                         <div className="reply-actions">
                                           <button
                                             type="button"
                                             className="btn-cancel"
+                                            disabled={replyingSupportId === t.id}
                                             onClick={() => setActiveReplySupportId(null)}
                                           >
                                             Hủy
@@ -1110,9 +1119,10 @@ export default function Dashboard() {
                                           <button
                                             type="button"
                                             className="btn-confirm"
+                                            disabled={replyingSupportId === t.id}
                                             onClick={() => handleReplySupportTicket(t.id)}
                                           >
-                                            Xác nhận gửi
+                                            {replyingSupportId === t.id ? "Đang gửi..." : "Xác nhận gửi"}
                                           </button>
                                         </div>
                                       )}
@@ -1870,6 +1880,7 @@ export default function Dashboard() {
                     value={cskhEmail}
                     onChange={(e) => setCskhEmail(e.target.value)}
                     placeholder="khachhang@gmail.com"
+                    disabled={isSendingCskhEmail}
                   />
                 </div>
                 <div className="gmail-compose-field">
@@ -1880,6 +1891,7 @@ export default function Dashboard() {
                     value={cskhSubject}
                     onChange={(e) => setCskhSubject(e.target.value)}
                     placeholder="Tiêu đề phản hồi..."
+                    disabled={isSendingCskhEmail}
                   />
                 </div>
                 <textarea
@@ -1888,6 +1900,7 @@ export default function Dashboard() {
                   value={cskhContent}
                   onChange={(e) => setCskhContent(e.target.value)}
                   placeholder="Nhập nội dung thư hỗ trợ ở đây..."
+                  disabled={isSendingCskhEmail}
                 />
               </div>
 
@@ -1895,14 +1908,16 @@ export default function Dashboard() {
                 <button
                   type="button"
                   className="gmail-compose-send-btn"
+                  disabled={isSendingCskhEmail}
                   onClick={handleSendCskhEmail}
                 >
-                  Gửi
+                  {isSendingCskhEmail ? "Đang gửi..." : "Gửi"}
                 </button>
                 <button
                   type="button"
                   className="gmail-compose-discard-btn"
                   title="Hủy bỏ"
+                  disabled={isSendingCskhEmail}
                   onClick={handleCancelCskhReply}
                 >
                   <svg style={{ width: '18px', height: '18px' }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
