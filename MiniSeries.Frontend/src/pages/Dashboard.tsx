@@ -19,7 +19,7 @@ interface CustomerProfile {
 }
 
 interface SupportTicket {
-  id: number;
+  id: string;
   customerEmail: string;
   content: string;
   createdAt: string;
@@ -28,7 +28,7 @@ interface SupportTicket {
 }
 
 interface CskhMessage {
-  id: number;
+  id: string;
   customer_email?: string;
   email_customer?: string;
   customerEmail?: string;
@@ -52,7 +52,7 @@ interface FeedbackItem {
 }
 
 interface StaffReport {
-  id: number;
+  id: string;
   staffName: string;
   content: string;
   status: string;
@@ -117,14 +117,14 @@ export default function Dashboard() {
   const [cskhEmail, setCskhEmail] = useState<string>('');
   const [cskhSubject, setCskhSubject] = useState<string>('');
   const [cskhContent, setCskhContent] = useState<string>('');
-  const [selectedCskhTicketId, setSelectedCskhTicketId] = useState<number | null>(null);
+  const [selectedCskhTicketId, setSelectedCskhTicketId] = useState<string | null>(null);
   const [isComposeOpen, setIsComposeOpen] = useState<boolean>(false);
   const [isComposeMinimized, setIsComposeMinimized] = useState<boolean>(false);
 
-  const [activeReplySupportId, setActiveReplySupportId] = useState<number | string | null>(null);
+  const [activeReplySupportId, setActiveReplySupportId] = useState<string | null>(null);
   const [supportReplyText, setSupportReplyText] = useState<string>('');
-  const [activeViewCskhId, setActiveViewCskhId] = useState<number | null>(null);
-  const [replyingSupportId, setReplyingSupportId] = useState<number | null>(null);
+  const [activeViewCskhId, setActiveViewCskhId] = useState<string | null>(null);
+  const [replyingSupportId, setReplyingSupportId] = useState<string | null>(null);
   const [isSendingCskhEmail, setIsSendingCskhEmail] = useState<boolean>(false);
 
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
@@ -135,7 +135,7 @@ export default function Dashboard() {
   const [reportsLoading, setReportsLoading] = useState<boolean>(false);
 
   const [adminReports, setAdminReports] = useState<StaffReport[]>([]);
-  const [adminReplies, setAdminReplies] = useState<Record<number, string>>({});
+  const [adminReplies, setAdminReplies] = useState<Record<string, string>>({});
 
   const [payments, setPayments] = useState<PaymentHistory[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState<boolean>(false);
@@ -434,7 +434,7 @@ export default function Dashboard() {
   };
 
   // Support actions
-  const handleReplySupportTicket = async (ticketId: number) => {
+  const handleReplySupportTicket = async (ticketId: string) => {
     const reply = supportReplyText.trim();
     if (!reply) {
       alert("Vui lòng nhập nội dung phản hồi.");
@@ -478,7 +478,7 @@ export default function Dashboard() {
         customerEmail: email,
         subject: subject,
         content: content,
-        ticketId: selectedCskhTicketId
+        ticketId: selectedCskhTicketId ?? undefined
       });
       showToast('Đã gửi mail phản hồi thành công!');
       setCskhContent('');
@@ -510,7 +510,7 @@ export default function Dashboard() {
   };
 
   // Admin Reports Actions
-  const handleReplyReport = async (reportId: number) => {
+  const handleReplyReport = async (reportId: string) => {
     const reply = (adminReplies[reportId] || '').trim();
     if (!reply) {
       showToast('Vui lòng nhập nội dung phản hồi.', 'error');
@@ -817,22 +817,25 @@ export default function Dashboard() {
       <main className="dashboard-main">
         {/* Content Section */}
         {activeTab === 'content' && (
-          <section className="space-y-6">
+          <section className="dashboard-fade-in space-y-6">
             <div className="section-header">
               <h2 className="section-title">Quản lý nội dung</h2>
               <p className="section-subtitle">Duyệt bài học, truyền Manga và MiniSeries do người dùng tạo.</p>
             </div>
-            <div className="stat-card">
-              <p style={{ fontSize: '0.875rem', color: '#cbd5e1' }}>
-                Danh sách nội dung đang chờ duyệt: <strong style={{ color: '#c084fc' }}>8</strong> mục
-              </p>
+            <div className="stat-card pending-content-card">
+              <div className="flex items-center gap-3">
+                <span className="pending-indicator-ping"></span>
+                <p className="pending-content-text">
+                  Danh sách nội dung đang chờ duyệt: <strong className="pending-content-count">8</strong> mục
+                </p>
+              </div>
             </div>
           </section>
         )}
 
         {/* Customers Section */}
         {activeTab === 'customers' && (
-          <section className="space-y-6">
+          <section className="dashboard-fade-in space-y-6">
             <div className="section-header">
               <h2 className="section-title">Quản lý Khách hàng</h2>
               <p className="section-subtitle">Danh sách Customer và trạng thái Online/Offline realtime theo dữ liệu API.</p>
@@ -876,12 +879,12 @@ export default function Dashboard() {
                       const isBlocked = c.accountStatus?.toLowerCase() === 'blocked';
                       return (
                         <tr key={c.id}>
-                          <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#94a3b8' }}>
+                          <td className="monospace-id">
                             {c.id}
                           </td>
                           <td className="font-semibold text-slate-200">{c.fullName}</td>
                           <td>{c.email}</td>
-                          <td style={{ color: '#cbd5e1', fontWeight: '600' }}>
+                          <td className="font-semibold text-zinc-300">
                             {c.planName || 'Free'}
                           </td>
                           <td>
@@ -895,7 +898,7 @@ export default function Dashboard() {
                               </span>
                             )}
                           </td>
-                          <td style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{formatDate(c.createdAt)}</td>
+                          <td className="text-zinc-500 text-xs">{formatDate(c.createdAt)}</td>
                           <td>
                             <div className="flex gap-2">
                               <button 
@@ -926,7 +929,7 @@ export default function Dashboard() {
 
         {/* Tokens Section */}
         {activeTab === 'tokens' && (
-          <section className="space-y-6">
+          <section className="dashboard-fade-in space-y-6">
             <div className="section-header">
               <h2 className="section-title">Quản lý Hạn ngạch & Gói</h2>
               <p className="section-subtitle">Theo dõi số lượt Manga, Video và gói nạp của khách hàng.</p>
@@ -943,7 +946,7 @@ export default function Dashboard() {
               </div>
               <div className="stat-card">
                 <div className="stat-title">Gói Pro Max / Premium</div>
-                <div className="stat-value purple" style={{ color: '#fbbf24' }}>
+                <div className="stat-value gold">
                   {tokenSummary.proMaxPackageCount}
                 </div>
               </div>
@@ -970,18 +973,18 @@ export default function Dashboard() {
                   <tbody>
                     {tokenUsers.map((u) => (
                       <tr key={u.id}>
-                        <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#94a3b8' }}>
+                        <td className="monospace-id">
                           {u.id}
                         </td>
                         <td className="font-semibold text-slate-200">{u.fullName}</td>
                         <td>{u.email}</td>
-                        <td style={{ color: '#cbd5e1', fontWeight: '600' }}>
+                        <td className="font-semibold text-zinc-300">
                           {(u.mangaLimit ?? 3) - (u.usedManga ?? 0)} / {(u.mangaLimit ?? 3)}
                         </td>
-                        <td style={{ color: '#cbd5e1', fontWeight: '600' }}>
+                        <td className="font-semibold text-zinc-300">
                           {(u.videoLimit ?? 1) - (u.usedVideo ?? 0)} / {(u.videoLimit ?? 1)}
                         </td>
-                        <td style={{ color: '#818cf8', fontWeight: '600' }}>{u.planName || 'Free'}</td>
+                        <td className="font-semibold text-indigo-400">{u.planName || 'Free'}</td>
                         <td>
                           <button 
                             type="button"
@@ -1002,7 +1005,7 @@ export default function Dashboard() {
 
         {/* Support Section */}
         {activeTab === 'support' && (
-          <section className="space-y-6">
+          <section className="dashboard-fade-in space-y-6">
             <div className="section-header">
               <h2 className="section-title">Hỗ trợ khách hàng</h2>
               <p className="section-subtitle">Xem các yêu cầu tư vấn từ khách hàng và gửi mail phản hồi trực tiếp.</p>
@@ -1057,12 +1060,12 @@ export default function Dashboard() {
                           return (
                             <Fragment key={t.id}>
                               <tr key={t.id}>
-                                <td style={{ fontFamily: 'monospace', color: '#94a3b8' }}>#{t.id}</td>
+                                <td className="monospace-id">#{t.id}</td>
                                 <td className="font-semibold text-slate-200">{t.customerEmail}</td>
                                 <td style={{ maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={t.content}>
                                   {t.content}
                                 </td>
-                                <td style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{formatDate(t.createdAt)}</td>
+                                <td className="text-zinc-500 text-xs">{formatDate(t.createdAt)}</td>
                                 <td>
                                   {isDone ? (
                                     <span className="status-badge badge-done">
@@ -1093,7 +1096,7 @@ export default function Dashboard() {
                               </tr>
                               {isReplying && (
                                 <tr key={`reply-${t.id}`}>
-                                  <td colSpan={6} style={{ background: '#090d16', padding: '16px' }}>
+                                  <td colSpan={6} className="table-expanded-row-cell">
                                     <div className="reply-box">
                                       <div className="reply-title">
                                         Trả lời tới: <span>{t.customerEmail}</span>
@@ -1141,21 +1144,20 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="flex justify-between items-center">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                       Nhật ký gửi Email CSKH
                     </h3>
                     <button
                       type="button"
-                      className="btn-table-action btn-table-action-cyan"
-                      style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      className="btn-table-action btn-table-action-cyan flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md"
                       onClick={() => {
                         handleCancelCskhReply();
                         setIsComposeOpen(true);
                         setIsComposeMinimized(false);
                       }}
                     >
-                      <svg style={{ width: '12px', height: '12px' }} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                       </svg>
                       Soạn Email mới
@@ -1189,13 +1191,13 @@ export default function Dashboard() {
                             return (
                               <Fragment key={h.id}>
                                 <tr>
-                                  <td style={{ fontFamily: 'monospace', color: '#94a3b8' }}>#{h.id}</td>
+                                  <td className="monospace-id">#{h.id}</td>
                                   <td className="font-semibold text-slate-200">{email}</td>
-                                  <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={subject}>
+                                  <td className="max-w-[200px] truncate" title={subject}>
                                     {subject}
                                   </td>
-                                  <td style={{ color: '#818cf8', fontWeight: '600' }}>{sender}</td>
-                                  <td style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{formatDate(created)}</td>
+                                  <td className="font-semibold text-indigo-400">{sender}</td>
+                                  <td className="text-zinc-500 text-xs">{formatDate(created)}</td>
                                   <td>
                                     <button
                                       type="button"
@@ -1214,31 +1216,21 @@ export default function Dashboard() {
                                 </tr>
                                 {isViewing && (
                                   <tr key={`view-${h.id}`}>
-                                    <td colSpan={6} style={{ background: '#090d16', padding: '16px' }}>
+                                    <td colSpan={6} className="table-expanded-row-cell">
                                       <div className="reply-box">
-                                        <div className="reply-title" style={{ color: '#38bdf8' }}>
+                                        <div className="reply-title reply-title-subject">
                                           Tiêu đề: <span>{subject}</span>
                                         </div>
-                                        <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '8px' }}>
-                                          Người gửi: <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>{sender}</span> | Gửi tới: <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>{email}</span>
+                                        <div className="text-zinc-400 text-xs mb-2">
+                                          Người gửi: <span className="font-semibold text-zinc-200">{sender}</span> | Gửi tới: <span className="font-semibold text-zinc-200">{email}</span>
                                         </div>
-                                        <div style={{ 
-                                          background: 'rgba(0,0,0,0.4)', 
-                                          padding: '12px', 
-                                          borderRadius: '8px', 
-                                          border: '1px solid #1e293b',
-                                          color: '#e2e8f0',
-                                          whiteSpace: 'pre-wrap',
-                                          fontSize: '0.9rem',
-                                          lineHeight: '1.5'
-                                        }}>
+                                        <div className="cskh-view-content">
                                           {h.content}
                                         </div>
-                                        <div style={{ marginTop: '12px', textAlign: 'right' }}>
+                                        <div className="mt-3 text-right">
                                           <button
                                             type="button"
-                                            className="btn-cancel"
-                                            style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                                            className="btn-cancel px-3 py-1.5 text-xs"
                                             onClick={() => setActiveViewCskhId(null)}
                                           >
                                             Đóng
@@ -1288,13 +1280,13 @@ export default function Dashboard() {
                   <tbody>
                     {feedbacks.map((f) => (
                       <tr key={f.id}>
-                        <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#94a3b8' }}>
+                        <td className="monospace-id">
                           {f.id}
                         </td>
                         <td className="font-semibold text-slate-200">{f.email}</td>
-                        <td style={{ color: '#fbbf24', fontWeight: 'bold' }}>{renderStars(f.rating)}</td>
+                        <td className="font-bold text-amber-400">{renderStars(f.rating)}</td>
                         <td>{f.comment}</td>
-                        <td style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{formatDate(f.createdAt)}</td>
+                        <td className="text-zinc-500 text-xs">{formatDate(f.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1306,7 +1298,7 @@ export default function Dashboard() {
 
         {/* Staff Reports Section */}
         {activeTab === 'reports-staff' && (
-          <section className="space-y-6">
+          <section className="dashboard-fade-in space-y-6">
             <div className="section-header">
               <h2 className="section-title">Báo cáo công việc</h2>
               <p className="section-subtitle">Gửi báo cáo hàng ngày lên quản trị viên (Admin).</p>
@@ -1355,7 +1347,7 @@ export default function Dashboard() {
                         const isCompleted = r.status === 'Đã hoàn thành' || Boolean(r.adminReply);
                         return (
                           <tr key={r.id}>
-                            <td style={{ color: '#94a3b8', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                            <td className="text-zinc-500 text-xs whitespace-nowrap">
                               {formatDate(r.createdAt)}
                             </td>
                             <td>{r.content}</td>
@@ -1384,7 +1376,7 @@ export default function Dashboard() {
 
         {/* Admin Reports section */}
         {activeTab === 'reports-admin' && (
-          <section className="space-y-6">
+          <section className="dashboard-fade-in space-y-6">
             <div className="section-header">
               <h2 className="section-title">Xem Báo cáo nhân viên</h2>
               <p className="section-subtitle">Danh sách các báo cáo tiến độ công việc do Staff gửi lên.</p>
@@ -1412,10 +1404,10 @@ export default function Dashboard() {
                       return (
                         <tr key={r.id}>
                           <td className="font-semibold text-slate-200">{r.staffName || 'Staff'}</td>
-                          <td style={{ color: '#94a3b8', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                          <td className="text-zinc-500 text-xs whitespace-nowrap">
                             {formatDate(r.createdAt)}
                           </td>
-                          <td style={{ maxWidth: '260px' }}>{r.content}</td>
+                          <td className="max-w-[260px]">{r.content}</td>
                           <td>
                             {isCompleted ? (
                               <span className="status-badge badge-done">
@@ -1434,8 +1426,7 @@ export default function Dashboard() {
                                 value={adminReplies[r.id] !== undefined ? adminReplies[r.id] : r.adminReply || ''}
                                 onChange={(e) => setAdminReplies(prev => ({ ...prev, [r.id]: e.target.value }))}
                                 disabled={isCompleted}
-                                className="reply-textarea"
-                                style={{ minHeight: '60px', width: '220px' }}
+                                className="reply-textarea reply-textarea-compact"
                                 placeholder="Nhập phản hồi..."
                               />
                               {!isCompleted && (
@@ -1461,7 +1452,7 @@ export default function Dashboard() {
 
         {/* Payments Section */}
         {activeTab === 'payments' && (
-          <section className="space-y-6">
+          <section className="dashboard-fade-in space-y-6">
             <div className="section-header">
               <h2 className="section-title">Lịch sử thanh toán</h2>
               <p className="section-subtitle">Toàn bộ các giao dịch nạp tiền qua cổng thanh toán.</p>
@@ -1486,17 +1477,17 @@ export default function Dashboard() {
                   <tbody>
                     {payments.map((p) => (
                       <tr key={p.id}>
-                        <td style={{ fontFamily: 'monospace', color: '#fbbf24', fontWeight: 'bold' }}>
+                        <td className="monospace-id font-bold text-amber-400">
                           {p.transactionCode}
                         </td>
                         <td className="font-semibold">{p.userEmail}</td>
-                        <td style={{ color: '#22c55e', fontWeight: 'bold' }}>{formatVnd(p.amount)}</td>
+                        <td className="font-bold text-emerald-400">{formatVnd(p.amount)}</td>
                         <td>
                           <span className="status-badge badge-done">
                             Hoàn tất
                           </span>
                         </td>
-                        <td style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{formatDate(p.createdAt)}</td>
+                        <td className="text-zinc-500 text-xs">{formatDate(p.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1508,21 +1499,21 @@ export default function Dashboard() {
 
         {/* Revenue Stats Section */}
         {activeTab === 'revenue' && (
-          <section className="space-y-6">
+          <section className="dashboard-fade-in space-y-6">
             <div className="section-header">
               <h2 className="section-title">Biểu đồ doanh thu</h2>
               <p className="section-subtitle">Phân tích thống kê kết quả doanh thu nhận được.</p>
             </div>
 
             {revenueLoading ? (
-              <div className="stat-card p-12 text-center text-slate-400">Đang tải biểu đồ...</div>
+              <div className="stat-card p-12 text-center text-zinc-400">Đang tải biểu đồ...</div>
             ) : (
               <div className="stat-card space-y-6">
                 {revenueStats && (
                   <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-4 gap-4">
                     <div>
                       <p className="text-xs text-slate-500 uppercase font-semibold">Tổng doanh thu</p>
-                      <h3 className="text-xl font-bold text-emerald-400 mt-0.5" style={{ textShadow: '0 0 10px rgba(34,197,94,0.3)' }}>
+                      <h3 className="text-xl font-bold text-emerald-400 mt-0.5 revenue-total-amount">
                         {formatVnd(revenueStats.totalRevenue)}
                       </h3>
                     </div>
@@ -1542,7 +1533,7 @@ export default function Dashboard() {
 
         {/* Staff Management Section */}
         {activeTab === 'staff' && (
-          <section className="space-y-6">
+          <section className="dashboard-fade-in space-y-6">
             <div className="section-header flex flex-wrap justify-between items-start gap-4">
               <div>
                 <h2 className="section-title">Quản lý Nhân viên (Staff)</h2>
@@ -1597,12 +1588,12 @@ export default function Dashboard() {
                       const isBlocked = s.accountStatus?.toLowerCase() === 'blocked';
                       return (
                         <tr key={s.id}>
-                          <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#94a3b8' }}>
+                          <td className="monospace-id">
                             {s.id}
                           </td>
                           <td className="font-semibold text-slate-200">{s.fullName}</td>
                           <td>{s.email}</td>
-                          <td style={{ color: '#818cf8', fontWeight: '600' }}>{s.role}</td>
+                          <td className="font-semibold text-indigo-400">{s.role}</td>
                           <td>
                             {isBlocked ? (
                               <span className="status-badge badge-blocked">
@@ -1614,7 +1605,7 @@ export default function Dashboard() {
                               </span>
                             )}
                           </td>
-                          <td style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{formatDate(s.createdAt)}</td>
+                          <td className="text-zinc-500 text-xs">{formatDate(s.createdAt)}</td>
                           <td>
                             <div className="flex gap-2">
                               <button 
@@ -1782,7 +1773,6 @@ export default function Dashboard() {
                   value={tokenPlan} 
                   onChange={(e) => setTokenPlan(e.target.value)} 
                   className="modal-input"
-                  style={{ background: '#020617' }}
                 >
                   <option value="Free">Free</option>
                   <option value="Basic">Basic</option>
@@ -1847,11 +1837,11 @@ export default function Dashboard() {
                 onClick={() => setIsComposeMinimized(!isComposeMinimized)}
               >
                 {isComposeMinimized ? (
-                  <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
                   </svg>
                 ) : (
-                  <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                   </svg>
                 )}
@@ -1862,7 +1852,7 @@ export default function Dashboard() {
                 title="Đóng"
                 onClick={handleCancelCskhReply}
               >
-                <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -1920,7 +1910,7 @@ export default function Dashboard() {
                   disabled={isSendingCskhEmail}
                   onClick={handleCancelCskhReply}
                 >
-                  <svg style={{ width: '18px', height: '18px' }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                   </svg>
                 </button>
