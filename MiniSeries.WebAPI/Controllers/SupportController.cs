@@ -101,7 +101,7 @@ public sealed class SupportController(
             
             await dbContext.SaveChangesAsync();
 
-            if (!string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) && !string.IsNullOrWhiteSpace(_emailSettings.AppPassword))
+            if (!string.IsNullOrWhiteSpace(_emailSettings.SenderEmail))
             {
                 // Capture variables needed for the background thread
                 var customerEmail = item.CustomerEmail;
@@ -113,28 +113,60 @@ public sealed class SupportController(
                 {
                     try
                     {
-                        using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer ?? "smtp.gmail.com"))
+                        var emailSubject = $"Phản hồi yêu cầu tư vấn - Phiếu #{ticketId}";
+                        var emailContent = $"Chào bạn,\n\nYêu cầu hỗ trợ của bạn với nội dung:\n\"{ticketContent}\"\n\nĐã được ban quản trị phản hồi:\n\"{ticketReply}\"\n\nTrân trọng,\nĐội ngũ hỗ trợ {_emailSettings.SenderName ?? "Mini Series"}.";
+
+                        if (!string.IsNullOrWhiteSpace(_emailSettings.ApiKey))
                         {
-                            smtpClient.Port = int.TryParse(_emailSettings.Port, out var port) ? port : 587;
-                            smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
-                            smtpClient.EnableSsl = true;
-
-                            var mailMessage = new MailMessage
+                            using (var client = new System.Net.Http.HttpClient())
                             {
-                                From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Mini Series Learning"),
-                                Subject = $"Phản hồi yêu cầu tư vấn - Phiếu #{ticketId}",
-                                Body = $"Chào bạn,\n\nYêu cầu hỗ trợ của bạn với nội dung:\n\"{ticketContent}\"\n\nĐã được ban quản trị phản hồi:\n\"{ticketReply}\"\n\nTrân trọng,\nĐội ngũ hỗ trợ {_emailSettings.SenderName ?? "Mini Series"}.",
-                                IsBodyHtml = false
-                            };
-                            mailMessage.To.Add(customerEmail);
+                                client.DefaultRequestHeaders.Add("api-key", _emailSettings.ApiKey);
+                                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                                
+                                var payload = new
+                                {
+                                    sender = new { name = _emailSettings.SenderName ?? "Mini Series Learning", email = _emailSettings.SenderEmail },
+                                    to = new[] { new { email = customerEmail } },
+                                    subject = emailSubject,
+                                    textContent = emailContent
+                                };
+                                
+                                var json = System.Text.Json.JsonSerializer.Serialize(payload);
+                                var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                                
+                                var response = await client.PostAsync("https://api.brevo.com/v3/smtp/email", content);
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    var errorResponse = await response.Content.ReadAsStringAsync();
+                                    Console.WriteLine($"[Brevo HTTP API Error] Failed to send support reply email to {customerEmail}: {response.StatusCode} - {errorResponse}");
+                                }
+                            }
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_emailSettings.AppPassword))
+                        {
+                            using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer ?? "smtp.gmail.com"))
+                            {
+                                smtpClient.Port = int.TryParse(_emailSettings.Port, out var port) ? port : 587;
+                                smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
+                                smtpClient.EnableSsl = true;
 
-                            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                            await smtpClient.SendMailAsync(mailMessage, cts.Token);
+                                var mailMessage = new MailMessage
+                                {
+                                    From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Mini Series Learning"),
+                                    Subject = emailSubject,
+                                    Body = emailContent,
+                                    IsBodyHtml = false
+                                };
+                                mailMessage.To.Add(customerEmail);
+
+                                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                                await smtpClient.SendMailAsync(mailMessage, cts.Token);
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[SMTP Background Error] Failed to send support reply email to {customerEmail}: {ex.Message}");
+                        Console.WriteLine($"[Email Background Error] Failed to send support reply email to {customerEmail}: {ex.Message}");
                     }
                 });
             }

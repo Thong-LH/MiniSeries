@@ -61,7 +61,7 @@ public class CskhController : ControllerBase
             await _dbContext.SaveChangesAsync();
 
             // 3. Thực hiện gửi mail bất đồng bộ ở background
-            if (!string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) && !string.IsNullOrWhiteSpace(_emailSettings.AppPassword))
+            if (!string.IsNullOrWhiteSpace(_emailSettings.SenderEmail))
             {
                 var customerEmail = req.CustomerEmail;
                 var emailContent = req.Content;
@@ -71,28 +71,57 @@ public class CskhController : ControllerBase
                 {
                     try
                     {
-                        using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer ?? "smtp.gmail.com"))
+                        if (!string.IsNullOrWhiteSpace(_emailSettings.ApiKey))
                         {
-                            smtpClient.Port = int.TryParse(_emailSettings.Port, out var p) ? p : 587;
-                            smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
-                            smtpClient.EnableSsl = true;
-
-                            var mailMessage = new MailMessage
+                            using (var client = new System.Net.Http.HttpClient())
                             {
-                                From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Thousand Sunsilk"),
-                                Subject = emailSubject,
-                                Body = emailContent,
-                                IsBodyHtml = false
-                            };
-                            mailMessage.To.Add(customerEmail);
+                                client.DefaultRequestHeaders.Add("api-key", _emailSettings.ApiKey);
+                                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                                
+                                var payload = new
+                                {
+                                    sender = new { name = _emailSettings.SenderName ?? "Thousand Sunsilk", email = _emailSettings.SenderEmail },
+                                    to = new[] { new { email = customerEmail } },
+                                    subject = emailSubject,
+                                    textContent = emailContent
+                                };
+                                
+                                var json = System.Text.Json.JsonSerializer.Serialize(payload);
+                                var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                                
+                                var response = await client.PostAsync("https://api.brevo.com/v3/smtp/email", content);
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    var errorResponse = await response.Content.ReadAsStringAsync();
+                                    Console.WriteLine($"[Brevo HTTP API Error] Failed to send CSKH email to {customerEmail}: {response.StatusCode} - {errorResponse}");
+                                }
+                            }
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_emailSettings.AppPassword))
+                        {
+                            using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer ?? "smtp.gmail.com"))
+                            {
+                                smtpClient.Port = int.TryParse(_emailSettings.Port, out var p) ? p : 587;
+                                smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
+                                smtpClient.EnableSsl = true;
 
-                            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                            await smtpClient.SendMailAsync(mailMessage, cts.Token);
+                                var mailMessage = new MailMessage
+                                {
+                                    From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName ?? "Thousand Sunsilk"),
+                                    Subject = emailSubject,
+                                    Body = emailContent,
+                                    IsBodyHtml = false
+                                };
+                                mailMessage.To.Add(customerEmail);
+
+                                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                                await smtpClient.SendMailAsync(mailMessage, cts.Token);
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[SMTP Background Error] Failed to send CSKH email to {customerEmail}: {ex.Message}");
+                        Console.WriteLine($"[Email Background Error] Failed to send CSKH email to {customerEmail}: {ex.Message}");
                     }
                 });
             }
