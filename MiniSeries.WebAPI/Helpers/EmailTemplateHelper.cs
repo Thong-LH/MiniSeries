@@ -2,6 +2,8 @@ using System;
 
 namespace MiniSeries.WebAPI.Helpers
 {
+    // Design Read: Transactional and support email templates for creative tech students, warm minimalist language, Outfit sans-serif, strict contrast lock.
+    // Dials: DESIGN_VARIANCE: 4 | MOTION_INTENSITY: 1 | VISUAL_DENSITY: 3
     public static class EmailTemplateHelper
     {
         private const string CommonLayout = @"
@@ -19,10 +21,10 @@ namespace MiniSeries.WebAPI.Helpers
                 <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 520px; background-color: #FAF9F5; border: 1px solid #e4e2db; border-radius: 8px; border-collapse: separate; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);"">
                     <tr>
                         <td align=""center"" style=""padding: 32px 32px 0 32px;"">
-                            <span style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 20px; font-weight: 700; color: #24292f; text-decoration: none;"">
-                                <span style=""color: #6366f1;"">M</span>ini<span style=""color: #a855f7;"">S</span>eries<span style=""color: #6366f1;"">L</span>earning
+                            <span style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 20px; font-weight: 700; color: #24292f; text-decoration: none; letter-spacing: -0.5px;"">
+                                MiniSeries<span style=""color: #6366f1;"">Learning</span>
                             </span>
-                            <div style=""color: #8c8a82; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;"">
+                            <div style=""color: #8c8a82; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; margin-top: 4px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;"">
                                 Idea to Animation & Manga
                             </div>
                         </td>
