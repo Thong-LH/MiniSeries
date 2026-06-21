@@ -1169,7 +1169,7 @@
 .table-pagination-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 1rem 1.25rem;
   border-top: 1px solid var(--border-muted);
   background: rgba(24, 24, 27, 0.5);

@@ -234,9 +234,6 @@ export default function Dashboard() {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (totalPages <= 1) return null;
 
-    const startIdx = (currentPage - 1) * itemsPerPage + 1;
-    const endIdx = Math.min(currentPage * itemsPerPage, totalItems);
-
     const pages: number[] = [];
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
@@ -258,9 +255,6 @@ export default function Dashboard() {
 
     return (
       <div className="table-pagination-bar">
-        <div className="pagination-info">
-          Hiển thị <span>{startIdx}</span> - <span>{endIdx}</span> trong tổng số <span>{totalItems}</span> mục
-        </div>
         <div className="pagination-controls">
           <button
             type="button"
