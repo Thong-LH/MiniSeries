@@ -157,13 +157,96 @@ export default function Dashboard() {
   const [filterOption2, setFilterOption2] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Sorting states
+  const [sortColumn, setSortColumn] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
   // Reset states on activeTab or supportTab changes
   useEffect(() => {
     setSearchTerm('');
     setFilterOption1('');
     setFilterOption2('');
     setCurrentPage(1);
+    setSortColumn('');
+    setSortDirection('desc');
   }, [activeTab, supportTab]);
+
+  // Sorting helper handler
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  // UI Helper for sortable headers
+  const renderSortableHeader = (label: string, field: string) => {
+    const isCurrent = sortColumn === field;
+    return (
+      <th 
+        onClick={() => handleSort(field)} 
+        className="sortable-header"
+        style={{ cursor: 'pointer', userSelect: 'none' }}
+      >
+        <div className="flex items-center gap-1">
+          {label}
+          <span className={`sort-arrow ${isCurrent ? 'active' : ''}`} style={{ fontSize: '10px', opacity: isCurrent ? 1 : 0.4 }}>
+            {isCurrent ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : ' ↕'}
+          </span>
+        </div>
+      </th>
+    );
+  };
+
+  // Generic data sorting utility
+  const sortData = <T extends Record<string, any>>(data: T[]): T[] => {
+    if (!sortColumn) return data;
+    return [...data].sort((a, b) => {
+      let valA = a[sortColumn];
+      let valB = b[sortColumn];
+
+      // Handle inconsistent API naming formats
+      if (sortColumn === 'customerEmail') {
+        valA = a.customerEmail ?? a.customer_email ?? a.email_customer;
+        valB = b.customerEmail ?? b.customer_email ?? b.email_customer;
+      } else if (sortColumn === 'createdAt') {
+        valA = a.createdAt ?? a.created_at;
+        valB = b.createdAt ?? b.created_at;
+      } else if (sortColumn === 'subject') {
+        valA = a.subject ?? a.Subject;
+        valB = b.subject ?? b.Subject;
+      } else if (sortColumn === 'senderRole') {
+        valA = a.senderRole ?? a.sender_role;
+        valB = b.senderRole ?? b.sender_role;
+      }
+
+      if (valA === undefined || valA === null) return 1;
+      if (valB === undefined || valB === null) return -1;
+
+      // Handle numbers
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return sortDirection === 'asc' ? valA - valB : valB - valA;
+      }
+
+      // Handle strings/dates
+      const strA = String(valA);
+      const strB = String(valB);
+
+      // Check if it's a valid date string
+      const dateA = Date.parse(strA);
+      const dateB = Date.parse(strB);
+      if (!isNaN(dateA) && !isNaN(dateB) && isNaN(Number(strA)) && isNaN(Number(strB))) {
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      }
+
+      return sortDirection === 'asc' 
+        ? strA.toLowerCase().localeCompare(strB.toLowerCase(), 'vi', { sensitivity: 'base' })
+        : strB.toLowerCase().localeCompare(strA.toLowerCase(), 'vi', { sensitivity: 'base' });
+    });
+  };
 
   // UI Helper for Search & Filter Bar
   const renderSearchFilterBar = (
@@ -1041,7 +1124,8 @@ export default function Dashboard() {
                   return matchesSearch && matchesStatus && matchesPlan;
                 });
 
-                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+                const sorted = sortData(filtered);
+                const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
                   return <div className="p-8 text-center text-slate-400">Không tìm thấy khách hàng phù hợp.</div>;
@@ -1052,12 +1136,12 @@ export default function Dashboard() {
                     <table className="cyber-table">
                       <thead>
                         <tr>
-                          <th>ID</th>
-                          <th>Tên khách hàng</th>
-                          <th>Email</th>
-                          <th>Gói cước</th>
-                          <th>Trạng thái</th>
-                          <th>Ngày đăng ký</th>
+                          {renderSortableHeader("ID", "id")}
+                          {renderSortableHeader("Tên khách hàng", "fullName")}
+                          {renderSortableHeader("Email", "email")}
+                          {renderSortableHeader("Gói cước", "planName")}
+                          {renderSortableHeader("Trạng thái", "accountStatus")}
+                          {renderSortableHeader("Ngày đăng ký", "createdAt")}
                           <th>Thao tác</th>
                         </tr>
                       </thead>
@@ -1164,7 +1248,8 @@ export default function Dashboard() {
                   return matchesSearch && matchesPlan;
                 });
 
-                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+                const sorted = sortData(filtered);
+                const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
                   return <div className="p-8 text-center text-slate-400">Không tìm thấy người dùng phù hợp.</div>;
@@ -1175,12 +1260,12 @@ export default function Dashboard() {
                     <table className="cyber-table">
                       <thead>
                         <tr>
-                          <th>ID người dùng</th>
-                          <th>Tên user</th>
-                          <th>Email</th>
-                          <th>Lượt Manga (Còn lại / Tổng)</th>
-                          <th>Lượt Video (Còn lại / Tổng)</th>
-                          <th>Gói đang dùng</th>
+                          {renderSortableHeader("ID người dùng", "id")}
+                          {renderSortableHeader("Tên user", "fullName")}
+                          {renderSortableHeader("Email", "email")}
+                          {renderSortableHeader("Lượt Manga (Còn lại / Tổng)", "mangaLimit")}
+                          {renderSortableHeader("Lượt Video (Còn lại / Tổng)", "videoLimit")}
+                          {renderSortableHeader("Gói đang dùng", "planName")}
                           <th>Thao tác</th>
                         </tr>
                       </thead>
@@ -1282,7 +1367,8 @@ export default function Dashboard() {
                       return matchesSearch && matchesStatus;
                     });
 
-                    const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+                    const sorted = sortData(filtered);
+                    const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                     if (filtered.length === 0) {
                       return <div className="p-8 text-center text-slate-400">Không tìm thấy ticket phù hợp.</div>;
@@ -1293,11 +1379,11 @@ export default function Dashboard() {
                         <table className="cyber-table">
                           <thead>
                             <tr>
-                              <th>ID</th>
-                              <th>Email khách</th>
-                              <th>Nội dung</th>
-                              <th>Ngày gửi</th>
-                              <th>Trạng thái</th>
+                              {renderSortableHeader("ID", "id")}
+                              {renderSortableHeader("Email khách", "customerEmail")}
+                              {renderSortableHeader("Nội dung", "content")}
+                              {renderSortableHeader("Ngày gửi", "createdAt")}
+                              {renderSortableHeader("Trạng thái", "status")}
                               <th>Thao tác</th>
                             </tr>
                           </thead>
@@ -1428,7 +1514,8 @@ export default function Dashboard() {
                         return matchesSearch && matchesSender;
                       });
 
-                      const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+                      const sorted = sortData(filtered);
+                      const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                       if (filtered.length === 0) {
                         return <div className="p-8 text-center text-slate-400">Không tìm thấy email CSKH phù hợp.</div>;
@@ -1439,11 +1526,11 @@ export default function Dashboard() {
                           <table className="cyber-table">
                             <thead>
                               <tr>
-                                <th>ID</th>
-                                <th>Email khách</th>
-                                <th>Tiêu đề</th>
-                                <th>Người gửi</th>
-                                <th>Ngày gửi</th>
+                                {renderSortableHeader("ID", "id")}
+                                {renderSortableHeader("Email khách", "customerEmail")}
+                                {renderSortableHeader("Tiêu đề", "subject")}
+                                {renderSortableHeader("Người gửi", "senderRole")}
+                                {renderSortableHeader("Ngày gửi", "createdAt")}
                                 <th>Thao tác</th>
                               </tr>
                             </thead>
@@ -1560,7 +1647,8 @@ export default function Dashboard() {
                   return matchesSearch && matchesStars;
                 });
 
-                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+                const sorted = sortData(filtered);
+                const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
                   return <div className="p-8 text-center text-slate-400">Không tìm thấy đánh giá phù hợp.</div>;
@@ -1571,11 +1659,11 @@ export default function Dashboard() {
                     <table className="cyber-table">
                       <thead>
                         <tr>
-                          <th>ID</th>
-                          <th>Email</th>
-                          <th>Số sao</th>
-                          <th>Bình luận</th>
-                          <th>Ngày gửi</th>
+                          {renderSortableHeader("ID", "id")}
+                          {renderSortableHeader("Email", "email")}
+                          {renderSortableHeader("Số sao", "rating")}
+                          {renderSortableHeader("Bình luận", "comment")}
+                          {renderSortableHeader("Ngày gửi", "createdAt")}
                         </tr>
                       </thead>
                       <tbody>
@@ -1659,7 +1747,8 @@ export default function Dashboard() {
                     return matchesSearch && matchesStatus;
                   });
 
-                  const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+                  const sorted = sortData(filtered);
+                  const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                   if (filtered.length === 0) {
                     return <div className="p-8 text-center text-slate-400">Không tìm thấy báo cáo phù hợp.</div>;
@@ -1670,10 +1759,10 @@ export default function Dashboard() {
                       <table className="cyber-table">
                         <thead>
                           <tr>
-                            <th>Ngày gửi</th>
-                            <th>Nội dung</th>
-                            <th>Trạng thái</th>
-                            <th>Phản hồi Admin</th>
+                            {renderSortableHeader("Ngày gửi", "createdAt")}
+                            {renderSortableHeader("Nội dung", "content")}
+                            {renderSortableHeader("Trạng thái", "status")}
+                            {renderSortableHeader("Phản hồi Admin", "adminReply")}
                           </tr>
                         </thead>
                         <tbody>
@@ -1748,7 +1837,8 @@ export default function Dashboard() {
                   return matchesSearch && matchesStatus;
                 });
 
-                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+                const sorted = sortData(filtered);
+                const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
                   return <div className="p-8 text-center text-slate-400">Không tìm thấy báo cáo phù hợp.</div>;
@@ -1759,10 +1849,10 @@ export default function Dashboard() {
                     <table className="cyber-table">
                       <thead>
                         <tr>
-                          <th>Staff</th>
-                          <th>Ngày gửi</th>
-                          <th>Nội dung</th>
-                          <th>Trạng thái</th>
+                          {renderSortableHeader("Staff", "staffName")}
+                          {renderSortableHeader("Ngày gửi", "createdAt")}
+                          {renderSortableHeader("Nội dung", "content")}
+                          {renderSortableHeader("Trạng thái", "status")}
                           <th>Reply</th>
                         </tr>
                       </thead>
@@ -1839,7 +1929,8 @@ export default function Dashboard() {
                     p.userEmail?.toLowerCase().includes(searchTerm.toLowerCase());
                 });
 
-                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+                const sorted = sortData(filtered);
+                const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
                   return <div className="p-8 text-center text-slate-400">Không tìm thấy giao dịch phù hợp.</div>;
@@ -1850,11 +1941,11 @@ export default function Dashboard() {
                     <table className="cyber-table">
                       <thead>
                         <tr>
-                          <th>Mã GD</th>
-                          <th>Email khách</th>
-                          <th>Số tiền</th>
+                          {renderSortableHeader("Mã GD", "transactionCode")}
+                          {renderSortableHeader("Email khách", "userEmail")}
+                          {renderSortableHeader("Số tiền", "amount")}
                           <th>Trạng thái</th>
-                          <th>Ngày nạp</th>
+                          {renderSortableHeader("Ngày nạp", "createdAt")}
                         </tr>
                       </thead>
                       <tbody>
@@ -1980,7 +2071,8 @@ export default function Dashboard() {
                   return matchesSearch && matchesStatus;
                 });
 
-                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+                const sorted = sortData(filtered);
+                const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
                 if (filtered.length === 0) {
                   return <div className="p-8 text-center text-slate-400">Không tìm thấy nhân viên phù hợp.</div>;
@@ -1991,12 +2083,12 @@ export default function Dashboard() {
                     <table className="cyber-table">
                       <thead>
                         <tr>
-                          <th>ID</th>
-                          <th>Tên nhân viên</th>
-                          <th>Email</th>
-                          <th>Vai trò</th>
-                          <th>Trạng thái</th>
-                          <th>Ngày tham gia</th>
+                          {renderSortableHeader("ID", "id")}
+                          {renderSortableHeader("Tên nhân viên", "fullName")}
+                          {renderSortableHeader("Email", "email")}
+                          {renderSortableHeader("Vai trò", "role")}
+                          {renderSortableHeader("Trạng thái", "accountStatus")}
+                          {renderSortableHeader("Ngày tham gia", "createdAt")}
                           <th>Thao tác</th>
                         </tr>
                       </thead>
