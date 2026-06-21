@@ -200,6 +200,39 @@ export const api = {
         return await readJsonResponse(response);
     },
 
+    async forgotPassword(email: string) {
+        const response = await fetch(`${API_BASE}/auth/forgot-password`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email })
+        });
+        return await readJsonResponse(response);
+    },
+
+    async verifyResetOtp(email: string, otpCode: string) {
+        const response = await fetch(`${API_BASE}/auth/verify-reset-otp`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, otpCode })
+        });
+        return await readJsonResponse(response);
+    },
+
+    async resetPassword(email: string, otpCode: string, newPassword: string) {
+        const response = await fetch(`${API_BASE}/auth/reset-password`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, otpCode, newPassword })
+        });
+        return await readJsonResponse(response);
+    },
+
     async generateDraft(request: DraftRequest) {
         const response = await fetch(`${API_BASE}/lessons/drafts`, {
             method: "POST",

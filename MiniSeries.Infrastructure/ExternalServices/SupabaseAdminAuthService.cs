@@ -138,4 +138,20 @@ public sealed class SupabaseAdminAuthService
         var body = await response.Content.ReadAsStringAsync();
         throw new InvalidOperationException(ParseAuthError(body));
     }
+
+    public async Task UpdateUserPasswordAsync(Guid userId, string newPassword)
+    {
+        var payload = new { password = newPassword };
+        using var request = CreateAdminRequest(HttpMethod.Put, $"admin/users/{userId:D}",
+            new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"));
+
+        using var response = await _http.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        var body = await response.Content.ReadAsStringAsync();
+        throw new InvalidOperationException(ParseAuthError(body));
+    }
 }

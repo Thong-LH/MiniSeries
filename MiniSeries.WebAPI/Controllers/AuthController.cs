@@ -19,6 +19,7 @@ namespace MiniSeries.WebAPI.Controllers;
 [Route("api/auth")]
 public sealed class AuthController(
     SupabaseAuthService auth,
+    SupabaseAdminAuthService adminAuth,
     IConfiguration config,
     MiniSeriesDbContext dbContext,
     UserPlanQuotaService quotaService,
@@ -26,6 +27,7 @@ public sealed class AuthController(
 {
     private static readonly ConcurrentDictionary<string, string> TempOtpStore = new(StringComparer.OrdinalIgnoreCase);
     private static readonly ConcurrentDictionary<string, PendingRegistration> PendingRegistrations = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, string> ForgotPasswordOtpStore = new(StringComparer.OrdinalIgnoreCase);
 
     [HttpPost("register-profile")]
     public async Task<IActionResult> RegisterProfile([FromBody] RegisterProfileRequest dto)
@@ -73,49 +75,89 @@ public sealed class AuthController(
         var emailSettings = config.GetSection("EmailSettings");
         var senderEmail = emailSettings["SenderEmail"];
         var appPassword = emailSettings["AppPassword"];
+        var apiKey = emailSettings["ApiKey"];
 
-        if (string.IsNullOrWhiteSpace(senderEmail) || string.IsNullOrWhiteSpace(appPassword))
+        if (string.IsNullOrWhiteSpace(senderEmail))
         {
-            return BadRequest(new { message = "Chua cau hinh EmailSettings (SenderEmail / AppPassword)." });
+            return BadRequest(new { message = "Chua cau hinh EmailSettings (SenderEmail)." });
         }
+
+        var emailSubject = $"[{otpCode}] Ma xac thuc tai khoan moi";
+        var emailHtmlBody = $@"
+        <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
+            <h2 style='color: #8b5cf6; text-align: center;'>Kich Hoat Tai Khoan</h2>
+            <p>Chao <b>{fullName}</b>,</p>
+            <p>Ma OTP de hoan tat dang ky tai khoan cua ban la:</p>
+            <div style='background: #f3f4f6; padding: 15px; text-align: center; font-size: 26px; font-weight: bold; color: #333; letter-spacing: 2px;'>
+                {otpCode}
+            </div>
+            <p style='font-size: 12px; color: #777;'>Ma nay ap dung cho Email: {email}.</p>
+        </div>";
 
         try
         {
-            using var smtpClient = new SmtpClient(emailSettings["SmtpServer"] ?? "smtp.gmail.com")
+            if (!string.IsNullOrWhiteSpace(apiKey))
             {
-                Port = int.TryParse(emailSettings["Port"], out var port) ? port : 587,
-                Credentials = new NetworkCredential(senderEmail, appPassword),
-                EnableSsl = true
-            };
-
-            var mailMessage = new MailMessage
+                using (var client = new System.Net.Http.HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("api-key", apiKey);
+                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    
+                    var payload = new
+                    {
+                        sender = new { name = emailSettings["SenderName"] ?? "Mini Series Learning", email = senderEmail },
+                        to = new[] { new { email = email } },
+                        subject = emailSubject,
+                        htmlContent = emailHtmlBody
+                    };
+                    
+                    var json = System.Text.Json.JsonSerializer.Serialize(payload);
+                    var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                    
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                    var response = await client.PostAsync("https://api.brevo.com/v3/smtp/email", content, cts.Token);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        var errorResponse = await response.Content.ReadAsStringAsync();
+                        throw new Exception($"Brevo API Error: {response.StatusCode} - {errorResponse}");
+                    }
+                }
+            }
+            else
             {
-                From = new MailAddress(senderEmail, emailSettings["SenderName"] ?? "Mini Series Learning"),
-                Subject = $"[{otpCode}] Ma xac thuc tai khoan moi",
-                Body = $@"
-                <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
-                    <h2 style='color: #8b5cf6; text-align: center;'>Kich Hoat Tai Khoan</h2>
-                    <p>Chao <b>{fullName}</b>,</p>
-                    <p>Ma OTP de hoan tat dang ky tai khoan cua ban la:</p>
-                    <div style='background: #f3f4f6; padding: 15px; text-align: center; font-size: 26px; font-weight: bold; color: #333; letter-spacing: 2px;'>
-                        {otpCode}
-                    </div>
-                    <p style='font-size: 12px; color: #777;'>Ma nay ap dung cho Email: {email}.</p>
-                </div>",
-                IsBodyHtml = true
-            };
-            mailMessage.To.Add(email);
+                if (string.IsNullOrWhiteSpace(appPassword))
+                {
+                    return BadRequest(new { message = "Chua cau hinh EmailSettings AppPassword cho SMTP." });
+                }
 
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            await smtpClient.SendMailAsync(mailMessage, cts.Token);
+                using var smtpClient = new SmtpClient(emailSettings["SmtpServer"] ?? "smtp.gmail.com")
+                {
+                    Port = int.TryParse(emailSettings["Port"], out var port) ? port : 587,
+                    Credentials = new NetworkCredential(senderEmail, appPassword),
+                    EnableSsl = true
+                };
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(senderEmail, emailSettings["SenderName"] ?? "Mini Series Learning"),
+                    Subject = emailSubject,
+                    Body = emailHtmlBody,
+                    IsBodyHtml = true
+                };
+                mailMessage.To.Add(email);
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                await smtpClient.SendMailAsync(mailMessage, cts.Token);
+            }
+
             return Ok(new { message = "Ma OTP da duoc gui den Email." });
         }
         catch (OperationCanceledException)
         {
             TempOtpStore.TryRemove(email, out _);
             PendingRegistrations.TryRemove(email, out _);
-            logger.LogError("Gửi mail OTP cho {Email} thất bại: Quá thời gian chờ (Timeout 10s). Có thể cổng SMTP 587 bị chặn.", email);
-            return BadRequest(new { message = "Lỗi gửi Email xác thực: Quá thời gian chờ (10 giây). Có thể do nhà cung cấp host chặn cổng SMTP 587 hoặc cấu hình sai. Vui lòng kiểm tra log server để lấy mã OTP nếu cần." });
+            logger.LogError("Gửi mail OTP cho {Email} thất bại: Quá thời gian chờ (Timeout 15s).", email);
+            return BadRequest(new { message = "Lỗi gửi Email xác thực: Quá thời gian chờ (15 giây). Vui lòng thử lại." });
         }
         catch (Exception ex)
         {
@@ -174,13 +216,25 @@ public sealed class AuthController(
             TempOtpStore.TryRemove(email, out _);
             PendingRegistrations.TryRemove(email, out _);
 
+            var quota = await quotaService.GetSnapshotAsync(profile);
+
             return Ok(new
             {
                 message = "Xac thuc Email thanh cong.",
                 userId = profile.Id.ToString(),
                 email = profile.Email,
                 fullName = profile.FullName,
-                role = AuthUser.NormalizeRole(profile.Role)
+                role = AuthUser.NormalizeRole(profile.Role),
+                accessToken = session.AccessToken,
+
+                // Quota properties returned directly at registration verification
+                planName = quota.PlanName,
+                remainingMangaCount = quota.RemainingMangaCount,
+                mangaMonthlyLimit = quota.MangaMonthlyLimit,
+                remainingVideoCount = quota.RemainingVideoCount,
+                videoMonthlyLimit = quota.VideoMonthlyLimit,
+                currentPeriodEnd = quota.CurrentPeriodEnd,
+                avatarUrl = $"https://api.dicebear.com/7.x/bottts/svg?seed={Uri.EscapeDataString(profile.FullName ?? "User")}"
             });
         }
         catch (Exception ex)
@@ -379,6 +433,177 @@ public sealed class AuthController(
             logger.LogError(ex, "Lỗi khi xử lý Google Sign-In");
             return StatusCode(StatusCodes.Status401Unauthorized, new { message = "Xác thực token Google thất bại: " + ex.Message });
         }
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest dto)
+    {
+        var email = (dto.Email ?? "").Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return BadRequest(new { message = "Vui lòng nhập Email." });
+        }
+
+        try
+        {
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Email == email);
+            if (profile is null)
+            {
+                return BadRequest(new { message = "Email này không tồn tại trong hệ thống." });
+            }
+
+            var otpCode = Random.Shared.Next(100000, 999999).ToString();
+            ForgotPasswordOtpStore[email] = otpCode;
+
+            logger.LogInformation("Yêu cầu lấy lại mật khẩu cho Email: {Email}. Mã OTP: {OtpCode}", email, otpCode);
+
+            var emailSettings = config.GetSection("EmailSettings");
+            var senderEmail = emailSettings["SenderEmail"];
+            var appPassword = emailSettings["AppPassword"];
+            var apiKey = emailSettings["ApiKey"];
+
+            if (string.IsNullOrWhiteSpace(senderEmail))
+            {
+                return BadRequest(new { message = "Chưa cấu hình EmailSettings (SenderEmail)." });
+            }
+
+            var emailSubject = $"[{otpCode}] Ma xac thuc dat lai mat khau";
+            var emailHtmlBody = $@"
+            <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
+                <h2 style='color: #8b5cf6; text-align: center;'>Lay Lai Mat Khau</h2>
+                <p>Chao ban,</p>
+                <p>Ma OTP de dat lai mat khau tai khoan cua ban la:</p>
+                <div style='background: #f3f4f6; padding: 15px; text-align: center; font-size: 26px; font-weight: bold; color: #333; letter-spacing: 2px;'>
+                    {otpCode}
+                </div>
+                <p style='font-size: 12px; color: #777;'>Ma nay ap dung cho Email: {email}.</p>
+                <p style='font-size: 12px; color: #ff3333;'>Luu y: Vui long khong chia se ma nay voi bat ky ai.</p>
+            </div>";
+
+            if (!string.IsNullOrWhiteSpace(apiKey))
+            {
+                using var client = new System.Net.Http.HttpClient();
+                client.DefaultRequestHeaders.Add("api-key", apiKey);
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                
+                var payload = new
+                {
+                    sender = new { name = emailSettings["SenderName"] ?? "Mini Series Learning", email = senderEmail },
+                    to = new[] { new { email = email } },
+                    subject = emailSubject,
+                    htmlContent = emailHtmlBody
+                };
+                
+                var json = System.Text.Json.JsonSerializer.Serialize(payload);
+                var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                var response = await client.PostAsync("https://api.brevo.com/v3/smtp/email", content, cts.Token);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorResponse = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Brevo API Error: {response.StatusCode} - {errorResponse}");
+                }
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(appPassword))
+                {
+                    return BadRequest(new { message = "Chua cau hinh EmailSettings AppPassword cho SMTP." });
+                }
+
+                using var smtpClient = new SmtpClient(emailSettings["SmtpServer"] ?? "smtp.gmail.com")
+                {
+                    Port = int.TryParse(emailSettings["Port"], out var port) ? port : 587,
+                    Credentials = new NetworkCredential(senderEmail, appPassword),
+                    EnableSsl = true
+                };
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(senderEmail, emailSettings["SenderName"] ?? "Mini Series Learning"),
+                    Subject = emailSubject,
+                    Body = emailHtmlBody,
+                    IsBodyHtml = true
+                };
+                mailMessage.To.Add(email);
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                await smtpClient.SendMailAsync(mailMessage, cts.Token);
+            }
+
+            return Ok(new { message = "Mã OTP lấy lại mật khẩu đã được gửi đến Email." });
+        }
+        catch (Exception ex)
+        {
+            ForgotPasswordOtpStore.TryRemove(email, out _);
+            logger.LogError(ex, "Lỗi gửi mail OTP lấy lại mật khẩu cho {Email}", email);
+            return BadRequest(new { message = "Lỗi hệ thống không gửi được Email: " + ex.Message });
+        }
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest dto)
+    {
+        var email = (dto.Email ?? "").Trim().ToLowerInvariant();
+        var otpCode = (dto.OtpCode ?? "").Trim();
+        var newPassword = dto.NewPassword ?? "";
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(otpCode) || string.IsNullOrWhiteSpace(newPassword))
+        {
+            return BadRequest(new { message = "Vui lòng điền đầy đủ Email, mã OTP và Mật khẩu mới." });
+        }
+
+        if (newPassword.Length < 6)
+        {
+            return BadRequest(new { message = "Mật khẩu mới tối thiểu phải có 6 ký tự." });
+        }
+
+        if (!ForgotPasswordOtpStore.TryGetValue(email, out var savedOtp) || savedOtp != otpCode)
+        {
+            return BadRequest(new { message = "Mã xác nhận không chính xác hoặc đã hết hạn." });
+        }
+
+        try
+        {
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Email == email);
+            if (profile is null)
+            {
+                return BadRequest(new { message = "Tài khoản không tồn tại trên hệ thống." });
+            }
+
+            // Gọi service admin auth để reset password trên Supabase Auth
+            await adminAuth.UpdateUserPasswordAsync(profile.Id, newPassword);
+
+            ForgotPasswordOtpStore.TryRemove(email, out _);
+            logger.LogInformation("Thiết lập lại mật khẩu thành công cho tài khoản {Email}.", email);
+
+            return Ok(new { message = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại với mật khẩu mới." });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Lỗi đặt lại mật khẩu cho {Email}", email);
+            return BadRequest(new { message = "Lỗi khi cập nhật mật khẩu mới: " + ex.Message });
+        }
+    }
+
+    [HttpPost("verify-reset-otp")]
+    public IActionResult VerifyResetOtp([FromBody] VerifyOtpRequest dto)
+    {
+        var email = (dto.Email ?? "").Trim().ToLowerInvariant();
+        var otpCode = (dto.OtpCode ?? "").Trim();
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(otpCode))
+        {
+            return BadRequest(new { message = "Vui lòng nhập đầy đủ email và mã OTP." });
+        }
+
+        if (!ForgotPasswordOtpStore.TryGetValue(email, out var savedOtp) || savedOtp != otpCode)
+        {
+            return BadRequest(new { message = "Mã xác thực không chính xác hoặc đã hết hạn." });
+        }
+
+        return Ok(new { message = "Mã xác thực chính xác." });
     }
 }
 

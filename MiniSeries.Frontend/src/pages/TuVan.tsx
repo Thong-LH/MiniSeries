@@ -38,7 +38,7 @@ export default function TuVan() {
   };
 
   return (
-    <div style={{ padding: '60px 20px', textAlign: 'center', minHeight: '80vh', color: '#fff' }}>
+    <div style={{ padding: '110px 20px 60px', textAlign: 'center', minHeight: '80vh', color: '#fff' }}>
       <Toast message={message} type="success" onClose={() => setMessage(null)} />
       <Toast message={error} type="error" onClose={() => setError(null)} />
 

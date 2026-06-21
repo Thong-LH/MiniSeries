@@ -139,3 +139,21 @@ public sealed class GoogleSignInRequest
     [JsonPropertyName("accessToken")]
     public string? AccessToken { get; set; }
 }
+
+public sealed class ForgotPasswordRequest
+{
+    [JsonPropertyName("email")]
+    public string? Email { get; set; }
+}
+
+public sealed class ResetPasswordRequest
+{
+    [JsonPropertyName("email")]
+    public string? Email { get; set; }
+
+    [JsonPropertyName("otpCode")]
+    public string? OtpCode { get; set; }
+
+    [JsonPropertyName("newPassword")]
+    public string? NewPassword { get; set; }
+}

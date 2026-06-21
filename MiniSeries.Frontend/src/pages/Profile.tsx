@@ -284,7 +284,7 @@ export default function Profile() {
 
   if (profileError) {
     return (
-      <section style={{ padding: '80px 20px', color: '#fff', textAlign: 'center', minHeight: '70vh' }}>
+      <section style={{ padding: '110px 20px 60px', color: '#fff', textAlign: 'center', minHeight: '70vh' }}>
         <h1 style={{ color: '#f87171', marginBottom: '12px' }}>Không tải được hồ sơ</h1>
         <p>{profileError}</p>
       </section>
@@ -293,14 +293,14 @@ export default function Profile() {
 
   if (!profile) {
     return (
-      <section style={{ padding: '80px 20px', color: '#fff', textAlign: 'center', minHeight: '70vh' }}>
+      <section style={{ padding: '110px 20px 60px', color: '#fff', textAlign: 'center', minHeight: '70vh' }}>
         <h1 style={{ color: '#06b6d4', marginBottom: '12px' }}>Đang tải hồ sơ...</h1>
       </section>
     );
   }
 
   return (
-    <section style={{ padding: '60px 20px', minHeight: '80vh', color: '#fff' }}>
+    <section style={{ padding: '110px 20px 60px', minHeight: '80vh', color: '#fff' }}>
       <div style={{ maxWidth: '1040px', margin: '0 auto' }}>
         <h1 style={{ color: '#06b6d4', marginBottom: '18px' }}>Hồ sơ cá nhân</h1>
 
