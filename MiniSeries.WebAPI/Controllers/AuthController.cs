@@ -28,6 +28,7 @@ public sealed class AuthController(
     private static readonly ConcurrentDictionary<string, string> TempOtpStore = new(StringComparer.OrdinalIgnoreCase);
     private static readonly ConcurrentDictionary<string, PendingRegistration> PendingRegistrations = new(StringComparer.OrdinalIgnoreCase);
     private static readonly ConcurrentDictionary<string, string> ForgotPasswordOtpStore = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly System.Net.Http.HttpClient _httpClient = new();
 
     [HttpPost("register-profile")]
     public async Task<IActionResult> RegisterProfile([FromBody] RegisterProfileRequest dto)
@@ -98,29 +99,28 @@ public sealed class AuthController(
         {
             if (!string.IsNullOrWhiteSpace(apiKey))
             {
-                using (var client = new System.Net.Http.HttpClient())
+                var payload = new
                 {
-                    client.DefaultRequestHeaders.Add("api-key", apiKey);
-                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    
-                    var payload = new
-                    {
-                        sender = new { name = emailSettings["SenderName"] ?? "Mini Series Learning", email = senderEmail },
-                        to = new[] { new { email = email } },
-                        subject = emailSubject,
-                        htmlContent = emailHtmlBody
-                    };
-                    
-                    var json = System.Text.Json.JsonSerializer.Serialize(payload);
-                    var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
-                    
-                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                    var response = await client.PostAsync("https://api.brevo.com/v3/smtp/email", content, cts.Token);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        var errorResponse = await response.Content.ReadAsStringAsync();
-                        throw new Exception($"Brevo API Error: {response.StatusCode} - {errorResponse}");
-                    }
+                    sender = new { name = emailSettings["SenderName"] ?? "Mini Series Learning", email = senderEmail },
+                    to = new[] { new { email = email } },
+                    subject = emailSubject,
+                    htmlContent = emailHtmlBody
+                };
+                
+                var json = System.Text.Json.JsonSerializer.Serialize(payload);
+                var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                
+                using var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Post, "https://api.brevo.com/v3/smtp/email");
+                request.Headers.Add("api-key", apiKey);
+                request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                request.Content = content;
+                
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                var response = await _httpClient.SendAsync(request, cts.Token);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorResponse = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Brevo API Error: {response.StatusCode} - {errorResponse}");
                 }
             }
             else
@@ -482,10 +482,6 @@ public sealed class AuthController(
 
             if (!string.IsNullOrWhiteSpace(apiKey))
             {
-                using var client = new System.Net.Http.HttpClient();
-                client.DefaultRequestHeaders.Add("api-key", apiKey);
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                
                 var payload = new
                 {
                     sender = new { name = emailSettings["SenderName"] ?? "Mini Series Learning", email = senderEmail },
@@ -497,8 +493,13 @@ public sealed class AuthController(
                 var json = System.Text.Json.JsonSerializer.Serialize(payload);
                 var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
                 
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                var response = await client.PostAsync("https://api.brevo.com/v3/smtp/email", content, cts.Token);
+                using var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Post, "https://api.brevo.com/v3/smtp/email");
+                request.Headers.Add("api-key", apiKey);
+                request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                request.Content = content;
+                
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                var response = await _httpClient.SendAsync(request, cts.Token);
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorResponse = await response.Content.ReadAsStringAsync();
