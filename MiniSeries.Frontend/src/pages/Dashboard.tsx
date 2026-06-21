@@ -151,6 +151,153 @@ export default function Dashboard() {
   const [newStaffPassword, setNewStaffPassword] = useState<string>('');
   const [creatingStaff, setCreatingStaff] = useState<boolean>(false);
 
+  // Search, Filter & Pagination states
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filterOption1, setFilterOption1] = useState<string>('');
+  const [filterOption2, setFilterOption2] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Reset states on activeTab or supportTab changes
+  useEffect(() => {
+    setSearchTerm('');
+    setFilterOption1('');
+    setFilterOption2('');
+    setCurrentPage(1);
+  }, [activeTab, supportTab]);
+
+  // UI Helper for Search & Filter Bar
+  const renderSearchFilterBar = (
+    placeholder: string,
+    filters?: {
+      value: string;
+      onChange: (val: string) => void;
+      options: { value: string; label: string }[];
+    }[]
+  ) => {
+    return (
+      <div className="search-filter-bar">
+        <div className="search-input-wrapper">
+          <svg className="search-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder={placeholder}
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="search-input"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              className="clear-search-btn"
+              onClick={() => {
+                setSearchTerm('');
+                setCurrentPage(1);
+              }}
+            >
+              &times;
+            </button>
+          )}
+        </div>
+        {filters && filters.length > 0 && (
+          <div className="filter-group">
+            {filters.map((filter, index) => (
+              <div className="filter-select-wrapper" key={index}>
+                <select
+                  value={filter.value}
+                  onChange={(e) => {
+                    filter.onChange(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="filter-select"
+                >
+                  {filter.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // UI Helper for Pagination
+  const renderPagination = (totalItems: number, itemsPerPage: number = 10) => {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (totalPages <= 1) return null;
+
+    const startIdx = (currentPage - 1) * itemsPerPage + 1;
+    const endIdx = Math.min(currentPage * itemsPerPage, totalItems);
+
+    const pages: number[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) {
+        pages.push(-1); // ellipsis
+      }
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) {
+        if (!pages.includes(i)) pages.push(i);
+      }
+      if (currentPage < totalPages - 2) {
+        pages.push(-2); // ellipsis
+      }
+      if (!pages.includes(totalPages)) pages.push(totalPages);
+    }
+
+    return (
+      <div className="table-pagination-bar">
+        <div className="pagination-info">
+          Hiển thị <span>{startIdx}</span> - <span>{endIdx}</span> trong tổng số <span>{totalItems}</span> mục
+        </div>
+        <div className="pagination-controls">
+          <button
+            type="button"
+            className="btn-pagination-nav"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          >
+            Trước
+          </button>
+          {pages.map((p, idx) => {
+            if (p < 0) {
+              return <span key={`ellipsis-${idx}`} className="pagination-ellipsis">...</span>;
+            }
+            return (
+              <button
+                key={p}
+                type="button"
+                className={`btn-pagination-page ${currentPage === p ? 'active' : ''}`}
+                onClick={() => setCurrentPage(p)}
+              >
+                {p}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            className="btn-pagination-nav"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          >
+            Sau
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // 1. Starfield Background effect removed
 
   // 2. Auth checking & Session loading
@@ -856,73 +1003,114 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {renderSearchFilterBar("Tìm kiếm khách hàng theo tên, email...", [
+              {
+                value: filterOption1,
+                onChange: setFilterOption1,
+                options: [
+                  { value: '', label: 'Tất cả trạng thái' },
+                  { value: 'active', label: 'Hoạt động (Active)' },
+                  { value: 'blocked', label: 'Bị khóa (Blocked)' }
+                ]
+              },
+              {
+                value: filterOption2,
+                onChange: setFilterOption2,
+                options: [
+                  { value: '', label: 'Tất cả gói cước' },
+                  { value: 'Free', label: 'Free' },
+                  { value: 'Basic', label: 'Basic' },
+                  { value: 'Premium', label: 'Premium' }
+                ]
+              }
+            ])}
+
             <div className="data-table-container">
               {customersLoading ? (
                 <div className="p-8 text-center text-slate-400">Đang tải danh sách khách hàng...</div>
               ) : customers.length === 0 ? (
                 <div className="p-8 text-center text-slate-400">Chưa có khách hàng (Role = Customer) trên Supabase.</div>
-              ) : (
-                <table className="cyber-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Tên khách hàng</th>
-                      <th>Email</th>
-                      <th>Gói cước</th>
-                      <th>Trạng thái</th>
-                      <th>Ngày đăng ký</th>
-                      <th>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {customers.map((c) => {
-                      const isBlocked = c.accountStatus?.toLowerCase() === 'blocked';
-                      return (
-                        <tr key={c.id}>
-                          <td className="monospace-id">
-                            {c.id}
-                          </td>
-                          <td className="font-semibold text-slate-200">{c.fullName}</td>
-                          <td>{c.email}</td>
-                          <td className="font-semibold text-zinc-300">
-                            {c.planName || 'Free'}
-                          </td>
-                          <td>
-                            {isBlocked ? (
-                              <span className="status-badge badge-blocked">
-                                Blocked
-                              </span>
-                            ) : (
-                              <span className="status-badge badge-offline">
-                                Offline
-                              </span>
-                            )}
-                          </td>
-                          <td className="text-zinc-500 text-xs">{formatDate(c.createdAt)}</td>
-                          <td>
-                            <div className="flex gap-2">
-                              <button 
-                                type="button"
-                                className="btn-table-action btn-table-action-warning"
-                                onClick={() => handleToggleBlockCustomer(c.id, isBlocked)}
-                              >
-                                {isBlocked ? "Mở khóa" : "Khóa"}
-                              </button>
-                              <button 
-                                type="button"
-                                className="btn-table-action btn-table-action-danger"
-                                onClick={() => handleDeleteCustomer(c.id)}
-                              >
-                                Xóa
-                              </button>
-                            </div>
-                          </td>
+              ) : (() => {
+                const filtered = customers.filter(c => {
+                  const matchesSearch = !searchTerm || 
+                    c.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    c.email?.toLowerCase().includes(searchTerm.toLowerCase());
+                  
+                  const isBlocked = c.accountStatus?.toLowerCase() === 'blocked';
+                  const matchesStatus = !filterOption1 || 
+                    (filterOption1 === 'active' && !isBlocked) || 
+                    (filterOption1 === 'blocked' && isBlocked);
+
+                  const plan = c.planName || 'Free';
+                  const matchesPlan = !filterOption2 || plan === filterOption2;
+
+                  return matchesSearch && matchesStatus && matchesPlan;
+                });
+
+                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+
+                if (filtered.length === 0) {
+                  return <div className="p-8 text-center text-slate-400">Không tìm thấy khách hàng phù hợp.</div>;
+                }
+
+                return (
+                  <>
+                    <table className="cyber-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Tên khách hàng</th>
+                          <th>Email</th>
+                          <th>Gói cước</th>
+                          <th>Trạng thái</th>
+                          <th>Ngày đăng ký</th>
+                          <th>Thao tác</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
+                      </thead>
+                      <tbody>
+                        {paginated.map((c) => {
+                          const isBlocked = c.accountStatus?.toLowerCase() === 'blocked';
+                          return (
+                            <tr key={c.id}>
+                              <td className="monospace-id">{c.id}</td>
+                              <td className="font-semibold text-slate-200">{c.fullName}</td>
+                              <td>{c.email}</td>
+                              <td className="font-semibold text-zinc-300">{c.planName || 'Free'}</td>
+                              <td>
+                                {isBlocked ? (
+                                  <span className="status-badge badge-blocked">Blocked</span>
+                                ) : (
+                                  <span className="status-badge badge-offline">Offline</span>
+                                )}
+                              </td>
+                              <td className="text-zinc-500 text-xs">{formatDate(c.createdAt)}</td>
+                              <td>
+                                <div className="flex gap-2">
+                                  <button 
+                                    type="button"
+                                    className="btn-table-action btn-table-action-warning"
+                                    onClick={() => handleToggleBlockCustomer(c.id, isBlocked)}
+                                  >
+                                    {isBlocked ? "Mở khóa" : "Khóa"}
+                                  </button>
+                                  <button 
+                                    type="button"
+                                    className="btn-table-action btn-table-action-danger"
+                                    onClick={() => handleDeleteCustomer(c.id)}
+                                  >
+                                    Xóa
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    {renderPagination(filtered.length)}
+                  </>
+                );
+              })()}
             </div>
           </section>
         )}
@@ -952,53 +1140,86 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {renderSearchFilterBar("Tìm kiếm người dùng theo tên, email...", [
+              {
+                value: filterOption1,
+                onChange: setFilterOption1,
+                options: [
+                  { value: '', label: 'Tất cả gói cước' },
+                  { value: 'Free', label: 'Free' },
+                  { value: 'Basic', label: 'Basic' },
+                  { value: 'Premium', label: 'Premium' }
+                ]
+              }
+            ])}
+
             <div className="data-table-container">
               {tokensLoading ? (
                 <div className="p-8 text-center text-slate-400">Đang tải danh sách token...</div>
               ) : tokenUsers.length === 0 ? (
                 <div className="p-8 text-center text-slate-400">Chưa có khách hàng nào.</div>
-              ) : (
-                <table className="cyber-table">
-                  <thead>
-                    <tr>
-                      <th>ID người dùng</th>
-                      <th>Tên user</th>
-                      <th>Email</th>
-                      <th>Lượt Manga (Còn lại / Tổng)</th>
-                      <th>Lượt Video (Còn lại / Tổng)</th>
-                      <th>Gói đang dùng</th>
-                      <th>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tokenUsers.map((u) => (
-                      <tr key={u.id}>
-                        <td className="monospace-id">
-                          {u.id}
-                        </td>
-                        <td className="font-semibold text-slate-200">{u.fullName}</td>
-                        <td>{u.email}</td>
-                        <td className="font-semibold text-zinc-300">
-                          {(u.mangaLimit ?? 3) - (u.usedManga ?? 0)} / {(u.mangaLimit ?? 3)}
-                        </td>
-                        <td className="font-semibold text-zinc-300">
-                          {(u.videoLimit ?? 1) - (u.usedVideo ?? 0)} / {(u.videoLimit ?? 1)}
-                        </td>
-                        <td className="font-semibold text-indigo-400">{u.planName || 'Free'}</td>
-                        <td>
-                          <button 
-                            type="button"
-                            className="btn-table-action btn-table-action-cyan"
-                            onClick={() => handleOpenTokenModal(u)}
-                          >
-                            Cập nhật
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+              ) : (() => {
+                const filtered = tokenUsers.filter(u => {
+                  const matchesSearch = !searchTerm || 
+                    u.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    u.email?.toLowerCase().includes(searchTerm.toLowerCase());
+                  
+                  const plan = u.planName || 'Free';
+                  const matchesPlan = !filterOption1 || plan === filterOption1;
+
+                  return matchesSearch && matchesPlan;
+                });
+
+                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+
+                if (filtered.length === 0) {
+                  return <div className="p-8 text-center text-slate-400">Không tìm thấy người dùng phù hợp.</div>;
+                }
+
+                return (
+                  <>
+                    <table className="cyber-table">
+                      <thead>
+                        <tr>
+                          <th>ID người dùng</th>
+                          <th>Tên user</th>
+                          <th>Email</th>
+                          <th>Lượt Manga (Còn lại / Tổng)</th>
+                          <th>Lượt Video (Còn lại / Tổng)</th>
+                          <th>Gói đang dùng</th>
+                          <th>Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginated.map((u) => (
+                          <tr key={u.id}>
+                            <td className="monospace-id">{u.id}</td>
+                            <td className="font-semibold text-slate-200">{u.fullName}</td>
+                            <td>{u.email}</td>
+                            <td className="font-semibold text-zinc-300">
+                              {(u.mangaLimit ?? 3) - (u.usedManga ?? 0)} / {(u.mangaLimit ?? 3)}
+                            </td>
+                            <td className="font-semibold text-zinc-300">
+                              {(u.videoLimit ?? 1) - (u.usedVideo ?? 0)} / {(u.videoLimit ?? 1)}
+                            </td>
+                            <td className="font-semibold text-indigo-400">{u.planName || 'Free'}</td>
+                            <td>
+                              <button 
+                                type="button"
+                                className="btn-table-action btn-table-action-cyan"
+                                onClick={() => handleOpenTokenModal(u)}
+                              >
+                                Cập nhật
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {renderPagination(filtered.length)}
+                  </>
+                );
+              })()}
             </div>
           </section>
         )}
@@ -1036,109 +1257,141 @@ export default function Dashboard() {
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                   Phiếu yêu cầu tư vấn
                 </h3>
+                {renderSearchFilterBar("Tìm kiếm ticket theo email, nội dung...", [
+                  {
+                    value: filterOption1,
+                    onChange: setFilterOption1,
+                    options: [
+                      { value: '', label: 'Tất cả trạng thái' },
+                      { value: 'pending', label: 'Chưa trả lời' },
+                      { value: 'done', label: 'Đã trả lời' }
+                    ]
+                  }
+                ])}
                 <div className="data-table-container">
                   {supportLoading ? (
                     <div className="p-8 text-center text-slate-400">Đang tải dữ liệu yêu cầu...</div>
                   ) : supportTickets.length === 0 ? (
                     <div className="p-8 text-center text-slate-400">Chưa có yêu cầu tư vấn nào.</div>
-                  ) : (
-                    <table className="cyber-table">
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>Email khách</th>
-                          <th>Nội dung</th>
-                          <th>Ngày gửi</th>
-                          <th>Trạng thái</th>
-                          <th>Thao tác</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {supportTickets.map((t) => {
-                          const isDone = t.status === 'Đã trả lời';
-                          const isReplying = activeReplySupportId === t.id;
-                          return (
-                            <Fragment key={t.id}>
-                              <tr key={t.id}>
-                                <td className="monospace-id">#{t.id}</td>
-                                <td className="font-semibold text-slate-200">{t.customerEmail}</td>
-                                <td style={{ maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={t.content}>
-                                  {t.content}
-                                </td>
-                                <td className="text-zinc-500 text-xs">{formatDate(t.createdAt)}</td>
-                                <td>
-                                  {isDone ? (
-                                    <span className="status-badge badge-done">
-                                      Đã trả lời
-                                    </span>
-                                  ) : (
-                                    <span className="status-badge badge-pending">
-                                      Chưa trả lời
-                                    </span>
-                                  )}
-                                </td>
-                                <td>
-                                  <button
-                                    type="button"
-                                    className="btn-table-action btn-table-action-primary"
-                                    onClick={() => {
-                                      if (isReplying) {
-                                        setActiveReplySupportId(null);
-                                      } else {
-                                        setActiveReplySupportId(t.id);
-                                        setSupportReplyText(t.reply || '');
-                                      }
-                                    }}
-                                  >
-                                    {isDone ? "Xem" : "Trả lời"}
-                                  </button>
-                                </td>
-                              </tr>
-                              {isReplying && (
-                                <tr key={`reply-${t.id}`}>
-                                  <td colSpan={6} className="table-expanded-row-cell">
-                                    <div className="reply-box">
-                                      <div className="reply-title">
-                                        Trả lời tới: <span>{t.customerEmail}</span>
-                                      </div>
-                                      <textarea
-                                        rows={4}
-                                        value={supportReplyText}
-                                        onChange={(e) => setSupportReplyText(e.target.value)}
-                                        className="reply-textarea"
-                                        placeholder="Nhập nội dung phản hồi..."
-                                        disabled={isDone || replyingSupportId === t.id}
-                                      />
-                                      {!isDone && (
-                                        <div className="reply-actions">
-                                          <button
-                                            type="button"
-                                            className="btn-cancel"
-                                            disabled={replyingSupportId === t.id}
-                                            onClick={() => setActiveReplySupportId(null)}
-                                          >
-                                            Hủy
-                                          </button>
-                                          <button
-                                            type="button"
-                                            className="btn-confirm"
-                                            disabled={replyingSupportId === t.id}
-                                            onClick={() => handleReplySupportTicket(t.id)}
-                                          >
-                                            {replyingSupportId === t.id ? "Đang gửi..." : "Xác nhận gửi"}
-                                          </button>
-                                        </div>
+                  ) : (() => {
+                    const filtered = supportTickets.filter(t => {
+                      const matchesSearch = !searchTerm || 
+                        t.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                        t.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (t.reply && t.reply.toLowerCase().includes(searchTerm.toLowerCase()));
+
+                      const isDone = t.status === 'Đã trả lời';
+                      const matchesStatus = !filterOption1 || 
+                        (filterOption1 === 'pending' && !isDone) || 
+                        (filterOption1 === 'done' && isDone);
+
+                      return matchesSearch && matchesStatus;
+                    });
+
+                    const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+
+                    if (filtered.length === 0) {
+                      return <div className="p-8 text-center text-slate-400">Không tìm thấy ticket phù hợp.</div>;
+                    }
+
+                    return (
+                      <>
+                        <table className="cyber-table">
+                          <thead>
+                            <tr>
+                              <th>ID</th>
+                              <th>Email khách</th>
+                              <th>Nội dung</th>
+                              <th>Ngày gửi</th>
+                              <th>Trạng thái</th>
+                              <th>Thao tác</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {paginated.map((t) => {
+                              const isDone = t.status === 'Đã trả lời';
+                              const isReplying = activeReplySupportId === t.id;
+                              return (
+                                <Fragment key={t.id}>
+                                  <tr>
+                                    <td className="monospace-id">#{t.id}</td>
+                                    <td className="font-semibold text-slate-200">{t.customerEmail}</td>
+                                    <td style={{ maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={t.content}>
+                                      {t.content}
+                                    </td>
+                                    <td className="text-zinc-500 text-xs">{formatDate(t.createdAt)}</td>
+                                    <td>
+                                      {isDone ? (
+                                        <span className="status-badge badge-done">Đã trả lời</span>
+                                      ) : (
+                                        <span className="status-badge badge-pending">Chưa trả lời</span>
                                       )}
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
-                            </Fragment>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  )}
+                                    </td>
+                                    <td>
+                                      <button
+                                        type="button"
+                                        className="btn-table-action btn-table-action-primary"
+                                        onClick={() => {
+                                          if (isReplying) {
+                                            setActiveReplySupportId(null);
+                                          } else {
+                                            setActiveReplySupportId(t.id);
+                                            setSupportReplyText(t.reply || '');
+                                          }
+                                        }}
+                                      >
+                                        {isDone ? "Xem" : "Trả lời"}
+                                      </button>
+                                    </td>
+                                  </tr>
+                                  {isReplying && (
+                                    <tr key={`reply-${t.id}`}>
+                                      <td colSpan={6} className="table-expanded-row-cell">
+                                        <div className="reply-box">
+                                          <div className="reply-title">
+                                            Trả lời tới: <span>{t.customerEmail}</span>
+                                          </div>
+                                          <textarea
+                                            rows={4}
+                                            value={supportReplyText}
+                                            onChange={(e) => setSupportReplyText(e.target.value)}
+                                            className="reply-textarea"
+                                            placeholder="Nhập nội dung phản hồi..."
+                                            disabled={isDone || replyingSupportId === t.id}
+                                          />
+                                          {!isDone && (
+                                            <div className="reply-actions">
+                                              <button
+                                                type="button"
+                                                className="btn-cancel"
+                                                disabled={replyingSupportId === t.id}
+                                                onClick={() => setActiveReplySupportId(null)}
+                                              >
+                                                Hủy
+                                              </button>
+                                              <button
+                                                type="button"
+                                                className="btn-confirm"
+                                                disabled={replyingSupportId === t.id}
+                                                onClick={() => handleReplySupportTicket(t.id)}
+                                              >
+                                                {replyingSupportId === t.id ? "Đang gửi..." : "Xác nhận gửi"}
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </Fragment>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                        {renderPagination(filtered.length)}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             ) : (
@@ -1163,89 +1416,124 @@ export default function Dashboard() {
                       Soạn Email mới
                     </button>
                   </div>
+                  {renderSearchFilterBar("Tìm kiếm email theo tiêu đề, nội dung, email...", [
+                    {
+                      value: filterOption1,
+                      onChange: setFilterOption1,
+                      options: [
+                        { value: '', label: 'Tất cả người gửi' },
+                        { value: 'Staff', label: 'Nhân viên (Staff)' },
+                        { value: 'Admin', label: 'Quản trị viên (Admin)' }
+                      ]
+                    }
+                  ])}
                   <div className="data-table-container">
                     {supportLoading ? (
                       <div className="p-8 text-center text-slate-400">Đang tải dữ liệu yêu cầu...</div>
                     ) : cskhHistory.length === 0 ? (
                       <div className="p-8 text-center text-slate-500">Chưa có email CSKH nào được gửi.</div>
-                    ) : (
-                      <table className="cyber-table">
-                        <thead>
-                          <tr>
-                            <th>ID</th>
-                            <th>Email khách</th>
-                            <th>Tiêu đề</th>
-                            <th>Người gửi</th>
-                            <th>Ngày gửi</th>
-                            <th>Thao tác</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {cskhHistory.map((h) => {
-                            const email = h.customer_email || h.email_customer || h.customerEmail || "khachhang_an_danh@gmail.com";
-                            const created = h.createdAt || h.created_at || '';
-                            const subject = h.subject || h.Subject || '(Không có tiêu đề)';
-                            const sender = h.sender_role || h.senderRole || 'Staff';
-                            const isViewing = activeViewCskhId === h.id;
+                    ) : (() => {
+                      const filtered = cskhHistory.filter(h => {
+                        const email = h.customer_email || h.email_customer || h.customerEmail || "khachhang_an_danh@gmail.com";
+                        const subject = h.subject || h.Subject || '(Không có tiêu đề)';
+                        const sender = h.sender_role || h.senderRole || 'Staff';
 
-                            return (
-                              <Fragment key={h.id}>
-                                <tr>
-                                  <td className="monospace-id">#{h.id}</td>
-                                  <td className="font-semibold text-slate-200">{email}</td>
-                                  <td className="max-w-[200px] truncate" title={subject}>
-                                    {subject}
-                                  </td>
-                                  <td className="font-semibold text-indigo-400">{sender}</td>
-                                  <td className="text-zinc-500 text-xs">{formatDate(created)}</td>
-                                  <td>
-                                    <button
-                                      type="button"
-                                      className="btn-table-action btn-table-action-cyan"
-                                      onClick={() => {
-                                        if (isViewing) {
-                                          setActiveViewCskhId(null);
-                                        } else {
-                                          setActiveViewCskhId(h.id);
-                                        }
-                                      }}
-                                    >
-                                      {isViewing ? "Đóng" : "Xem"}
-                                    </button>
-                                  </td>
-                                </tr>
-                                {isViewing && (
-                                  <tr key={`view-${h.id}`}>
-                                    <td colSpan={6} className="table-expanded-row-cell">
-                                      <div className="reply-box">
-                                        <div className="reply-title reply-title-subject">
-                                          Tiêu đề: <span>{subject}</span>
-                                        </div>
-                                        <div className="text-zinc-400 text-xs mb-2">
-                                          Người gửi: <span className="font-semibold text-zinc-200">{sender}</span> | Gửi tới: <span className="font-semibold text-zinc-200">{email}</span>
-                                        </div>
-                                        <div className="cskh-view-content">
-                                          {h.content}
-                                        </div>
-                                        <div className="mt-3 text-right">
-                                          <button
-                                            type="button"
-                                            className="btn-cancel px-3 py-1.5 text-xs"
-                                            onClick={() => setActiveViewCskhId(null)}
-                                          >
-                                            Đóng
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-                              </Fragment>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    )}
+                        const matchesSearch = !searchTerm ||
+                          email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          h.content.toLowerCase().includes(searchTerm.toLowerCase());
+
+                        const matchesSender = !filterOption1 || sender === filterOption1;
+
+                        return matchesSearch && matchesSender;
+                      });
+
+                      const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+
+                      if (filtered.length === 0) {
+                        return <div className="p-8 text-center text-slate-400">Không tìm thấy email CSKH phù hợp.</div>;
+                      }
+
+                      return (
+                        <>
+                          <table className="cyber-table">
+                            <thead>
+                              <tr>
+                                <th>ID</th>
+                                <th>Email khách</th>
+                                <th>Tiêu đề</th>
+                                <th>Người gửi</th>
+                                <th>Ngày gửi</th>
+                                <th>Thao tác</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {paginated.map((h) => {
+                                const email = h.customer_email || h.email_customer || h.customerEmail || "khachhang_an_danh@gmail.com";
+                                const created = h.createdAt || h.created_at || '';
+                                const subject = h.subject || h.Subject || '(Không có tiêu đề)';
+                                const sender = h.sender_role || h.senderRole || 'Staff';
+                                const isViewing = activeViewCskhId === h.id;
+
+                                return (
+                                  <Fragment key={h.id}>
+                                    <tr>
+                                      <td className="monospace-id">#{h.id}</td>
+                                      <td className="font-semibold text-slate-200">{email}</td>
+                                      <td className="max-w-[200px] truncate" title={subject}>{subject}</td>
+                                      <td className="font-semibold text-indigo-400">{sender}</td>
+                                      <td className="text-zinc-500 text-xs">{formatDate(created)}</td>
+                                      <td>
+                                        <button
+                                          type="button"
+                                          className="btn-table-action btn-table-action-cyan"
+                                          onClick={() => {
+                                            if (isViewing) {
+                                              setActiveViewCskhId(null);
+                                            } else {
+                                              setActiveViewCskhId(h.id);
+                                            }
+                                          }}
+                                        >
+                                          {isViewing ? "Đóng" : "Xem"}
+                                        </button>
+                                      </td>
+                                    </tr>
+                                    {isViewing && (
+                                      <tr key={`view-${h.id}`}>
+                                        <td colSpan={6} className="table-expanded-row-cell">
+                                          <div className="reply-box">
+                                            <div className="reply-title reply-title-subject">
+                                              Tiêu đề: <span>{subject}</span>
+                                            </div>
+                                            <div className="text-zinc-400 text-xs mb-2">
+                                              Người gửi: <span className="font-semibold text-zinc-200">{sender}</span> | Gửi tới: <span className="font-semibold text-zinc-200">{email}</span>
+                                            </div>
+                                            <div className="cskh-view-content">
+                                              {h.content}
+                                            </div>
+                                            <div className="mt-3 text-right">
+                                              <button
+                                                type="button"
+                                                className="btn-cancel px-3 py-1.5 text-xs"
+                                                onClick={() => setActiveViewCskhId(null)}
+                                              >
+                                                Đóng
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </Fragment>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                          {renderPagination(filtered.length)}
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -1261,37 +1549,71 @@ export default function Dashboard() {
               <p className="section-subtitle">Danh sách feedback khách hàng gửi cho ứng dụng.</p>
             </div>
 
+            {renderSearchFilterBar("Tìm kiếm đánh giá theo email, bình luận...", [
+              {
+                value: filterOption1,
+                onChange: setFilterOption1,
+                options: [
+                  { value: '', label: 'Tất cả mức sao' },
+                  { value: '5', label: '⭐ 5 sao' },
+                  { value: '4', label: '⭐ 4 sao' },
+                  { value: '3', label: '⭐ 3 sao' },
+                  { value: '2', label: '⭐ 2 sao' },
+                  { value: '1', label: '⭐ 1 sao' }
+                ]
+              }
+            ])}
+
             <div className="data-table-container">
               {feedbacksLoading ? (
                 <div className="p-8 text-center text-slate-400">Đang tải dữ liệu đánh giá...</div>
               ) : feedbacks.length === 0 ? (
                 <div className="p-8 text-center text-slate-400">Chưa có đánh giá nào.</div>
-              ) : (
-                <table className="cyber-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Email</th>
-                      <th>Số sao</th>
-                      <th>Bình luận</th>
-                      <th>Ngày gửi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {feedbacks.map((f) => (
-                      <tr key={f.id}>
-                        <td className="monospace-id">
-                          {f.id}
-                        </td>
-                        <td className="font-semibold text-slate-200">{f.email}</td>
-                        <td className="font-bold text-amber-400">{renderStars(f.rating)}</td>
-                        <td>{f.comment}</td>
-                        <td className="text-zinc-500 text-xs">{formatDate(f.createdAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+              ) : (() => {
+                const filtered = feedbacks.filter(f => {
+                  const matchesSearch = !searchTerm ||
+                    f.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    f.comment?.toLowerCase().includes(searchTerm.toLowerCase());
+
+                  const matchesStars = !filterOption1 || f.rating === Number(filterOption1);
+
+                  return matchesSearch && matchesStars;
+                });
+
+                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+
+                if (filtered.length === 0) {
+                  return <div className="p-8 text-center text-slate-400">Không tìm thấy đánh giá phù hợp.</div>;
+                }
+
+                return (
+                  <>
+                    <table className="cyber-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Email</th>
+                          <th>Số sao</th>
+                          <th>Bình luận</th>
+                          <th>Ngày gửi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginated.map((f) => (
+                          <tr key={f.id}>
+                            <td className="monospace-id">{f.id}</td>
+                            <td className="font-semibold text-slate-200">{f.email}</td>
+                            <td className="font-bold text-amber-400">{renderStars(f.rating)}</td>
+                            <td>{f.comment}</td>
+                            <td className="text-zinc-500 text-xs">{formatDate(f.createdAt)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {renderPagination(filtered.length)}
+                  </>
+                );
+              })()}
             </div>
           </section>
         )}
@@ -1327,48 +1649,79 @@ export default function Dashboard() {
 
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-slate-400 uppercase px-1">Lịch sử báo cáo đã gửi</h3>
+              {renderSearchFilterBar("Tìm kiếm báo cáo theo nội dung, phản hồi...", [
+                {
+                  value: filterOption1,
+                  onChange: setFilterOption1,
+                  options: [
+                    { value: '', label: 'Tất cả trạng thái' },
+                    { value: 'pending', label: 'Chờ duyệt' },
+                    { value: 'completed', label: 'Đã hoàn thành' }
+                  ]
+                }
+              ])}
               <div className="data-table-container">
                 {reportsLoading ? (
                   <div className="p-8 text-center text-slate-400">Đang tải lịch sử báo cáo...</div>
                 ) : staffReports.length === 0 ? (
                   <div className="p-8 text-center text-slate-400">Chưa có báo cáo nào.</div>
-                ) : (
-                  <table className="cyber-table">
-                    <thead>
-                      <tr>
-                        <th>Ngày gửi</th>
-                        <th>Nội dung</th>
-                        <th>Trạng thái</th>
-                        <th>Phản hồi Admin</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {staffReports.map((r) => {
-                        const isCompleted = r.status === 'Đã hoàn thành' || Boolean(r.adminReply);
-                        return (
-                          <tr key={r.id}>
-                            <td className="text-zinc-500 text-xs whitespace-nowrap">
-                              {formatDate(r.createdAt)}
-                            </td>
-                            <td>{r.content}</td>
-                            <td>
-                              {isCompleted ? (
-                                <span className="status-badge badge-done">
-                                  Đã hoàn thành
-                                </span>
-                              ) : (
-                                <span className="status-badge badge-pending">
-                                  Chờ duyệt
-                                </span>
-                              )}
-                            </td>
-                            <td className="italic text-slate-300">{r.adminReply || '—'}</td>
+                ) : (() => {
+                  const filtered = staffReports.filter(r => {
+                    const matchesSearch = !searchTerm ||
+                      r.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      (r.adminReply && r.adminReply.toLowerCase().includes(searchTerm.toLowerCase()));
+
+                    const isCompleted = r.status === 'Đã hoàn thành' || Boolean(r.adminReply);
+                    const matchesStatus = !filterOption1 ||
+                      (filterOption1 === 'pending' && !isCompleted) ||
+                      (filterOption1 === 'completed' && isCompleted);
+
+                    return matchesSearch && matchesStatus;
+                  });
+
+                  const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+
+                  if (filtered.length === 0) {
+                    return <div className="p-8 text-center text-slate-400">Không tìm thấy báo cáo phù hợp.</div>;
+                  }
+
+                  return (
+                    <>
+                      <table className="cyber-table">
+                        <thead>
+                          <tr>
+                            <th>Ngày gửi</th>
+                            <th>Nội dung</th>
+                            <th>Trạng thái</th>
+                            <th>Phản hồi Admin</th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                )}
+                        </thead>
+                        <tbody>
+                          {paginated.map((r) => {
+                            const isCompleted = r.status === 'Đã hoàn thành' || Boolean(r.adminReply);
+                            return (
+                              <tr key={r.id}>
+                                <td className="text-zinc-500 text-xs whitespace-nowrap">
+                                  {formatDate(r.createdAt)}
+                                </td>
+                                <td>{r.content}</td>
+                                <td>
+                                  {isCompleted ? (
+                                    <span className="status-badge badge-done">Đã hoàn thành</span>
+                                  ) : (
+                                    <span className="status-badge badge-pending">Chờ duyệt</span>
+                                  )}
+                                </td>
+                                <td className="italic text-slate-300">{r.adminReply || '—'}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                      {renderPagination(filtered.length)}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </section>
@@ -1382,70 +1735,104 @@ export default function Dashboard() {
               <p className="section-subtitle">Danh sách các báo cáo tiến độ công việc do Staff gửi lên.</p>
             </div>
 
+            {renderSearchFilterBar("Tìm kiếm báo cáo theo nhân viên, nội dung...", [
+              {
+                value: filterOption1,
+                onChange: setFilterOption1,
+                options: [
+                  { value: '', label: 'Tất cả trạng thái' },
+                  { value: 'pending', label: 'Chờ duyệt' },
+                  { value: 'completed', label: 'Đã hoàn thành' }
+                ]
+              }
+            ])}
+
             <div className="data-table-container">
               {reportsLoading ? (
                 <div className="p-8 text-center text-slate-400">Đang tải danh sách báo cáo...</div>
               ) : adminReports.length === 0 ? (
                 <div className="p-8 text-center text-slate-400">Chưa có báo cáo nào.</div>
-              ) : (
-                <table className="cyber-table">
-                  <thead>
-                    <tr>
-                      <th>Staff</th>
-                      <th>Ngày gửi</th>
-                      <th>Nội dung</th>
-                      <th>Trạng thái</th>
-                      <th>Reply</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {adminReports.map((r) => {
-                      const isCompleted = r.status === 'Đã hoàn thành' || Boolean(r.adminReply);
-                      return (
-                        <tr key={r.id}>
-                          <td className="font-semibold text-slate-200">{r.staffName || 'Staff'}</td>
-                          <td className="text-zinc-500 text-xs whitespace-nowrap">
-                            {formatDate(r.createdAt)}
-                          </td>
-                          <td className="max-w-[260px]">{r.content}</td>
-                          <td>
-                            {isCompleted ? (
-                              <span className="status-badge badge-done">
-                                Đã hoàn thành
-                              </span>
-                            ) : (
-                              <span className="status-badge badge-pending">
-                                Chờ duyệt
-                              </span>
-                            )}
-                          </td>
-                          <td>
-                            <div className="flex flex-col gap-2">
-                              <textarea
-                                rows={2}
-                                value={adminReplies[r.id] !== undefined ? adminReplies[r.id] : r.adminReply || ''}
-                                onChange={(e) => setAdminReplies(prev => ({ ...prev, [r.id]: e.target.value }))}
-                                disabled={isCompleted}
-                                className="reply-textarea reply-textarea-compact"
-                                placeholder="Nhập phản hồi..."
-                              />
-                              {!isCompleted && (
-                                <button
-                                  type="button"
-                                  className="self-end btn-table-action btn-table-action-success"
-                                  onClick={() => handleReplyReport(r.id)}
-                                >
-                                  Phản hồi
-                                </button>
-                              )}
-                            </div>
-                          </td>
+              ) : (() => {
+                const filtered = adminReports.filter(r => {
+                  const name = r.staffName || 'Staff';
+                  const matchesSearch = !searchTerm ||
+                    name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    r.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (r.adminReply && r.adminReply.toLowerCase().includes(searchTerm.toLowerCase()));
+
+                  const isCompleted = r.status === 'Đã hoàn thành' || Boolean(r.adminReply);
+                  const matchesStatus = !filterOption1 ||
+                    (filterOption1 === 'pending' && !isCompleted) ||
+                    (filterOption1 === 'completed' && isCompleted);
+
+                  return matchesSearch && matchesStatus;
+                });
+
+                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+
+                if (filtered.length === 0) {
+                  return <div className="p-8 text-center text-slate-400">Không tìm thấy báo cáo phù hợp.</div>;
+                }
+
+                return (
+                  <>
+                    <table className="cyber-table">
+                      <thead>
+                        <tr>
+                          <th>Staff</th>
+                          <th>Ngày gửi</th>
+                          <th>Nội dung</th>
+                          <th>Trạng thái</th>
+                          <th>Reply</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
+                      </thead>
+                      <tbody>
+                        {paginated.map((r) => {
+                          const isCompleted = r.status === 'Đã hoàn thành' || Boolean(r.adminReply);
+                          return (
+                            <tr key={r.id}>
+                              <td className="font-semibold text-slate-200">{r.staffName || 'Staff'}</td>
+                              <td className="text-zinc-500 text-xs whitespace-nowrap">
+                                {formatDate(r.createdAt)}
+                              </td>
+                              <td className="max-w-[260px]">{r.content}</td>
+                              <td>
+                                {isCompleted ? (
+                                  <span className="status-badge badge-done">Đã hoàn thành</span>
+                                ) : (
+                                  <span className="status-badge badge-pending">Chờ duyệt</span>
+                                )}
+                              </td>
+                              <td>
+                                <div className="flex flex-col gap-2">
+                                  <textarea
+                                    rows={2}
+                                    value={adminReplies[r.id] !== undefined ? adminReplies[r.id] : r.adminReply || ''}
+                                    onChange={(e) => setAdminReplies(prev => ({ ...prev, [r.id]: e.target.value }))}
+                                    disabled={isCompleted}
+                                    className="reply-textarea reply-textarea-compact"
+                                    placeholder="Nhập phản hồi..."
+                                  />
+                                  {!isCompleted && (
+                                    <button
+                                      type="button"
+                                      className="self-end btn-table-action btn-table-action-success"
+                                      onClick={() => handleReplyReport(r.id)}
+                                    >
+                                      Phản hồi
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    {renderPagination(filtered.length)}
+                  </>
+                );
+              })()}
             </div>
           </section>
         )}
@@ -1458,41 +1845,58 @@ export default function Dashboard() {
               <p className="section-subtitle">Toàn bộ các giao dịch nạp tiền qua cổng thanh toán.</p>
             </div>
 
+            {renderSearchFilterBar("Tìm kiếm mã giao dịch, email...")}
+
             <div className="data-table-container">
               {paymentsLoading ? (
                 <div className="p-8 text-center text-slate-400">Đang tải lịch sử thanh toán...</div>
               ) : payments.length === 0 ? (
                 <div className="p-8 text-center text-slate-400">Chưa có giao dịch nào.</div>
-              ) : (
-                <table className="cyber-table">
-                  <thead>
-                    <tr>
-                      <th>Mã GD</th>
-                      <th>Email khách</th>
-                      <th>Số tiền</th>
-                      <th>Trạng thái</th>
-                      <th>Ngày nạp</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {payments.map((p) => (
-                      <tr key={p.id}>
-                        <td className="monospace-id font-bold text-amber-400">
-                          {p.transactionCode}
-                        </td>
-                        <td className="font-semibold">{p.userEmail}</td>
-                        <td className="font-bold text-emerald-400">{formatVnd(p.amount)}</td>
-                        <td>
-                          <span className="status-badge badge-done">
-                            Hoàn tất
-                          </span>
-                        </td>
-                        <td className="text-zinc-500 text-xs">{formatDate(p.createdAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+              ) : (() => {
+                const filtered = payments.filter(p => {
+                  return !searchTerm ||
+                    p.transactionCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    p.userEmail?.toLowerCase().includes(searchTerm.toLowerCase());
+                });
+
+                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+
+                if (filtered.length === 0) {
+                  return <div className="p-8 text-center text-slate-400">Không tìm thấy giao dịch phù hợp.</div>;
+                }
+
+                return (
+                  <>
+                    <table className="cyber-table">
+                      <thead>
+                        <tr>
+                          <th>Mã GD</th>
+                          <th>Email khách</th>
+                          <th>Số tiền</th>
+                          <th>Trạng thái</th>
+                          <th>Ngày nạp</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginated.map((p) => (
+                          <tr key={p.id}>
+                            <td className="monospace-id font-bold text-amber-400">
+                              {p.transactionCode}
+                            </td>
+                            <td className="font-semibold">{p.userEmail}</td>
+                            <td className="font-bold text-emerald-400">{formatVnd(p.amount)}</td>
+                            <td>
+                              <span className="status-badge badge-done">Hoàn tất</span>
+                            </td>
+                            <td className="text-zinc-500 text-xs">{formatDate(p.createdAt)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {renderPagination(filtered.length)}
+                  </>
+                );
+              })()}
             </div>
           </section>
         )}
@@ -1563,6 +1967,18 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {renderSearchFilterBar("Tìm kiếm nhân viên theo tên, email...", [
+              {
+                value: filterOption1,
+                onChange: setFilterOption1,
+                options: [
+                  { value: '', label: 'Tất cả trạng thái' },
+                  { value: 'active', label: 'Hoạt động (Active)' },
+                  { value: 'blocked', label: 'Bị khóa (Blocked)' }
+                ]
+              }
+            ])}
+
             <div className="data-table-container">
               {staffsLoading ? (
                 <div className="p-8 text-center text-slate-400">Đang tải danh sách nhân viên...</div>
@@ -1570,66 +1986,84 @@ export default function Dashboard() {
                 <div className="p-8 text-center text-slate-400">
                   Chưa có nhân viên nào. Nhấn nút "Thêm Staff" để tạo mới.
                 </div>
-              ) : (
-                <table className="cyber-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Tên nhân viên</th>
-                      <th>Email</th>
-                      <th>Vai trò</th>
-                      <th>Trạng thái</th>
-                      <th>Ngày tham gia</th>
-                      <th>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {staffs.map((s) => {
-                      const isBlocked = s.accountStatus?.toLowerCase() === 'blocked';
-                      return (
-                        <tr key={s.id}>
-                          <td className="monospace-id">
-                            {s.id}
-                          </td>
-                          <td className="font-semibold text-slate-200">{s.fullName}</td>
-                          <td>{s.email}</td>
-                          <td className="font-semibold text-indigo-400">{s.role}</td>
-                          <td>
-                            {isBlocked ? (
-                              <span className="status-badge badge-blocked">
-                                Blocked
-                              </span>
-                            ) : (
-                              <span className="status-badge badge-offline">
-                                Offline
-                              </span>
-                            )}
-                          </td>
-                          <td className="text-zinc-500 text-xs">{formatDate(s.createdAt)}</td>
-                          <td>
-                            <div className="flex gap-2">
-                              <button 
-                                type="button"
-                                className="btn-table-action btn-table-action-warning"
-                                onClick={() => handleToggleBlockStaff(s.id, isBlocked)}
-                              >
-                                {isBlocked ? "Mở khóa" : "Khóa"}
-                              </button>
-                              <button 
-                                type="button"
-                                className="btn-table-action btn-table-action-danger"
-                                onClick={() => handleDeleteStaff(s.id)}
-                              >
-                                Xóa
-                              </button>
-                            </div>
-                          </td>
+              ) : (() => {
+                const filtered = staffs.filter(s => {
+                  const matchesSearch = !searchTerm ||
+                    s.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    s.email?.toLowerCase().includes(searchTerm.toLowerCase());
+
+                  const isBlocked = s.accountStatus?.toLowerCase() === 'blocked';
+                  const matchesStatus = !filterOption1 ||
+                    (filterOption1 === 'active' && !isBlocked) ||
+                    (filterOption1 === 'blocked' && isBlocked);
+
+                  return matchesSearch && matchesStatus;
+                });
+
+                const paginated = filtered.slice((currentPage - 1) * 10, currentPage * 10);
+
+                if (filtered.length === 0) {
+                  return <div className="p-8 text-center text-slate-400">Không tìm thấy nhân viên phù hợp.</div>;
+                }
+
+                return (
+                  <>
+                    <table className="cyber-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Tên nhân viên</th>
+                          <th>Email</th>
+                          <th>Vai trò</th>
+                          <th>Trạng thái</th>
+                          <th>Ngày tham gia</th>
+                          <th>Thao tác</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
+                      </thead>
+                      <tbody>
+                        {paginated.map((s) => {
+                          const isBlocked = s.accountStatus?.toLowerCase() === 'blocked';
+                          return (
+                            <tr key={s.id}>
+                              <td className="monospace-id">{s.id}</td>
+                              <td className="font-semibold text-slate-200">{s.fullName}</td>
+                              <td>{s.email}</td>
+                              <td className="font-semibold text-indigo-400">{s.role}</td>
+                              <td>
+                                {isBlocked ? (
+                                  <span className="status-badge badge-blocked">Blocked</span>
+                                ) : (
+                                  <span className="status-badge badge-offline">Offline</span>
+                                )}
+                              </td>
+                              <td className="text-zinc-500 text-xs">{formatDate(s.createdAt)}</td>
+                              <td>
+                                <div className="flex gap-2">
+                                  <button 
+                                    type="button"
+                                    className="btn-table-action btn-table-action-warning"
+                                    onClick={() => handleToggleBlockStaff(s.id, isBlocked)}
+                                  >
+                                    {isBlocked ? "Mở khóa" : "Khóa"}
+                                  </button>
+                                  <button 
+                                    type="button"
+                                    className="btn-table-action btn-table-action-danger"
+                                    onClick={() => handleDeleteStaff(s.id)}
+                                  >
+                                    Xóa
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    {renderPagination(filtered.length)}
+                  </>
+                );
+              })()}
             </div>
           </section>
         )}
