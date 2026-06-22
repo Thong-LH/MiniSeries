@@ -1,14 +1,19 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniSeries.Infrastructure.ExternalServices;
+using Microsoft.EntityFrameworkCore;
+using MiniSeries.Domain.Entities;
+using MiniSeries.Infrastructure.Persistence;
 using MiniSeries.WebAPI.Contracts;
 using MiniSeries.WebAPI.Security;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MiniSeries.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/feedback")]
-public sealed class FeedbackController(SupabaseRestService supabase) : ControllerBase
+public sealed class FeedbackController(MiniSeriesDbContext dbContext) : ControllerBase
 {
     [Authorize(Policy = "AuthenticatedUser")]
     [HttpPost("create")]
@@ -27,8 +32,19 @@ public sealed class FeedbackController(SupabaseRestService supabase) : Controlle
 
         try
         {
-            var item = await supabase.CreateFeedbackAsync(email, req.Rating, req.Comment.Trim());
-            return item is null ? StatusCode(500) : Ok(item);
+            var item = new Feedback
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                Rating = req.Rating,
+                Comment = req.Comment.Trim(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            dbContext.Feedbacks.Add(item);
+            await dbContext.SaveChangesAsync();
+
+            return Ok(item);
         }
         catch (Exception ex)
         {
@@ -41,7 +57,9 @@ public sealed class FeedbackController(SupabaseRestService supabase) : Controlle
     {
         try
         {
-            var list = await supabase.ListFeedbacksAsync();
+            var list = await dbContext.Feedbacks
+                .OrderByDescending(f => f.CreatedAt)
+                .ToListAsync();
             return Ok(list);
         }
         catch (Exception ex)
@@ -56,7 +74,9 @@ public sealed class FeedbackController(SupabaseRestService supabase) : Controlle
     {
         try
         {
-            var list = await supabase.ListFeedbacksAsync();
+            var list = await dbContext.Feedbacks
+                .OrderByDescending(f => f.CreatedAt)
+                .ToListAsync();
             return Ok(list);
         }
         catch (Exception ex)

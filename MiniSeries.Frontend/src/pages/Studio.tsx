@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import Toast from '../components/Toast';
 import './Studio.css';
@@ -9,6 +9,7 @@ export default function Studio() {
     const [content, setContent] = useState('');
     const [generateVideo, setGenerateVideo] = useState(false);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     // Check auth on enter
     useEffect(() => {
@@ -19,7 +20,7 @@ export default function Studio() {
     }, [navigate]);
 
     // State machine
-    const [step, setStep] = useState<'input' | 'drafting' | 'draft_review' | 'generating_media' | 'finished'>('input');
+    const [step, setStep] = useState<'input' | 'opening_lesson' | 'drafting' | 'draft_review' | 'generating_media' | 'finished'>('input');
     const [progress, setProgress] = useState(0);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const [error, setError] = useState<string | null>(null);
@@ -36,6 +37,65 @@ export default function Studio() {
     // Media Viewer state
     const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
     const [quizSelections, setQuizSelections] = useState<Record<number, string>>({});
+
+    useEffect(() => {
+        const existingLessonId = searchParams.get('lessonId');
+        if (!existingLessonId) {
+            return;
+        }
+
+        let ignore = false;
+
+        const loadExistingLesson = async () => {
+            setStep('opening_lesson');
+            setError(null);
+
+            try {
+                const lesson = await api.getLesson(existingLessonId);
+                if (ignore) return;
+
+                const jobs = lesson.generationJobs || [];
+                const latestJob = [...jobs]
+                    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+                const jobStatus = latestJob?.status;
+                const chapters = lesson.chapters || [];
+                const hasChapters = chapters.length > 0;
+                const isRunning = jobStatus === 'Pending' || jobStatus === 'Running' || jobStatus === 0 || jobStatus === 1;
+
+                setLessonId(lesson.id);
+                setLessonData(lesson);
+                setTitle(lesson.title || '');
+                setContent(lesson.rawContent || '');
+                setDraftScript(lesson.overallScript || '');
+                setGenerateVideo(lesson.outputMode === 'Video' || lesson.outputMode === 1);
+                setCurrentChapterIndex(0);
+                setQuizSelections({});
+
+                if (isRunning) {
+                    setStep('generating_media');
+                } else if (hasChapters) {
+                    setStep('finished');
+                } else {
+                    setStep('draft_review');
+                }
+            } catch (err: any) {
+                if (ignore) return;
+                if (err?.status === 401 || err?.status === 403) {
+                    localStorage.clear();
+                    navigate('/login', { replace: true });
+                    return;
+                }
+                setError(err.message || 'Không tải được bài học đã chọn.');
+                setStep('input');
+            }
+        };
+
+        void loadExistingLesson();
+
+        return () => {
+            ignore = true;
+        };
+    }, [searchParams, navigate]);
 
     // Progress bar simulation
     useEffect(() => {
@@ -381,6 +441,30 @@ export default function Studio() {
             <div className="background-blobs"></div>
 
             <main>
+                {step === 'opening_lesson' && (
+                    <section className="result-container">
+                        <div
+                            className="loading-state"
+                            style={{
+                                minHeight: '360px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '16px',
+                                textAlign: 'center'
+                            }}
+                        >
+                            <div className="loader"></div>
+                            <div className="media-loading-copy">
+                                <span className="media-loading-eyebrow">Đang mở bài học</span>
+                                <h2>Đang tải lại series của bạn</h2>
+                                <p>Hệ thống đang lấy kịch bản, chapter, media và quiz đã tạo.</p>
+                            </div>
+                        </div>
+                    </section>
+                )}
+
                 {/* Hero Section */}
                 {(step === 'input' || step === 'drafting') && (
                     <section className="studio-hero">

@@ -1,14 +1,19 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniSeries.Infrastructure.ExternalServices;
+using Microsoft.EntityFrameworkCore;
+using MiniSeries.Domain.Entities;
+using MiniSeries.Infrastructure.Persistence;
 using MiniSeries.WebAPI.Contracts;
 using MiniSeries.WebAPI.Security;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MiniSeries.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/report")]
-public sealed class ReportsController(SupabaseRestService supabase) : ControllerBase
+public sealed class ReportsController(MiniSeriesDbContext dbContext) : ControllerBase
 {
     [Authorize(Policy = "StaffOnly")]
     [HttpPost("create")]
@@ -22,8 +27,20 @@ public sealed class ReportsController(SupabaseRestService supabase) : Controller
 
         try
         {
-            var item = await supabase.CreateReportAsync(staffName.Trim(), req.Content.Trim());
-            return item is null ? StatusCode(500) : Ok(item);
+            var item = new StaffReport
+            {
+                Id = Guid.NewGuid(),
+                StaffName = staffName.Trim(),
+                Content = req.Content.Trim(),
+                AdminReply = "",
+                Status = "Chờ duyệt",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            dbContext.StaffReports.Add(item);
+            await dbContext.SaveChangesAsync();
+
+            return Ok(item);
         }
         catch (Exception ex)
         {
@@ -37,7 +54,10 @@ public sealed class ReportsController(SupabaseRestService supabase) : Controller
     {
         try
         {
-            var list = await supabase.ListReportsAsync();
+            var list = await dbContext.StaffReports
+                .OrderBy(r => r.CreatedAt)
+                .ToListAsync();
+
             if (User.IsInRole("Staff") && !User.IsInRole("Admin"))
             {
                 var staffName = AuthUser.GetCurrentUserName(User) ?? AuthUser.GetCurrentUserEmail(User);
@@ -71,10 +91,18 @@ public sealed class ReportsController(SupabaseRestService supabase) : Controller
 
         try
         {
-            var item = await supabase.ReplyReportAsync(reportId.Value, adminReply.Trim());
-            return item is null
-                ? NotFound(new { message = "Khong tim thay bao cao." })
-                : Ok(item);
+            var item = await dbContext.StaffReports.FirstOrDefaultAsync(r => r.Id == reportId.Value);
+            if (item is null)
+            {
+                return NotFound(new { message = "Khong tim thay bao cao." });
+            }
+
+            item.AdminReply = adminReply.Trim();
+            item.Status = "Đã hoàn thành";
+
+            await dbContext.SaveChangesAsync();
+
+            return Ok(item);
         }
         catch (Exception ex)
         {

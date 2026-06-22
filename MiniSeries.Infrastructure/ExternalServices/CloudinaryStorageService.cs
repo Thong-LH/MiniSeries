@@ -37,7 +37,48 @@ public sealed class CloudinaryStorageService : IStorageService
 
         if (isVideo)
         {
-            var upload = new VideoUploadParams
+            try
+            {
+                var upload = new VideoUploadParams
+                {
+                    File = new FileDescription(fileName, sourceUrl),
+                    PublicId = publicId,
+                    AssetFolder = _options.Folder,
+                    UseAssetFolderAsPublicIdPrefix = true,
+                    Overwrite = true
+                };
+
+                var result = await _cloudinary.UploadAsync(upload);
+                if (result.Error is not null)
+                {
+                    try
+                    {
+                        await using var sourceStream = await DownloadSourceAsync(sourceUrl);
+                        upload.File = new FileDescription(fileName, sourceStream);
+                        result = await _cloudinary.UploadAsync(upload);
+                    }
+                    catch
+                    {
+                        return sourceUrl;
+                    }
+                }
+                
+                if (result.Error is not null)
+                {
+                    return sourceUrl;
+                }
+                
+                return result.SecureUrl?.ToString() ?? sourceUrl;
+            }
+            catch
+            {
+                return sourceUrl;
+            }
+        }
+
+        try
+        {
+            var imageUpload = new ImageUploadParams
             {
                 File = new FileDescription(fileName, sourceUrl),
                 PublicId = publicId,
@@ -46,32 +87,32 @@ public sealed class CloudinaryStorageService : IStorageService
                 Overwrite = true
             };
 
-            var result = await _cloudinary.UploadAsync(upload);
-            ThrowIfFailed(result);
-            return result.SecureUrl?.ToString()
-                   ?? throw new InvalidOperationException("Cloudinary did not return a video URL.");
+            var imageResult = await _cloudinary.UploadAsync(imageUpload);
+            if (imageResult.Error is not null)
+            {
+                try
+                {
+                    await using var sourceStream = await DownloadSourceAsync(sourceUrl);
+                    imageUpload.File = new FileDescription(fileName, sourceStream);
+                    imageResult = await _cloudinary.UploadAsync(imageUpload);
+                }
+                catch
+                {
+                    return sourceUrl;
+                }
+            }
+
+            if (imageResult.Error is not null)
+            {
+                return sourceUrl;
+            }
+            
+            return imageResult.SecureUrl?.ToString() ?? sourceUrl;
         }
-
-        var imageUpload = new ImageUploadParams
+        catch
         {
-            File = new FileDescription(fileName, sourceUrl),
-            PublicId = publicId,
-            AssetFolder = _options.Folder,
-            UseAssetFolderAsPublicIdPrefix = true,
-            Overwrite = true
-        };
-
-        var imageResult = await _cloudinary.UploadAsync(imageUpload);
-        if (imageResult.Error is not null && IsRemoteFetchFailure(imageResult.Error.Message))
-        {
-            await using var sourceStream = await DownloadSourceAsync(sourceUrl);
-            imageUpload.File = new FileDescription(fileName, sourceStream);
-            imageResult = await _cloudinary.UploadAsync(imageUpload);
+            return sourceUrl;
         }
-
-        ThrowIfFailed(imageResult);
-        return imageResult.SecureUrl?.ToString()
-               ?? throw new InvalidOperationException("Cloudinary did not return an image URL.");
     }
 
     private void EnsureConfigured()
@@ -132,7 +173,7 @@ public sealed class CloudinaryStorageService : IStorageService
     {
         if (result.Error is not null)
         {
-            throw new InvalidOperationException("Cloudinary upload failed.");
+            throw new InvalidOperationException($"Cloudinary upload failed: {result.Error.Message}");
         }
     }
 }

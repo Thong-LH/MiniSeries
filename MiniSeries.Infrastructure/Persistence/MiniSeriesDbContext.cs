@@ -13,9 +13,11 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
     public DbSet<GenerationLog> GenerationLogs => Set<GenerationLog>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<PaymentOrder> PaymentOrders => Set<PaymentOrder>();
+    public DbSet<PaymentHistory> PaymentHistories => Set<PaymentHistory>();
     public DbSet<SupportRequest> SupportRequests => Set<SupportRequest>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<StaffReport> StaffReports => Set<StaffReport>();
+    public DbSet<CskhMessage> CskhMessages => Set<CskhMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -125,6 +127,22 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.HasIndex(x => x.UserId);
         });
 
+        modelBuilder.Entity<PaymentHistory>(entity =>
+        {
+            entity.ToTable("PaymentHistory");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.UserId).HasMaxLength(100);
+            entity.Property(x => x.UserEmail).HasMaxLength(320);
+            entity.Property(x => x.PaymentCode).HasMaxLength(50);
+            entity.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.PlanName).HasMaxLength(100);
+            entity.Property(x => x.Status).HasMaxLength(50);
+            entity.Property(x => x.Content).HasColumnType("text");
+            entity.HasIndex(x => new { x.UserId, x.CreatedAt });
+            entity.HasIndex(x => x.PaymentCode).IsUnique();
+            entity.HasIndex(x => x.PaymentOrderId).IsUnique();
+        });
+
         modelBuilder.Entity<UserProfile>(entity =>
         {
             entity.HasKey(x => x.Id);
@@ -136,8 +154,22 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.UsedMangaCount).HasDefaultValue(0);
             entity.Property(x => x.VideoMonthlyLimit).HasDefaultValue(1);
             entity.Property(x => x.UsedVideoCount).HasDefaultValue(0);
+            entity.Property(x => x.AccountStatus).HasMaxLength(50).HasDefaultValue("Active");
+            entity.Property(x => x.TokenBalance).HasDefaultValue(0);
             entity.Property(x => x.CurrentPeriodStart).HasDefaultValueSql("NOW()");
             entity.Property(x => x.CurrentPeriodEnd).HasDefaultValueSql("NOW() + INTERVAL '1 month'");
+        });
+
+        modelBuilder.Entity<CskhMessage>(entity =>
+        {
+            entity.ToTable("cskh_messages");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id");
+            entity.Property(x => x.CustomerEmail).HasColumnName("customer_email").HasMaxLength(320);
+            entity.Property(x => x.Subject).HasColumnName("subject").HasMaxLength(500);
+            entity.Property(x => x.Content).HasColumnName("content").HasColumnType("text");
+            entity.Property(x => x.SenderRole).HasColumnName("sender_role").HasMaxLength(50);
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
         });
 
         modelBuilder.Entity<SupportRequest>(entity =>

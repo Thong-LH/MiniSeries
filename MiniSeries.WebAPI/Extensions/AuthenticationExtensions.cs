@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.EntityFrameworkCore;
+using MiniSeries.Domain.Entities;
+using MiniSeries.Infrastructure.Persistence;
 using MiniSeries.Infrastructure.ExternalServices;
 using MiniSeries.Infrastructure.Options;
 using MiniSeries.WebAPI.Security;
@@ -59,10 +62,10 @@ public static class AuthenticationExtensions
                         var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
                         var cacheKey = $"user-profile-{userId}";
 
-                        if (!memoryCache.TryGetValue(cacheKey, out SupabaseUserProfileRow? profile))
+                        if (!memoryCache.TryGetValue(cacheKey, out UserProfile? profile))
                         {
-                            var supabaseDb = context.HttpContext.RequestServices.GetRequiredService<SupabaseRestService>();
-                            profile = await supabaseDb.GetUserProfileByIdAsync(userId);
+                            var dbContext = context.HttpContext.RequestServices.GetRequiredService<MiniSeriesDbContext>();
+                            profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == userId);
                             if (profile is null)
                             {
                                 context.Fail("Authenticated user does not have a UserProfiles record.");

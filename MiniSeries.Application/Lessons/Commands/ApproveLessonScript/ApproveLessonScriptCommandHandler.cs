@@ -23,9 +23,9 @@ public sealed class ApproveLessonScriptCommandHandler(
         var lesson = await lessonRepository.GetByIdAsync(request.LessonId)
                      ?? throw new NotFoundException("Lesson was not found.");
 
-        if (lesson.ScriptStatus != ScriptStatus.AwaitingReview)
+        if (lesson.ScriptStatus != ScriptStatus.AwaitingReview && lesson.ScriptStatus != ScriptStatus.Approved)
         {
-            throw new BusinessRuleException("Lesson can only be approved when it is awaiting review.");
+            throw new BusinessRuleException("Lesson can only be approved when it is awaiting review or approved.");
         }
 
         if (!string.IsNullOrWhiteSpace(request.OverallScript))

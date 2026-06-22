@@ -109,3 +109,51 @@ public sealed class ReportReplyRequest
 
     public string? ResolveAdminReply() => AdminReply;
 }
+
+public sealed class CreateStaffRequest
+{
+    [JsonPropertyName("fullName")]
+    public string? FullName { get; set; }
+
+    [JsonPropertyName("email")]
+    public string? Email { get; set; }
+
+    [JsonPropertyName("password")]
+    public string? Password { get; set; }
+}
+
+public sealed class UpdateTokenRequest
+{
+    [JsonPropertyName("mangaDelta")]
+    public int? MangaDelta { get; set; }
+
+    [JsonPropertyName("videoDelta")]
+    public int? VideoDelta { get; set; }
+
+    [JsonPropertyName("planName")]
+    public string? PlanName { get; set; }
+}
+
+public sealed class GoogleSignInRequest
+{
+    [JsonPropertyName("accessToken")]
+    public string? AccessToken { get; set; }
+}
+
+public sealed class ForgotPasswordRequest
+{
+    [JsonPropertyName("email")]
+    public string? Email { get; set; }
+}
+
+public sealed class ResetPasswordRequest
+{
+    [JsonPropertyName("email")]
+    public string? Email { get; set; }
+
+    [JsonPropertyName("otpCode")]
+    public string? OtpCode { get; set; }
+
+    [JsonPropertyName("newPassword")]
+    public string? NewPassword { get; set; }
+}

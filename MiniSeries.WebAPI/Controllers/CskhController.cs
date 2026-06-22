@@ -5,8 +5,6 @@ using Microsoft.Extensions.Options;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Infrastructure.Options;
 using MiniSeries.Infrastructure.Persistence;
-using MiniSeries.WebAPI.Contracts;
-using MiniSeries.WebAPI.Security;
 using System;
 using System.Linq;
 using System.Net;
@@ -17,109 +15,68 @@ using System.Threading.Tasks;
 namespace MiniSeries.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/support")]
-public sealed class SupportController(
-    MiniSeriesDbContext dbContext,
-    IOptions<EmailSettings> emailSettings) : ControllerBase
+[Route("api/admin/cskh")]
+[Authorize(Policy = "StaffOrAdmin")]
+public class CskhController : ControllerBase
 {
-    private readonly EmailSettings _emailSettings = emailSettings.Value;
-    [Authorize(Policy = "AuthenticatedUser")]
-    [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] SupportCreateRequest req)
+    private readonly MiniSeriesDbContext _dbContext;
+    private readonly EmailSettings _emailSettings;
+
+    public CskhController(
+        MiniSeriesDbContext dbContext,
+        IOptions<EmailSettings> emailSettings)
     {
-        var customerEmail = AuthUser.GetCurrentUserEmail(User);
-        if (string.IsNullOrWhiteSpace(customerEmail) || string.IsNullOrWhiteSpace(req.Content))
+        _dbContext = dbContext;
+        _emailSettings = emailSettings.Value;
+    }
+
+    // 🚀 API 1: TIẾN HÀNH GỬI MAIL VÀ LƯU VÀO DATABASE
+    [HttpPost("send")]
+    public async Task<IActionResult> SendCskhEmail([FromBody] SendEmailRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.CustomerEmail) || string.IsNullOrWhiteSpace(req.Content))
         {
-            return BadRequest(new { message = "Thieu email hoac noi dung yeu cau." });
+            return BadRequest(new { message = "Vui lòng nhập Email nhận và Nội dung thư." });
         }
 
         try
         {
-            var item = new SupportRequest
+            // 1. Lấy Role của người đăng nhập từ Token (Admin/Staff)
+            var currentRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Staff";
+
+            var subject = string.IsNullOrWhiteSpace(req.Subject) ? "Hỗ trợ khách hàng từ Thousand Sunsilk" : req.Subject;
+
+            // 2. Sử dụng EF Core để lưu vào database trước
+            var messageLog = new CskhMessage
             {
                 Id = Guid.NewGuid(),
-                CustomerEmail = customerEmail.Trim(),
-                Content = req.Content.Trim(),
-                Reply = "",
-                Status = "Chờ trả lời",
+                CustomerEmail = req.CustomerEmail,
+                Subject = subject,
+                Content = req.Content,
+                SenderRole = currentRole,
                 CreatedAt = DateTime.UtcNow
             };
 
-            dbContext.SupportRequests.Add(item);
-            await dbContext.SaveChangesAsync();
+            _dbContext.CskhMessages.Add(messageLog);
+            await _dbContext.SaveChangesAsync();
 
-            return Ok(item);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
-    [Authorize(Policy = "StaffOrAdmin")]
-    [HttpGet("list")]
-    public async Task<IActionResult> List()
-    {
-        try
-        {
-            var list = await dbContext.SupportRequests
-                .OrderBy(s => s.CreatedAt)
-                .ToListAsync();
-            return Ok(list);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
-    [Authorize(Policy = "StaffOrAdmin")]
-    [HttpPost("reply")]
-    public async Task<IActionResult> Reply([FromBody] SupportReplyRequest req)
-    {
-        var supportId = req.ResolveId();
-        var replyText = req.ResolveReply();
-        if (supportId is null)
-        {
-            return BadRequest(new { message = "ID yeu cau tu van khong hop le hoac bi thieu." });
-        }
-        if (string.IsNullOrWhiteSpace(replyText))
-        {
-            return BadRequest(new { message = "Thieu noi dung phan hoi." });
-        }
-
-        try
-        {
-            var item = await dbContext.SupportRequests.FirstOrDefaultAsync(s => s.Id == supportId.Value);
-            if (item is null)
-            {
-                return NotFound(new { message = "Khong tim thay yeu cau tu van." });
-            }
-
-            item.Reply = replyText.Trim();
-            item.Status = "Đã trả lời";
-            
-            await dbContext.SaveChangesAsync();
-
+            // 3. Thực hiện gửi mail bất đồng bộ ở background
             if (!string.IsNullOrWhiteSpace(_emailSettings.SenderEmail))
             {
-                // Capture variables needed for the background thread
-                var customerEmail = item.CustomerEmail;
-                var ticketId = item.Id;
-                var ticketContent = item.Content;
-                var ticketReply = item.Reply;
-                
+                var customerEmail = req.CustomerEmail;
+                var emailContent = req.Content;
+                var emailSubject = subject;
+
                 // Lookup customer name synchronously before starting background task
-                var userProfile = await dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Email == customerEmail);
+                var userProfile = await _dbContext.UserProfiles.FirstOrDefaultAsync(u => u.Email == customerEmail);
                 var customerName = userProfile?.FullName ?? customerEmail;
-                
+
+                var emailHtmlBody = Helpers.EmailTemplateHelper.BuildCskhMessage(customerName, emailContent, _emailSettings.SenderName ?? "Mini Series");
+
                 _ = Task.Run(async () =>
                 {
                     try
                     {
-                        var emailSubject = $"Phản hồi yêu cầu tư vấn - Phiếu #{ticketId}";
-                        var emailHtmlBody = Helpers.EmailTemplateHelper.BuildSupportTicketReply(customerName, ticketContent, ticketReply, _emailSettings.SenderName ?? "Mini Series");
-
                         if (!string.IsNullOrWhiteSpace(_emailSettings.ApiKey))
                         {
                             using (var client = new System.Net.Http.HttpClient())
@@ -142,7 +99,7 @@ public sealed class SupportController(
                                 if (!response.IsSuccessStatusCode)
                                 {
                                     var errorResponse = await response.Content.ReadAsStringAsync();
-                                    Console.WriteLine($"[Brevo HTTP API Error] Failed to send support reply email to {customerEmail}: {response.StatusCode} - {errorResponse}");
+                                    Console.WriteLine($"[Brevo HTTP API Error] Failed to send CSKH email to {customerEmail}: {response.StatusCode} - {errorResponse}");
                                 }
                             }
                         }
@@ -150,7 +107,7 @@ public sealed class SupportController(
                         {
                             using (var smtpClient = new SmtpClient(_emailSettings.SmtpServer ?? "smtp.gmail.com"))
                             {
-                                smtpClient.Port = int.TryParse(_emailSettings.Port, out var port) ? port : 587;
+                                smtpClient.Port = int.TryParse(_emailSettings.Port, out var p) ? p : 587;
                                 smtpClient.Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.AppPassword);
                                 smtpClient.EnableSsl = true;
 
@@ -170,16 +127,54 @@ public sealed class SupportController(
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[Email Background Error] Failed to send support reply email to {customerEmail}: {ex.Message}");
+                        Console.WriteLine($"[Email Background Error] Failed to send CSKH email to {customerEmail}: {ex.Message}");
                     }
                 });
             }
 
-            return Ok(item);
+            return Ok(new { message = $"Đã ghi nhận nhật ký và tiến hành gửi thư CSKH thành công!" });
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return StatusCode(500, new { message = $"Hệ thống gặp lỗi lưu nhật ký hoặc xử lý gửi: {ex.Message}", errorDetail = ex.ToString() });
         }
     }
+
+    // 🚀 API 2: LẤY LỊCH SỬ CÁC THƯ ĐÃ GỬI
+    [HttpGet("history")]
+    public async Task<IActionResult> GetCskhHistory()
+    {
+        try
+        {
+            var list = await _dbContext.CskhMessages
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+
+            return Ok(list.Select(h => new
+            {
+                id = h.Id,
+                customer_email = h.CustomerEmail,
+                subject = h.Subject,
+                content = h.Content,
+                sender_role = h.SenderRole,
+                created_at = h.CreatedAt
+            }));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = "Không thể tải lịch sử: " + ex.Message });
+        }
+    }
+}
+
+public class SendEmailRequest
+{
+    [System.Text.Json.Serialization.JsonPropertyName("customerEmail")]
+    public string CustomerEmail { get; set; } = "";
+
+    [System.Text.Json.Serialization.JsonPropertyName("subject")]
+    public string Subject { get; set; } = "";
+
+    [System.Text.Json.Serialization.JsonPropertyName("content")]
+    public string Content { get; set; } = "";
 }

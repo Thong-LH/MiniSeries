@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniSeries.Infrastructure.Persistence;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MiniSeries.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(MiniSeriesDbContext))]
-    partial class MiniSeriesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260615071012_AddPaymentHistories")]
+    partial class AddPaymentHistories
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,47 +112,6 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("ChapterQuizzes");
-                });
-
-            modelBuilder.Entity("MiniSeries.Domain.Entities.CskhMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<string>("CustomerEmail")
-                        .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("character varying(320)")
-                        .HasColumnName("customer_email");
-
-                    b.Property<string>("SenderRole")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("sender_role");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("subject");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("cskh_messages", (string)null);
                 });
 
             modelBuilder.Entity("MiniSeries.Domain.Entities.Feedback", b =>
@@ -429,7 +391,7 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId", "CreatedAt");
 
-                    b.ToTable("PaymentHistory", (string)null);
+                    b.ToTable("PaymentHistories");
                 });
 
             modelBuilder.Entity("MiniSeries.Domain.Entities.PaymentOrder", b =>
@@ -564,13 +526,6 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AccountStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasDefaultValue("Active");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -610,11 +565,6 @@ namespace MiniSeries.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<int>("TokenBalance")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
 
                     b.Property<int>("UsedMangaCount")
                         .ValueGeneratedOnAdd()
