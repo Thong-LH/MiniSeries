@@ -38,9 +38,10 @@ public class PollinationsService : IImageGenerationService, IMangaService, IVide
         return Task.FromResult($"{_baseUrl}/video/{encodedPrompt}?key={_apiKey}");
     }
 
-    public Task<string> UploadAsync(string sourceUrl, string fileName)
+    public Task<string> UploadAsync(string sourceUrl, string fileName, string? subFolder = null)
     {
         _ = fileName;
+        _ = subFolder;
         return Task.FromResult(sourceUrl);
     }
 }

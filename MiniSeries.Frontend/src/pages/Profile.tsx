@@ -162,6 +162,13 @@ export default function Profile() {
   const [lessons, setLessons] = useState<LessonSummary[]>(() =>
     readJsonCache<LessonSummary[]>(getScopedCacheKey(MY_LESSONS_CACHE_PREFIX)) ?? []
   );
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [lessons.length]);
+
   const [lessonsLoading, setLessonsLoading] = useState(false);
   const [lessonsLoaded, setLessonsLoaded] = useState(() =>
     readJsonCache<LessonSummary[]>(getScopedCacheKey(MY_LESSONS_CACHE_PREFIX)) !== null
@@ -196,6 +203,7 @@ export default function Profile() {
 
   const selectTab = (tab: TabKey) => {
     setActiveTab(tab);
+    setCurrentPage(1);
     if (tab === 'lessons' && !lessonsLoaded) {
       setLessonsLoading(true);
       setLessonsError(null);
@@ -299,6 +307,11 @@ export default function Profile() {
     );
   }
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentLessons = lessons.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(lessons.length / itemsPerPage);
+
   return (
     <section style={{ padding: '110px 20px 60px', minHeight: '80vh', color: '#fff' }}>
       <div style={{ maxWidth: '1040px', margin: '0 auto' }}>
@@ -387,104 +400,179 @@ export default function Profile() {
               <p style={{ color: '#94a3b8' }}>Bạn chưa tạo bài học nào.</p>
             )}
             {lessons.length > 0 && (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                gap: '18px'
-              }}>
-                {lessons.map((lesson) => {
-                  const thumbnailUrl = getLessonThumbnail(lesson);
-                  const mode = formatOutputMode(lesson.outputMode);
-                  const isVideo = mode === 'Video';
+              <>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                  gap: '18px'
+                }}>
+                  {currentLessons.map((lesson) => {
+                    const thumbnailUrl = getLessonThumbnail(lesson);
+                    const mode = formatOutputMode(lesson.outputMode);
+                    const isVideo = mode === 'Video';
 
-                  return (
-                    <article
-                      key={lesson.id}
-                      onClick={() => navigate(`/studio?lessonId=${lesson.id}`)}
-                      style={{
-                        overflow: 'hidden',
-                        borderRadius: '14px',
-                        border: '1px solid rgba(148, 163, 184, 0.22)',
-                        background: 'rgba(2, 6, 23, 0.62)',
-                        cursor: 'pointer',
-                        minHeight: '280px'
-                      }}
-                    >
-                      <div style={{
-                        position: 'relative',
-                        aspectRatio: '16 / 10',
-                        background: isVideo
-                          ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(15, 23, 42, 0.92))'
-                          : 'linear-gradient(135deg, rgba(6, 182, 212, 0.26), rgba(15, 23, 42, 0.92))'
-                      }}>
-                        {thumbnailUrl ? (
-                          <img
-                            src={thumbnailUrl}
-                            alt={lesson.title}
-                            style={{
-                              width: '100%',
+                    return (
+                      <article
+                        key={lesson.id}
+                        onClick={() => navigate(`/studio?lessonId=${lesson.id}`)}
+                        style={{
+                          overflow: 'hidden',
+                          borderRadius: '14px',
+                          border: '1px solid rgba(148, 163, 184, 0.22)',
+                          background: 'rgba(2, 6, 23, 0.62)',
+                          cursor: 'pointer',
+                          minHeight: '280px'
+                        }}
+                      >
+                        <div style={{
+                          position: 'relative',
+                          aspectRatio: '16 / 10',
+                          background: isVideo
+                            ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(15, 23, 42, 0.92))'
+                            : 'linear-gradient(135deg, rgba(6, 182, 212, 0.26), rgba(15, 23, 42, 0.92))'
+                        }}>
+                          {thumbnailUrl ? (
+                            <img
+                              src={thumbnailUrl}
+                              alt={lesson.title}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                display: 'block'
+                              }}
+                            />
+                          ) : (
+                            <div style={{
                               height: '100%',
-                              objectFit: 'cover',
-                              display: 'block'
-                            }}
-                          />
-                        ) : (
-                          <div style={{
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: isVideo ? '#c084fc' : '#67e8f9',
-                            fontWeight: 900,
-                            letterSpacing: '0.08em'
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: isVideo ? '#c084fc' : '#67e8f9',
+                              fontWeight: 900,
+                              letterSpacing: '0.08em'
+                            }}>
+                              {mode}
+                            </div>
+                          )}
+                          <span style={{
+                            position: 'absolute',
+                            top: '10px',
+                            left: '10px',
+                            padding: '6px 10px',
+                            borderRadius: '999px',
+                            background: isVideo ? 'rgba(168, 85, 247, 0.88)' : 'rgba(6, 182, 212, 0.88)',
+                            color: '#020617',
+                            fontSize: '0.75rem',
+                            fontWeight: 900
                           }}>
                             {mode}
-                          </div>
-                        )}
-                        <span style={{
-                          position: 'absolute',
-                          top: '10px',
-                          left: '10px',
-                          padding: '6px 10px',
-                          borderRadius: '999px',
-                          background: isVideo ? 'rgba(168, 85, 247, 0.88)' : 'rgba(6, 182, 212, 0.88)',
-                          color: '#020617',
-                          fontSize: '0.75rem',
-                          fontWeight: 900
-                        }}>
-                          {mode}
-                        </span>
-                      </div>
-
-                      <div style={{ padding: '14px' }}>
-                        <h3 style={{
-                          minHeight: '48px',
-                          margin: '0 0 10px',
-                          color: '#f8fafc',
-                          fontSize: '1rem',
-                          lineHeight: 1.35
-                        }}>
-                          {lesson.title}
-                        </h3>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '10px',
-                          color: '#94a3b8',
-                          fontSize: '0.88rem'
-                        }}>
-                          <span>{formatDate(lesson.createdAt)}</span>
-                          <strong style={{ color: '#e2e8f0' }}>{lesson.chapterCount} chapter</strong>
+                          </span>
                         </div>
-                        <p style={{ marginTop: '10px', color: '#94a3b8', fontSize: '0.86rem' }}>
-                          {formatScriptStatus(lesson.scriptStatus)}
-                        </p>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
+
+                        <div style={{ padding: '14px' }}>
+                          <h3 style={{
+                            minHeight: '48px',
+                            margin: '0 0 10px',
+                            color: '#f8fafc',
+                            fontSize: '1rem',
+                            lineHeight: 1.35
+                          }}>
+                            {lesson.title}
+                          </h3>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '10px',
+                            color: '#94a3b8',
+                            fontSize: '0.88rem'
+                          }}>
+                            <span>{formatDate(lesson.createdAt)}</span>
+                            <strong style={{ color: '#e2e8f0' }}>{lesson.chapterCount} chapter</strong>
+                          </div>
+                          <p style={{ marginTop: '10px', color: '#94a3b8', fontSize: '0.86rem' }}>
+                            {formatScriptStatus(lesson.scriptStatus)}
+                          </p>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="pagination-controls" style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginTop: '24px'
+                  }}>
+                    <button
+                      type="button"
+                      disabled={currentPage === 1}
+                      onClick={() => {
+                        setCurrentPage(prev => Math.max(prev - 1, 1));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(6, 182, 212, 0.28)',
+                        background: 'rgba(15, 23, 42, 0.6)',
+                        color: currentPage === 1 ? '#475569' : '#67e8f9',
+                        cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s',
+                        fontWeight: 800
+                      }}
+                    >
+                      Trước
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => {
+                          setCurrentPage(page);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        style={{
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          border: page === currentPage ? '1px solid rgba(6, 182, 212, 0.75)' : '1px solid rgba(148, 163, 184, 0.28)',
+                          background: page === currentPage ? 'rgba(6, 182, 212, 0.2)' : 'rgba(15, 23, 42, 0.6)',
+                          color: page === currentPage ? '#67e8f9' : '#cbd5e1',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          fontWeight: page === currentPage ? 900 : 500
+                        }}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      disabled={currentPage === totalPages}
+                      onClick={() => {
+                        setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(6, 182, 212, 0.28)',
+                        background: 'rgba(15, 23, 42, 0.6)',
+                        color: currentPage === totalPages ? '#475569' : '#67e8f9',
+                        cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s',
+                        fontWeight: 800
+                      }}
+                    >
+                      Sau
+                    </button>
+                  </div>
+                )}
+              </>
             )}
             {SHOW_LEGACY_LESSON_TABLE && lessons.length > 0 && (
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '760px' }}>

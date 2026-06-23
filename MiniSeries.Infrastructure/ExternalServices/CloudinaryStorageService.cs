@@ -26,7 +26,7 @@ public sealed class CloudinaryStorageService : IStorageService
             _options.ApiSecret));
     }
 
-    public async Task<string> UploadAsync(string sourceUrl, string fileName)
+    public async Task<string> UploadAsync(string sourceUrl, string fileName, string? subFolder = null)
     {
         EnsureConfigured();
 
@@ -34,6 +34,15 @@ public sealed class CloudinaryStorageService : IStorageService
         var isVideo = fileName.Contains("vid", StringComparison.OrdinalIgnoreCase)
                       || sourceUrl.Contains("/video/", StringComparison.OrdinalIgnoreCase)
                       || sourceUrl.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase);
+
+        var assetFolder = _options.Folder;
+        if (!string.IsNullOrWhiteSpace(subFolder))
+        {
+            var subPath = subFolder.Replace('\\', '/').Trim('/');
+            assetFolder = string.IsNullOrWhiteSpace(_options.Folder)
+                ? subPath
+                : $"{_options.Folder.TrimEnd('/')}/{subPath}";
+        }
 
         if (isVideo)
         {
@@ -43,7 +52,7 @@ public sealed class CloudinaryStorageService : IStorageService
                 {
                     File = new FileDescription(fileName, sourceUrl),
                     PublicId = publicId,
-                    AssetFolder = _options.Folder,
+                    AssetFolder = assetFolder,
                     UseAssetFolderAsPublicIdPrefix = true,
                     Overwrite = true
                 };
@@ -82,7 +91,7 @@ public sealed class CloudinaryStorageService : IStorageService
             {
                 File = new FileDescription(fileName, sourceUrl),
                 PublicId = publicId,
-                AssetFolder = _options.Folder,
+                AssetFolder = assetFolder,
                 UseAssetFolderAsPublicIdPrefix = true,
                 Overwrite = true
             };

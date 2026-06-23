@@ -34,5 +34,5 @@ public interface IVideoService
 
 public interface IStorageService
 {
-    Task<string> UploadAsync(string sourceUrl, string fileName);
+    Task<string> UploadAsync(string sourceUrl, string fileName, string? subFolder = null);
 }

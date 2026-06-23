@@ -136,7 +136,8 @@ public sealed class ApproveLessonScriptCommandHandler(
             await backgroundLessonRepository.SaveAsync(lesson);
 
             var anchorLocalUrl = await imageGenerationService.GenerateAnchorImageAsync(lesson.CharacterProfile);
-            lesson.AnchorImageUrl = await storageService.UploadAsync(anchorLocalUrl, $"anchor_{lesson.Id}");
+            var subFolder = $"users/{lesson.UserId}/lessons/{lesson.Id}";
+            lesson.AnchorImageUrl = await storageService.UploadAsync(anchorLocalUrl, "anchor", subFolder);
             await backgroundLessonRepository.SaveAsync(lesson);
 
             // Step 3 & 4: Generate + upload all chapters in parallel (max 3 at a time)
@@ -154,6 +155,7 @@ public sealed class ApproveLessonScriptCommandHandler(
             var chapterTasks = chapterSnapshots.Select(ch =>
                 ProcessChapterAsync(
                     lesson.Id,
+                    lesson.UserId,
                     ch.Id,
                     ch.Order,
                     ch.FullPrompt,
@@ -175,6 +177,7 @@ public sealed class ApproveLessonScriptCommandHandler(
 
     private async Task ProcessChapterAsync(
         Guid lessonId,
+        Guid userId,
         Guid chapterId,
         int chapterOrder,
         string fullPrompt,
@@ -192,16 +195,18 @@ public sealed class ApproveLessonScriptCommandHandler(
             var storageService = sp.GetRequiredService<IStorageService>();
             var videoService = sp.GetRequiredService<IVideoService>();
 
+            var subFolder = $"users/{userId}/lessons/{lessonId}";
+
             if (outputMode == OutputMode.Video)
             {
                 var videoUrl = await videoService.GenerateVideoClipAsync(anchorImageUrl, fullPrompt);
-                var uploadedUrl = await storageService.UploadAsync(videoUrl, $"chapter_vid_{chapterId}");
+                var uploadedUrl = await storageService.UploadAsync(videoUrl, $"chapter_vid_{chapterOrder}", subFolder);
                 await chapterRepo.UpdateChapterMediaAsync(chapterId, null, uploadedUrl);
             }
             else
             {
                 var mangaPageUrl = await mangaService.GenerateMangaPageAsync(anchorImageUrl, fullPrompt);
-                var uploadedUrl = await storageService.UploadAsync(mangaPageUrl, $"chapter_{chapterOrder}_{lessonId}");
+                var uploadedUrl = await storageService.UploadAsync(mangaPageUrl, $"chapter_{chapterOrder}", subFolder);
                 await chapterRepo.UpdateChapterMediaAsync(chapterId, uploadedUrl, null);
             }
         }
