@@ -26,7 +26,7 @@ public class AzureFluxService : IImageGenerationService, IMangaService
 
     public async Task<string> GenerateMangaPageAsync(string anchorImageUrl, string fullPagePrompt)
     {
-        var prompt = $"{fullPagePrompt}. Style: Manga, anime lineart, clean ink-wash colors. Note: If there is any text, speech bubble, or dialogue in the image, write it in Vietnamese.";
+        var prompt = $"{fullPagePrompt}. Style: Manga, anime lineart, clean ink-wash colors. Note: If there is any text, speech bubble, or dialogue in the image, write it in English.";
         return await GenerateImageInternalAsync(prompt, anchorImageUrl);
     }
 
