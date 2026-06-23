@@ -139,6 +139,17 @@ public sealed class CloudinaryStorageService : IStorageService
 
     private async Task<Stream> DownloadSourceAsync(string sourceUrl)
     {
+        if (sourceUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+        {
+            var commaIndex = sourceUrl.IndexOf(',');
+            if (commaIndex >= 0)
+            {
+                var base64Part = sourceUrl.Substring(commaIndex + 1);
+                var bytes = Convert.FromBase64String(base64Part);
+                return new MemoryStream(bytes);
+            }
+        }
+
         var httpClient = _httpClientFactory.CreateClient();
         int maxRetries = 4;
         

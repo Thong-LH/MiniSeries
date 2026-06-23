@@ -19,17 +19,32 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<GroqService>();
         services.AddHttpClient<PollinationsService>();
         services.AddHttpClient<PexelsVideoService>();
+        services.AddHttpClient<AzureFluxService>();
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
         services.Configure<SupabaseOptions>(configuration.GetSection(SupabaseOptions.SectionName));
         services.Configure<PexelsOptions>(configuration.GetSection(PexelsOptions.SectionName));
+        services.Configure<AzureFluxOptions>(configuration.GetSection(AzureFluxOptions.SectionName));
         services.AddHttpClient<SupabaseAuthService>();
         services.AddHttpClient<SupabaseAdminAuthService>();
 
         services.AddSupabaseJwtAuthentication(configuration);
 
         services.AddScoped<ILLMService, GroqService>();
-        services.AddScoped<IImageGenerationService>(sp => sp.GetRequiredService<PollinationsService>());
-        services.AddScoped<IMangaService>(sp => sp.GetRequiredService<PollinationsService>());
+        services.AddScoped<AzureFluxService>();
+        services.AddScoped<IImageGenerationService>(sp =>
+        {
+            var azureFlux = configuration.GetSection(AzureFluxOptions.SectionName).Get<AzureFluxOptions>();
+            return azureFlux is not null && !string.IsNullOrWhiteSpace(azureFlux.ApiKey)
+                ? sp.GetRequiredService<AzureFluxService>()
+                : sp.GetRequiredService<PollinationsService>();
+        });
+        services.AddScoped<IMangaService>(sp =>
+        {
+            var azureFlux = configuration.GetSection(AzureFluxOptions.SectionName).Get<AzureFluxOptions>();
+            return azureFlux is not null && !string.IsNullOrWhiteSpace(azureFlux.ApiKey)
+                ? sp.GetRequiredService<AzureFluxService>()
+                : sp.GetRequiredService<PollinationsService>();
+        });
         services.AddScoped<PollinationsService>();
         services.AddScoped<IVideoService>(sp =>
         {
