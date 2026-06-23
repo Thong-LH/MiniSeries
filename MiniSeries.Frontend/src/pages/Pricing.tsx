@@ -144,7 +144,7 @@ export default function Pricing() {
               <li>Reset quota theo kỳ thanh toán</li>
             </ul>
           </div>
-          <button className="btn-buy btn-premium" onClick={() => navigate('/checkout')}>Mua gói Basic</button>
+          <button className="btn-buy btn-premium" onClick={() => navigate('/checkout?plan=Basic&price=150000')}>Mua gói Basic</button>
         </div>
 
         <div className="pricing-card">
@@ -158,7 +158,7 @@ export default function Pricing() {
               <li>Reset quota theo kỳ thanh toán</li>
             </ul>
           </div>
-          <button className="btn-buy btn-premium" onClick={() => navigate('/checkout')} style={{ backgroundColor: '#eab308' }}>Mua gói Premium</button>
+          <button className="btn-buy btn-premium" onClick={() => navigate('/checkout?plan=Premium&price=300000')} style={{ backgroundColor: '#eab308' }}>Mua gói Premium</button>
         </div>
       </div>
     </div>

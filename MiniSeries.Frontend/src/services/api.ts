@@ -277,6 +277,29 @@ export const api = {
         return await readJsonResponse(response);
     },
 
+    async createInvoice(amount: number, planName: string) {
+        const response = await fetch(`${API_BASE}/payment/create-invoice`, {
+            method: "POST",
+            headers: {
+                ...getAuthHeaders(),
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ amount, planName })
+        });
+        return await readJsonResponse(response);
+    },
+
+    async simulateBankWebhook(content: string, transferAmount: number) {
+        const response = await fetch(`${API_BASE}/payment/bank-webhook`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ content, transferAmount, amount: transferAmount })
+        });
+        return await readJsonResponse(response);
+    },
+
     async getCurrentProfile() {
         return await fetchCurrentProfile();
     },
