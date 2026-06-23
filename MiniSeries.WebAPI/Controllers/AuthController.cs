@@ -182,28 +182,10 @@ public sealed class AuthController(
 
         try
         {
-            Guid userId;
-            try
-            {
-                userId = await adminAuth.CreateUserAsync(email, pending.Password, fullName);
-            }
-            catch (Exception ex) when (ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                {
-                    var existingSession = await auth.SignInAsync(email, pending.Password);
-                    userId = existingSession.UserId;
-                }
-                catch
-                {
-                    throw new InvalidOperationException("Email nay da duoc dang ky tren he thong nhung khong the xac thuc: " + ex.Message);
-                }
-            }
-
-            var session = await auth.SignInAsync(email, pending.Password);
+            var session = await auth.SignUpAsync(email, pending.Password, fullName);
             var profile = new UserProfile
             {
-                Id = userId,
+                Id = session.UserId,
                 Email = email,
                 FullName = fullName,
                 Role = pending.Role,
