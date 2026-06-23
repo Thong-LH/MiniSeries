@@ -179,8 +179,14 @@ export default function Studio() {
                     if (status === 'Completed' || status === 2) {
                         // Job completed! Set progress to 100% and wait 2 seconds before finishing
                         setProgress(100);
-                        setTimeout(() => {
+                        setTimeout(async () => {
                             if (isMounted) {
+                                try {
+                                    const finalLesson = await api.getLesson(lessonId);
+                                    setLessonData(finalLesson);
+                                } catch (err) {
+                                    console.error("Lỗi khi tải lại dữ liệu hoàn tất của bài học:", err);
+                                }
                                 setStep('finished');
                             }
                         }, 2000);
