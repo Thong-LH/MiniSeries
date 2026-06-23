@@ -28,4 +28,8 @@ coverage/
 .gemini/
 .trae/
 .trae-cn/
+taste-skill/
+
+# Local context files
+project_context.md
 
