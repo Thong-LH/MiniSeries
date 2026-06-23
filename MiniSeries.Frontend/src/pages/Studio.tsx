@@ -102,7 +102,16 @@ export default function Studio() {
         let timer: any;
 
         const jobs = lessonData?.generationJobs || [];
-        const activeJob = [...jobs]
+        const filteredJobs = jobs.filter((j: any) => {
+            if (step === 'drafting') {
+                return j.type === 0 || j.type === 'ScriptDraft' || j.type === 1 || j.type === 'ScriptRevision';
+            }
+            if (step === 'generating_media') {
+                return j.type === 2 || j.type === 'MediaGeneration';
+            }
+            return true;
+        });
+        const activeJob = [...filteredJobs]
             .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
         const isJobCompleted = activeJob && (activeJob.status === 'Completed' || activeJob.status === 2);
 
@@ -170,8 +179,9 @@ export default function Studio() {
                 setLessonData(lesson);
 
                 const jobs = lesson.generationJobs || [];
-                // Always pick the newest job (avoid getting stuck on old stale Running job)
-                const activeJob = [...jobs]
+                // Only pick the newest job of type MediaGeneration during this phase
+                const mediaJobs = jobs.filter((j: any) => j.type === 2 || j.type === 'MediaGeneration');
+                const activeJob = [...mediaJobs]
                     .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
 
                 if (activeJob) {
@@ -238,8 +248,9 @@ export default function Studio() {
         if (step === 'finished') return 'completed';
 
         const jobs = lessonData?.generationJobs || [];
-        // Always pick the newest job to avoid stale Running job blocking the UI
-        const activeJob = [...jobs]
+        // Only pick the newest job of type MediaGeneration for the media generation steps
+        const mediaJobs = jobs.filter((j: any) => j.type === 2 || j.type === 'MediaGeneration');
+        const activeJob = [...mediaJobs]
             .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
 
         if (!activeJob) {
