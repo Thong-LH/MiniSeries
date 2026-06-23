@@ -23,7 +23,10 @@ public class PollinationsService : IImageGenerationService, IMangaService, IVide
 
     public Task<string> GenerateMangaPageAsync(string anchorImageUrl, string fullPagePrompt)
     {
-        var mangaPrompt = $"{fullPagePrompt}. Style: Manga, anime lineart, clean ink-wash colors, consistent character: {anchorImageUrl}. Note: If there is any text, speech bubble, or dialogue in the image, write it in English.";
+        var mangaPrompt = $"{fullPagePrompt}. Style: Manga, anime lineart, clean ink-wash colors, consistent character: {anchorImageUrl}. " +
+                          "IMPORTANT CONSTRAINTS: All text, speech bubbles, and dialogue in the image MUST be written in English. " +
+                          "Absolutely NO Japanese (Hiragana/Katakana/Kanji), Chinese, Korean, or other Asian characters/text allowed in the panels. " +
+                          "Do not render any gibberish non-English scripts.";
         var encodedPrompt = Uri.EscapeDataString(mangaPrompt);
         return Task.FromResult($"{_baseUrl}/image/{encodedPrompt}?width=512&height=512&key={_apiKey}");
     }

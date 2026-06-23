@@ -126,7 +126,7 @@ public class GroqService : ILLMService
             ]
         }}
         CRITICAL: All user-facing texts, summaries, quiz questions, options, explanations MUST be written in fluent, grammatically correct Vietnamese with proper accents (tiếng Việt có dấu).
-        For manga fullPrompt: If any dialogue, text or speech bubbles are mentioned/rendered in the panels, they MUST be in English.
+        For manga fullPrompt: If any dialogue, text or speech bubbles are mentioned/rendered in the panels, they MUST be written in English (e.g. Speech bubble says: 'Hello!'). Absolutely do NOT use, write, or suggest any Japanese, Chinese, Korean, or other Asian characters/text inside the speech bubbles in the fullPrompt. Keep the prompts strictly in English for any visual text.
 
         Lesson content:
         {rawContent}
