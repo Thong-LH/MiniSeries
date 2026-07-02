@@ -124,11 +124,43 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
 
     public async Task<IReadOnlyList<Lesson>> ListByUserIdAsync(Guid userId)
     {
-        return await dbContext.Lessons
+        var data = await dbContext.Lessons
             .AsNoTracking()
-            .Include(x => x.Chapters)
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new
+            {
+                x.Id,
+                x.UserId,
+                x.UserEmail,
+                x.Title,
+                x.AnchorImageUrl,
+                x.OutputMode,
+                x.ScriptStatus,
+                x.CreatedAt,
+                x.UpdatedAt,
+                x.ApprovedAt,
+                Chapters = x.Chapters.Select(c => new { c.Order, c.MangaUrl }).ToList()
+            })
             .ToListAsync();
+
+        return data.Select(x => new Lesson
+        {
+            Id = x.Id,
+            UserId = x.UserId,
+            UserEmail = x.UserEmail,
+            Title = x.Title,
+            AnchorImageUrl = x.AnchorImageUrl,
+            OutputMode = x.OutputMode,
+            ScriptStatus = x.ScriptStatus,
+            CreatedAt = x.CreatedAt,
+            UpdatedAt = x.UpdatedAt,
+            ApprovedAt = x.ApprovedAt,
+            Chapters = x.Chapters.Select(c => new Chapter
+            {
+                Order = c.Order,
+                MangaUrl = c.MangaUrl
+            }).ToList()
+        }).ToList();
     }
 }

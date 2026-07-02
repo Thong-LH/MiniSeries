@@ -9,17 +9,19 @@ namespace MiniSeries.Infrastructure.ExternalServices;
 
 public class GroqService : ILLMService
 {
-    private const string Model = "llama-3.3-70b-versatile";
+    public string ActiveModel => _model;
 
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
     private readonly string _baseUrl;
+    private readonly string _model;
 
     public GroqService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _apiKey = configuration["Groq:ApiKey"] ?? throw new ArgumentNullException("Groq:ApiKey is missing");
         _baseUrl = configuration["Groq:BaseUrl"] ?? "https://api.groq.com/openai/v1";
+        _model = configuration["Groq:Model"] ?? "openai/gpt-oss-120b";
     }
 
     public async Task<ScriptDraftResult> CreateScriptDraftAsync(string rawContent, string? creativeBrief)
@@ -29,14 +31,17 @@ public class GroqService : ILLMService
             : $"Respect this user creative brief: {creativeBrief}";
 
         var prompt = $@"
-        Create a high-level educational story script for the lesson below.
+        Create a high-level educational story script outline for the lesson below.
         Do NOT break it into chapters yet.
         Return ONLY valid JSON with this exact shape:
         {{
             ""characterProfile"": ""Detailed visual description of the recurring main character."",
-            ""overallScript"": ""A coherent overall script/treatment describing the narrative arc, teaching strategy, tone, and how the lesson should unfold from start to finish.""
+            ""overallScript"": ""A high-level script outline/treatment summarizing the narrative arc, teaching strategy, and tone.""
         }}
-        CRITICAL: All user-facing content including characterProfile and overallScript MUST be written in natural, fluent Vietnamese with proper accents (tiếng Việt có dấu).
+        CRITICAL CONSTRAINTS:
+        1. Keep the `overallScript` concise and focused (a single paragraph of 4-6 sentences, under 150 words).
+        2. Write it as a clean script outline/treatment (tóm tắt ý tưởng kịch bản tổng thể), NOT a detailed step-by-step narration. Summarize the narrative arc, education checkpoints, and tone without detailing every single action or dialogue.
+        3. All user-facing content including characterProfile and overallScript MUST be written in natural, fluent Vietnamese with proper accents (tiếng Việt có dấu).
 
         {guidance}
 
@@ -65,14 +70,17 @@ public class GroqService : ILLMService
             : $"Original creative brief: {creativeBrief}\n";
 
         var prompt = $@"
-        Revise the high-level educational story script below using the user's feedback.
+        Revise the high-level educational story script outline below using the user's feedback.
         Do NOT break it into chapters yet.
         Return ONLY valid JSON with this exact shape:
         {{
             ""characterProfile"": ""Updated detailed visual description of the recurring main character if needed."",
             ""overallScript"": ""Revised coherent overall script/treatment.""
         }}
-        CRITICAL: All user-facing content including characterProfile and overallScript MUST be written in natural, fluent Vietnamese with proper accents (tiếng Việt có dấu).
+        CRITICAL CONSTRAINTS:
+        1. Keep the `overallScript` concise and focused (a single paragraph of 4-6 sentences, under 150 words).
+        2. Write it as a clean script outline/treatment (tóm tắt ý tưởng kịch bản tổng thể), NOT a detailed step-by-step narration. Summarize the narrative arc, education checkpoints, and tone without detailing every single action or dialogue.
+        3. All user-facing content including characterProfile and overallScript MUST be written in natural, fluent Vietnamese with proper accents (tiếng Việt có dấu).
 
         Lesson content:
         {rawContent}
@@ -187,7 +195,7 @@ public class GroqService : ILLMService
     {
         var requestBody = new
         {
-            model = Model,
+            model = _model,
             messages = new[]
             {
                 new { role = "system", content = "You are an educational content parser. Always return valid JSON." },

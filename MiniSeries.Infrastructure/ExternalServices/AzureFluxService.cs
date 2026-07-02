@@ -99,6 +99,8 @@ public class AzureFluxService : IImageGenerationService, IMangaService
         return $"data:image/png;base64,{base64Data}";
     }
 
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _imageBase64Cache = new();
+
     private async Task<string> DownloadImageAsBase64Async(string imageUrl)
     {
         if (imageUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
@@ -111,7 +113,14 @@ public class AzureFluxService : IImageGenerationService, IMangaService
             return imageUrl;
         }
 
+        if (_imageBase64Cache.TryGetValue(imageUrl, out var cachedBase64))
+        {
+            return cachedBase64;
+        }
+
         var bytes = await _httpClient.GetByteArrayAsync(imageUrl);
-        return Convert.ToBase64String(bytes);
+        var base64 = Convert.ToBase64String(bytes);
+        _imageBase64Cache.TryAdd(imageUrl, base64);
+        return base64;
     }
 }

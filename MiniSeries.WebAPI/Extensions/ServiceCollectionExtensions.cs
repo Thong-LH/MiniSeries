@@ -16,10 +16,10 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         services.AddControllers();
-        services.AddHttpClient<GroqService>();
-        services.AddHttpClient<PollinationsService>();
-        services.AddHttpClient<PexelsVideoService>();
-        services.AddHttpClient<AzureFluxService>();
+        services.AddHttpClient<GroqService>(client => client.Timeout = TimeSpan.FromSeconds(300));
+        services.AddHttpClient<PollinationsService>(client => client.Timeout = TimeSpan.FromSeconds(300));
+        services.AddHttpClient<PexelsVideoService>(client => client.Timeout = TimeSpan.FromSeconds(300));
+        services.AddHttpClient<AzureFluxService>(client => client.Timeout = TimeSpan.FromSeconds(300));
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
         services.Configure<SupabaseOptions>(configuration.GetSection(SupabaseOptions.SectionName));
         services.Configure<PexelsOptions>(configuration.GetSection(PexelsOptions.SectionName));
@@ -29,29 +29,33 @@ public static class ServiceCollectionExtensions
 
         services.AddSupabaseJwtAuthentication(configuration);
 
-        services.AddScoped<ILLMService, GroqService>();
-        services.AddScoped<AzureFluxService>();
+        services.AddScoped<ILLMService>(sp => sp.GetRequiredService<GroqService>());
         services.AddScoped<IImageGenerationService>(sp =>
         {
             var azureFlux = configuration.GetSection(AzureFluxOptions.SectionName).Get<AzureFluxOptions>();
-            return azureFlux is not null && !string.IsNullOrWhiteSpace(azureFlux.ApiKey)
-                ? sp.GetRequiredService<AzureFluxService>()
-                : sp.GetRequiredService<PollinationsService>();
+            if (azureFlux is null || string.IsNullOrWhiteSpace(azureFlux.ApiKey))
+            {
+                throw new InvalidOperationException("AzureFlux:ApiKey is missing in configuration. Pollinations fallback is disabled.");
+            }
+            return sp.GetRequiredService<AzureFluxService>();
         });
         services.AddScoped<IMangaService>(sp =>
         {
             var azureFlux = configuration.GetSection(AzureFluxOptions.SectionName).Get<AzureFluxOptions>();
-            return azureFlux is not null && !string.IsNullOrWhiteSpace(azureFlux.ApiKey)
-                ? sp.GetRequiredService<AzureFluxService>()
-                : sp.GetRequiredService<PollinationsService>();
+            if (azureFlux is null || string.IsNullOrWhiteSpace(azureFlux.ApiKey))
+            {
+                throw new InvalidOperationException("AzureFlux:ApiKey is missing in configuration. Pollinations fallback is disabled.");
+            }
+            return sp.GetRequiredService<AzureFluxService>();
         });
-        services.AddScoped<PollinationsService>();
         services.AddScoped<IVideoService>(sp =>
         {
             var pexels = configuration.GetSection(PexelsOptions.SectionName).Get<PexelsOptions>();
-            return pexels is not null && !string.IsNullOrWhiteSpace(pexels.ApiKey)
-                ? sp.GetRequiredService<PexelsVideoService>()
-                : sp.GetRequiredService<PollinationsService>();
+            if (pexels is null || string.IsNullOrWhiteSpace(pexels.ApiKey))
+            {
+                throw new InvalidOperationException("Pexels:ApiKey is missing in configuration. Pollinations fallback is disabled.");
+            }
+            return sp.GetRequiredService<PexelsVideoService>();
         });
 
        var databaseConnectionString = configuration.GetConnectionString("MiniSeries") 
@@ -65,7 +69,7 @@ public static class ServiceCollectionExtensions
         else
         {
             services.AddDbContext<MiniSeriesDbContext>(options =>
-                options.UseNpgsql(databaseConnectionString));
+                options.UseNpgsql(databaseConnectionString, o => o.EnableRetryOnFailure()));
             services.AddScoped<ILessonRepository, LessonRepository>();
             services.AddScoped<UserPlanQuotaService>();
         }
@@ -80,7 +84,7 @@ public static class ServiceCollectionExtensions
         }
         else
         {
-            services.AddScoped<IStorageService>(sp => sp.GetRequiredService<PollinationsService>());
+            throw new InvalidOperationException("Cloudinary is not configured correctly. Pollinations fallback is disabled.");
         }
 
         services.AddMediatR(cfg =>
