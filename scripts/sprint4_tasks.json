@@ -20,6 +20,11 @@
       "description": "Phát triển dịch vụ tích hợp API tạo video AI thực tế cho các chương bài học. Nếu API bên thứ ba gặp sự cố hoặc hết giới hạn, hệ thống sẽ tự động chuyển sang cơ chế dự phòng (fallback) tìm kiếm video liên quan trên Pexels để đảm bảo trải nghiệm liên tục."
     },
     {
+      "id": "PAYMENT",
+      "summary": "[Payment] Triển khai kết nối cổng thanh toán trực tuyến và đối soát hóa đơn",
+      "description": "Tích hợp cổng thanh toán trực tuyến (MoMo/VNPay/PayOS) để người dùng thanh toán mua các gói cước. Xây dựng luồng xử lý Webhook tự động cập nhật hạn ngạch Manga/Video Tokens ngay khi thanh toán thành công."
+    },
+    {
       "id": "MOBILE",
       "summary": "[Mobile App] Triển khai dự án Native Mobile App bằng Expo/React Native",
       "description": "Khởi tạo và phát triển bộ khung ứng dụng di động MiniSeries chạy trên iOS và Android. Tích hợp Expo Router, cấu hình API Client kết nối với Backend, và phát triển các màn hình cốt lõi của ứng dụng dưới dạng subtasks.",

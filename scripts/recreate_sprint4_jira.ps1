@@ -61,12 +61,8 @@ function Delete-JiraIssue([string]$issueKey) {
 
 # --- STEP 1: CLEANUP OLD CORRUPTED ISSUES ---
 Write-Host "Cleaning up old corrupted issues..."
-# Delete KAN-43 to KAN-50 (Old Sprint 4 Epic & Tasks)
-for ($i = 43; $i -le 50; $i++) {
-    Delete-JiraIssue -issueKey "KAN-$i"
-}
-# Delete KAN-58 to KAN-64 (Old mobile tasks)
-for ($i = 58; $i -le 64; $i++) {
+# Delete KAN-43 to KAN-79 (Covers all previous Sprint 4 Epic, Tasks, and Subtasks)
+for ($i = 43; $i -le 79; $i++) {
     Delete-JiraIssue -issueKey "KAN-$i"
 }
 
