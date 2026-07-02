@@ -1,0 +1,30 @@
+[
+  {
+    "summary": "[MOB-1] Khoi tao du an Expo (TypeScript), Cau hinh Router & API Client",
+    "description": "Khoi tao du an React Native moi su dung Expo SDK voi template TypeScript va cau hinh dinh tuyen (navigation) bang Expo Router. Cau hinh thu vien goi API va co che luu tru JWT Token an toan."
+  },
+  {
+    "summary": "[MOB-2] Man hinh Dang nhap, Dang ky va Xac thuc OTP",
+    "description": "Man hinh va luong Auth: Dang nhap truyen thong, Dang ky va nhap ma OTP xac thuc email lien ket backend."
+  },
+  {
+    "summary": "[MOB-3] Man hinh Trang chu (Lich su bai hoc cu)",
+    "description": "Trang chu hien thi danh sach cac bai hoc cu ma nguoi dung da tao. Ho tro Pull-to-refresh va skeleton loader."
+  },
+  {
+    "summary": "[MOB-4] Man hinh Tao bai hoc moi (Studio/Create)",
+    "description": "Man hinh tao moi bai hoc: nguoi dung nhap tieu de, noi dung tho, chon dinh dang Manga/Video va cau hinh Creative Mode."
+  },
+  {
+    "summary": "[MOB-5] Man hinh Duyet kich ban nhap (Draft Review & Approve)",
+    "description": "Xem truoc de cuong kich ban AI sinh. Nhan duyet de tien hanh sinh media (anh/video) kem theo xu ly trang thai cho lau (30s-60s) va chan neu het han ngach (402 Payment Required)."
+  },
+  {
+    "summary": "[MOB-6] Man hinh Doc Manga / Xem Video bai hoc & Tra loi Quiz",
+    "description": "Trinh doc manga dang cuon doc hoac xem video ngan tu Cloudinary. Cuoi bai hien thi bo cau hoi trac nghiem kem giai thich dap an."
+  },
+  {
+    "summary": "[MOB-7] Man hinh Ca nhan (Profile), Quota va Nang cap goi (Billing)",
+    "description": "Hien thi thong tin ca nhan, han ngach Manga/Video Tokens con lai. Cho phep chon goi nang cap, tao hoa don thanh toan va kiem tra trang thai thanh toan."
+  }
+]

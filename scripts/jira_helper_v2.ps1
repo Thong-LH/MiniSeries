@@ -89,9 +89,6 @@ function Create-Sprint([string]$name) {
         Write-Host "Created Sprint: $($res.name) with ID: $($res.id)"
         return $res.id
     } catch {
-        $streamReader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-        $errBody = $streamReader.ReadToEnd()
-        Write-Host "Error creating sprint: $errBody"
         throw $_
     }
 }
@@ -106,7 +103,7 @@ function Assign-Issues-To-Sprint([int]$sprintId, [string[]]$issueKeys) {
 
     try {
         Invoke-RestMethod -Uri $uri -Headers $headers -ContentType "application/json" -Method Post -Body $bodyBytes
-        Write-Host "Assigned issues to sprint $sprintId: $($issueKeys -join ', ')"
+        Write-Host "Assigned issues to sprint ${sprintId}: $($issueKeys -join ', ')"
     } catch {
         $streamReader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
         $errBody = $streamReader.ReadToEnd()
@@ -127,34 +124,38 @@ if ($action -eq "list") {
     $sprintName = $args[1]
     if (-not $sprintName) { $sprintName = "Sprint 4" }
 
+    $tasksJsonPath = Join-Path $PSScriptRoot "mobile_tasks.json"
+    if (-not (Test-Path $tasksJsonPath)) {
+        Write-Error "Tasks JSON file not found at $tasksJsonPath"
+        exit 1
+    }
+
     Write-Host "Initializing Sprint sync..."
-    $sprintId = Create-Sprint -name $sprintName
+    $sprintId = $null
+    try {
+        $sprintId = Create-Sprint -name $sprintName
+    } catch {
+        Write-Host "WARNING: Current board (ID $boardId) is a Kanban board and does not support sprints. Creating tasks directly on the board backlog."
+    }
+
+    Write-Host "Loading tasks from $tasksJsonPath..."
+    $tasks = Get-Content $tasksJsonPath -Raw | ConvertFrom-Json
 
     Write-Host "Creating tasks..."
     $keys = @()
-    
-    $keys += Create-Issue -summary "[MOB-1] Khởi tạo dự án Expo (TypeScript), Cấu hình Router & API Client" `
-                          -description "Khởi tạo dự án React Native mới sử dụng Expo SDK với template TypeScript và cấu hình định tuyến (navigation) bằng Expo Router. Cấu hình thư viện gọi API và cơ chế lưu trữ JWT Token an toàn."
-                          
-    $keys += Create-Issue -summary "[MOB-2] Màn hình Đăng nhập, Đăng ký và Xác thực OTP" `
-                          -description "Màn hình và luồng Auth: Đăng nhập truyền thống, Đăng ký và nhập mã OTP xác thực email liên kết backend."
-                          
-    $keys += Create-Issue -summary "[MOB-3] Màn hình Trang chủ (Lịch sử bài học cũ)" `
-                          -description "Trang chủ hiển thị danh sách các bài học cũ mà người dùng đã tạo. Hỗ trợ Pull-to-refresh và skeleton loader."
-                          
-    $keys += Create-Issue -summary "[MOB-4] Màn hình Tạo bài học mới (Studio/Create)" `
-                          -description "Màn hình tạo mới bài học: người dùng nhập tiêu đề, nội dung thô, chọn định dạng Manga/Video và cấu hình Creative Mode."
-                          
-    $keys += Create-Issue -summary "[MOB-5] Màn hình Duyệt kịch bản nháp (Draft Review & Approve)" `
-                          -description "Xem trước đề cương kịch bản AI sinh. Nhấn duyệt để tiến hành sinh media (ảnh/video) kèm theo xử lý trạng thái chờ lâu (30s-60s) và chặn nếu hết hạn ngạch (402 Payment Required)."
-                          
-    $keys += Create-Issue -summary "[MOB-6] Màn hình Đọc Manga / Xem Video bài học & Trả lời Quiz" `
-                          -description "Trình đọc manga dạng cuộn dọc hoặc xem video ngắn từ Cloudinary. Cuối bài hiển thị bộ câu hỏi trắc nghiệm kèm giải thích đáp án."
-                          
-    $keys += Create-Issue -summary "[MOB-7] Màn hình Cá nhân (Profile), Quota và Nâng cấp gói (Billing)" `
-                          -description "Hiển thị thông tin cá nhân, hạn ngạch Manga/Video Tokens còn lại. Cho phép chọn gói nâng cấp, tạo hóa đơn thanh toán và kiểm tra trạng thái thanh toán."
+    foreach ($task in $tasks) {
+        $keys += Create-Issue -summary $task.summary -description $task.description
+    }
 
-    Write-Host "Assigning tasks to Sprint..."
-    Assign-Issues-To-Sprint -sprintId $sprintId -issueKeys $keys
-    Write-Host "Jira Sync Completed successfully!"
+    if ($sprintId) {
+        Write-Host "Assigning tasks to Sprint..."
+        try {
+            Assign-Issues-To-Sprint -sprintId $sprintId -issueKeys $keys
+        } catch {
+            Write-Host "WARNING: Failed to assign tasks to sprint: $_"
+        }
+    } else {
+        Write-Host "Tasks successfully created directly on the Kanban board backlog!"
+    }
+    Write-Host "Jira Sync Completed!"
 }
