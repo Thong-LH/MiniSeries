@@ -1,0 +1,44 @@
+{
+  "epic": {
+    "summary": "Sprint 4: Thống kê truy cập, Báo cáo sự cố, Gen video AI, Mobile app Native và Hoàn thiện Manga",
+    "description": "Epic tập trung vào việc hoàn thiện các cải tiến hệ thống bao gồm: Thống kê truy cập, Báo cáo sự cố CSKH, Tích hợp API Video AI thực tế, Khởi tạo dự án Mobile Native App, Tối ưu giao diện mobile-friendly cho Web và Cải tiến thuật toán vẽ tranh Manga."
+  },
+  "mainTasks": [
+    {
+      "id": "ANALYTICS",
+      "summary": "[Analytics] Thống kê lượt truy cập trang web (Website Traffic Analytics)",
+      "description": "Xây dựng hệ thống theo dõi và thống kê lưu lượng truy cập của website. Bao gồm: đếm số lượng view trang, thống kê số lượng bài học được tạo bởi người dùng, vẽ biểu đồ trực quan trên trang Dashboard của Admin để ban quản trị theo dõi sự tăng trưởng."
+    },
+    {
+      "id": "CSKH",
+      "summary": "[CSKH] Tính năng Báo cáo sự cố (Report Issue) tích hợp CSKH",
+      "description": "Phát triển giao diện cho phép khách hàng báo cáo lỗi hoặc gửi thắc mắc trực tiếp từ màn hình ứng dụng. Tích hợp hệ thống phân luồng yêu cầu đến hòm thư của Staff và hiển thị danh sách phản hồi để Admin/Staff hỗ trợ kịp thời."
+    },
+    {
+      "id": "AIVIDEO",
+      "summary": "[AI Video] Triển khai bộ API tạo video AI thật (hỗ trợ fallback Pexels)",
+      "description": "Phát triển dịch vụ tích hợp API tạo video AI thực tế cho các chương bài học. Nếu API bên thứ ba gặp sự cố hoặc hết giới hạn, hệ thống sẽ tự động chuyển sang cơ chế dự phòng (fallback) tìm kiếm video liên quan trên Pexels để đảm bảo trải nghiệm liên tục."
+    },
+    {
+      "id": "MOBILE",
+      "summary": "[Mobile App] Triển khai dự án Native Mobile App bằng Expo/React Native",
+      "description": "Khởi tạo và phát triển bộ khung ứng dụng di động MiniSeries chạy trên iOS và Android. Tích hợp Expo Router, cấu hình API Client kết nối với Backend, và phát triển các màn hình cốt lõi của ứng dụng dưới dạng subtasks.",
+      "isMobileApp": true
+    },
+    {
+      "id": "MOBILEFRIENDLY",
+      "summary": "[Mobile Friendly] Tối ưu hóa giao diện web hiển thị tốt trên thiết bị di động",
+      "description": "Điều chỉnh CSS và bố cục Responsive của toàn bộ các trang trên ứng dụng Web hiện tại (Login, Dashboard, Studio, Profile) để hiển thị hiển thị mượt mà và trực quan trên các trình duyệt di động."
+    },
+    {
+      "id": "UIUX",
+      "summary": "[UI/UX] Cải tiến giao diện Obsidian và hiệu ứng chuyển trang",
+      "description": "Nâng cấp thẩm mỹ giao diện Web sang phong cách Obsidian đen huyền bí kết hợp hiệu ứng kính mờ (glassmorphism). Thêm hiệu ứng micro-animations mượt mà khi người dùng thực hiện chuyển đổi giữa các bước tạo bài học."
+    },
+    {
+      "id": "MANGA",
+      "summary": "[Manga] Hoàn thiện tính năng sinh Manga (Nắp hộp hội thoại & narration bên dưới)",
+      "description": "Cải tiến thuật toán vẽ truyện tranh Manga. Cho phép căn chỉnh vị trí hộp thoại (speech bubbles) linh hoạt theo từng khung hình và bổ sung phần lời dẫn truyện (narration text) ở phía dưới mỗi khung tranh để tăng tính dẫn dắt."
+    }
+  ]
+}

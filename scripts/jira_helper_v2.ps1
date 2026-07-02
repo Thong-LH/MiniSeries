@@ -15,7 +15,7 @@ $pair = $email + ":" + $token
 $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
 $base64 = [Convert]::ToBase64String($bytes)
 $headers = @{
-    Authorization = "Basic $base64"
+    Authorization  = "Basic $base64"
     "Content-Type" = "application/json"
 }
 
@@ -24,10 +24,10 @@ function Get-Issues {
     $response = Invoke-RestMethod -Uri $uri -Headers $headers -Method Get
     $response.issues | ForEach-Object {
         [PSCustomObject]@{
-            Key = $_.key
+            Key     = $_.key
             Summary = $_.fields.summary
-            Status = $_.fields.status.name
-            Sprint = $_.fields.sprint.name
+            Status  = $_.fields.status.name
+            Sprint  = $_.fields.sprint.name
         }
     }
 }
@@ -35,10 +35,10 @@ function Get-Issues {
 function Create-Issue([string]$summary, [string]$description) {
     $body = @{
         fields = @{
-            project = @{ key = $projectKey }
-            summary = $summary
+            project     = @{ key = $projectKey }
+            summary     = $summary
             description = $description
-            issuetype = @{ name = "Task" }
+            issuetype   = @{ name = "Task" }
         }
     }
     
@@ -50,7 +50,8 @@ function Create-Issue([string]$summary, [string]$description) {
         $issue = Invoke-RestMethod -Uri $createUri -Headers $headers -ContentType "application/json" -Method Post -Body $bodyBytes
         Write-Host "Created issue: $($issue.key) - $summary"
         return $issue.key
-    } catch {
+    }
+    catch {
         $streamReader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
         $errBody = $streamReader.ReadToEnd()
         Write-Host "Error creating issue: $errBody"
@@ -63,7 +64,8 @@ function Delete-Issue([string]$issueKey) {
     try {
         Invoke-RestMethod -Uri $uri -Headers $headers -Method Delete
         Write-Host "Deleted issue: $issueKey"
-    } catch {
+    }
+    catch {
         Write-Host "Failed to delete issue ${issueKey}: $_"
     }
 }
@@ -73,7 +75,8 @@ function Get-Sprints {
     try {
         $res = Invoke-RestMethod -Uri $uri -Headers $headers -Method Get
         return $res.values
-    } catch {
+    }
+    catch {
         Write-Host "Error getting sprints: $_"
         return @()
     }
@@ -88,7 +91,7 @@ function Create-Sprint([string]$name) {
     }
 
     $body = @{
-        name = $name
+        name          = $name
         originBoardId = $boardId
     }
     $uri = "https://thousandsunsilk.atlassian.net/rest/agile/1.0/sprint"
@@ -99,7 +102,8 @@ function Create-Sprint([string]$name) {
         $res = Invoke-RestMethod -Uri $uri -Headers $headers -ContentType "application/json" -Method Post -Body $bodyBytes
         Write-Host "Created Sprint: $($res.name) with ID: $($res.id)"
         return $res.id
-    } catch {
+    }
+    catch {
         throw $_
     }
 }
@@ -115,7 +119,8 @@ function Assign-Issues-To-Sprint([int]$sprintId, [string[]]$issueKeys) {
     try {
         Invoke-RestMethod -Uri $uri -Headers $headers -ContentType "application/json" -Method Post -Body $bodyBytes
         Write-Host "Assigned issues to sprint ${sprintId}: $($issueKeys -join ', ')"
-    } catch {
+    }
+    catch {
         $streamReader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
         $errBody = $streamReader.ReadToEnd()
         Write-Host "Error assigning issues to sprint: $errBody"
@@ -127,7 +132,8 @@ function Assign-Issues-To-Sprint([int]$sprintId, [string[]]$issueKeys) {
 $action = $args[0]
 if ($action -eq "list") {
     Get-Issues | Format-Table -AutoSize
-} elseif ($action -eq "delete_range") {
+}
+elseif ($action -eq "delete_range") {
     $start = [int]$args[1]
     $end = [int]$args[2]
     Write-Host "Deleting issues in range ${projectKey}-${start} to ${projectKey}-${end}..."
@@ -135,11 +141,13 @@ if ($action -eq "list") {
         Delete-Issue -issueKey "${projectKey}-${i}"
     }
     Write-Host "Cleanup completed."
-} elseif ($action -eq "create_sprint") {
+}
+elseif ($action -eq "create_sprint") {
     $sprintName = $args[1]
     if (-not $sprintName) { $sprintName = "Sprint 4" }
     Create-Sprint -name $sprintName
-} elseif ($action -eq "sync_mobile_tasks") {
+}
+elseif ($action -eq "sync_mobile_tasks") {
     $sprintName = $args[1]
     if (-not $sprintName) { $sprintName = "Sprint 4" }
 
@@ -153,7 +161,8 @@ if ($action -eq "list") {
     $sprintId = $null
     try {
         $sprintId = Create-Sprint -name $sprintName
-    } catch {
+    }
+    catch {
         Write-Host "WARNING: Current board (ID $boardId) is a Kanban board and does not support sprints. Creating tasks directly on the board backlog."
     }
 
@@ -171,11 +180,15 @@ if ($action -eq "list") {
         Write-Host "Assigning tasks to Sprint..."
         try {
             Assign-Issues-To-Sprint -sprintId $sprintId -issueKeys $keys
-        } catch {
+        }
+        catch {
             Write-Host "WARNING: Failed to assign tasks to sprint: $_"
         }
-    } else {
+    }
+    else {
         Write-Host "Tasks successfully created directly on the Kanban board backlog!"
     }
     Write-Host "Jira Sync Completed!"
+}
+Write-Host "Jira Sync Completed successfully!"
 }
