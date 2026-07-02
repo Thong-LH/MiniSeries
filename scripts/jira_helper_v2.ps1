@@ -1,3 +1,4 @@
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $configPath = "C:\Users\USER\.gemini\antigravity-ide\brain\306d1c5f-4961-4f8e-bc18-e1e0c56f6458\scratch\jira_config.json"
 if (-not (Test-Path $configPath)) {
     Write-Error "Jira Config file not found at $configPath. Please make sure the config exists."
@@ -54,6 +55,16 @@ function Create-Issue([string]$summary, [string]$description) {
         $errBody = $streamReader.ReadToEnd()
         Write-Host "Error creating issue: $errBody"
         throw $_
+    }
+}
+
+function Delete-Issue([string]$issueKey) {
+    $uri = "https://thousandsunsilk.atlassian.net/rest/api/2/issue/$issueKey"
+    try {
+        Invoke-RestMethod -Uri $uri -Headers $headers -Method Delete
+        Write-Host "Deleted issue: $issueKey"
+    } catch {
+        Write-Host "Failed to delete issue ${issueKey}: $_"
     }
 }
 
@@ -116,6 +127,14 @@ function Assign-Issues-To-Sprint([int]$sprintId, [string[]]$issueKeys) {
 $action = $args[0]
 if ($action -eq "list") {
     Get-Issues | Format-Table -AutoSize
+} elseif ($action -eq "delete_range") {
+    $start = [int]$args[1]
+    $end = [int]$args[2]
+    Write-Host "Deleting issues in range ${projectKey}-${start} to ${projectKey}-${end}..."
+    for ($i = $start; $i -le $end; $i++) {
+        Delete-Issue -issueKey "${projectKey}-${i}"
+    }
+    Write-Host "Cleanup completed."
 } elseif ($action -eq "create_sprint") {
     $sprintName = $args[1]
     if (-not $sprintName) { $sprintName = "Sprint 4" }
@@ -139,7 +158,8 @@ if ($action -eq "list") {
     }
 
     Write-Host "Loading tasks from $tasksJsonPath..."
-    $tasks = Get-Content $tasksJsonPath -Raw | ConvertFrom-Json
+    # Read the file explicitly as UTF8 to preserve Vietnamese accents in PowerShell
+    $tasks = Get-Content $tasksJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
 
     Write-Host "Creating tasks..."
     $keys = @()

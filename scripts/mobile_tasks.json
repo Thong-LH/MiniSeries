@@ -1,30 +1,30 @@
 [
   {
-    "summary": "[MOB-1] Khoi tao du an Expo (TypeScript), Cau hinh Router & API Client",
-    "description": "Khoi tao du an React Native moi su dung Expo SDK voi template TypeScript va cau hinh dinh tuyen (navigation) bang Expo Router. Cau hinh thu vien goi API va co che luu tru JWT Token an toan."
+    "summary": "[MOB-1] Khởi tạo dự án Expo (TypeScript), Cấu hình Router & API Client",
+    "description": "Khởi tạo dự án React Native mới sử dụng Expo SDK với template TypeScript và cấu hình định tuyến (navigation) bằng Expo Router. Cấu hình thư viện gọi API (Axios hoặc Fetch) và cơ chế lưu trữ JWT Token an toàn. Tiêu chí nghiệm thu:\n- App khởi chạy thành công trên máy thật qua Expo Go.\n- Router hoạt động tốt, phân tách luồng Auth và App chính.\n- API Client gọi thử một API public thành công."
   },
   {
-    "summary": "[MOB-2] Man hinh Dang nhap, Dang ky va Xac thuc OTP",
-    "description": "Man hinh va luong Auth: Dang nhap truyen thong, Dang ky va nhap ma OTP xac thuc email lien ket backend."
+    "summary": "[MOB-2] Màn hình Đăng nhập, Đăng ký và Xác thực OTP",
+    "description": "Màn hình Đăng nhập truyền thống, Đăng ký tài khoản mới và nhập mã OTP để kích hoạt tài khoản ngay trên điện thoại di động.\nTích hợp các API:\n- POST /api/auth/register-profile\n- POST /api/auth/verify-otp\n- POST /api/auth/login-profile\nTiêu chí nghiệm thu:\n- Nhập liệu có validation cơ bản (Email đúng định dạng, mật khẩu tối thiểu 6 ký tự).\n- Hiển thị Toast thông báo lỗi từ API.\n- Lưu Token vào SecureStore và chuyển hướng sang màn hình chính khi đăng nhập thành công."
   },
   {
-    "summary": "[MOB-3] Man hinh Trang chu (Lich su bai hoc cu)",
-    "description": "Trang chu hien thi danh sach cac bai hoc cu ma nguoi dung da tao. Ho tro Pull-to-refresh va skeleton loader."
+    "summary": "[MOB-3] Màn hình Trang chủ (Lịch sử bài học cũ)",
+    "description": "Trang chủ hiển thị danh sách các bài học cũ người dùng đã tạo dưới dạng Manga hoặc Video. Hỗ trợ Pull-to-refresh và loading skeleton.\nTích hợp API:\n- GET /api/lessons/my\nTiêu chí nghiệm thu:\n- Hiển thị đúng danh sách bài học thuộc sở hữu của user đã đăng nhập.\n- Hiển thị Empty state thân thiện khi danh sách trống.\n- Nhấn vào một bài học sẽ điều hướng sang màn hình chi tiết."
   },
   {
-    "summary": "[MOB-4] Man hinh Tao bai hoc moi (Studio/Create)",
-    "description": "Man hinh tao moi bai hoc: nguoi dung nhap tieu de, noi dung tho, chon dinh dang Manga/Video va cau hinh Creative Mode."
+    "summary": "[MOB-4] Màn hình Tạo bài học mới (Studio/Create)",
+    "description": "Học sinh nhập đề tài học tập để AI tự động biên soạn kịch bản nháp. Form bao gồm: Tiêu đề bài học, Nội dung thô, Tùy chọn định dạng Manga/Video, Chế độ Creative Mode (Auto/Guided).\nTích hợp API:\n- POST /api/lessons/drafts\nTiêu chí nghiệm thu:\n- Ràng buộc nhập liệu bắt buộc đối với Tiêu đề và Nội dung.\n- Hiển thị loading xoay vòng khi đang xử lý tạo nháp.\n- Điều hướng sang màn hình Duyệt kịch bản nháp khi thành công."
   },
   {
-    "summary": "[MOB-5] Man hinh Duyet kich ban nhap (Draft Review & Approve)",
-    "description": "Xem truoc de cuong kich ban AI sinh. Nhan duyet de tien hanh sinh media (anh/video) kem theo xu ly trang thai cho lau (30s-60s) va chan neu het han ngach (402 Payment Required)."
+    "summary": "[MOB-5] Màn hình Duyệt kịch bản nháp (Draft Review & Approve)",
+    "description": "Xem kịch bản nháp AI sinh ra (mô tả nhân vật, đề cương kịch bản tổng thể) và bấm Phê duyệt (Approve) bắt đầu vẽ ảnh/video thực tế.\nTích hợp API:\n- POST /api/lessons/{id}/approve\nXử lý lỗi Quota (402 Payment Required).\nTiêu chí nghiệm thu:\n- Hiển thị đúng kịch bản nháp.\n- Hiển thị loading xoay vòng sinh động khi đang gọi API approve (quá trình này mất khoảng 30s-60s).\n- Điều hướng sang màn hình Đọc truyện/Xem video khi thành công.\n- Xử lý lỗi 402 hiển thị popup nâng cấp gói."
   },
   {
-    "summary": "[MOB-6] Man hinh Doc Manga / Xem Video bai hoc & Tra loi Quiz",
-    "description": "Trinh doc manga dang cuon doc hoac xem video ngan tu Cloudinary. Cuoi bai hien thi bo cau hoi trac nghiem kem giai thich dap an."
+    "summary": "[MOB-6] Màn hình Đọc Manga / Xem Video bài học & Trả lời Quiz",
+    "description": "Đọc truyện tranh manga cuộn dọc hoặc xem video ngắn từ Cloudinary, sau đó trả lời câu hỏi trắc nghiệm ôn tập ở cuối bài.\nTích hợp API:\n- GET /api/lessons/{id}\nTiêu chí nghiệm thu:\n- Tải và hiển thị ảnh manga mượt mà từ Cloudinary.\n- Trình phát video chạy ổn định và tự động chuyển chương.\n- Phần trắc nghiệm hoạt động đúng logic (chỉ chọn 1 lần, đổi màu xanh/đỏ báo đúng sai và hiển thị giải thích)."
   },
   {
-    "summary": "[MOB-7] Man hinh Ca nhan (Profile), Quota va Nang cap goi (Billing)",
-    "description": "Hien thi thong tin ca nhan, han ngach Manga/Video Tokens con lai. Cho phep chon goi nang cap, tao hoa don thanh toan va kiem tra trang thai thanh toan."
+    "summary": "[MOB-7] Màn hình Cá nhân (Profile), Quota và Nâng cấp gói (Billing)",
+    "description": "Xem thông tin cá nhân, hạn ngạch Manga/Video Tokens còn lại, đăng ký nâng cấp gói (Free, Basic, Premium) tạo hóa đơn thanh toán và kiểm tra trạng thái thanh toán.\nTích hợp API:\n- GET /api/profile/me\n- POST /api/payment/create-invoice\n- GET /api/payment/check-status\nTiêu chí nghiệm thu:\n- Hiển thị chính xác số lượt còn lại.\n- Tạo hóa đơn thành công hiển thị QR Code và thông tin thanh toán.\n- Khi thanh toán thành công, cập nhật hạn ngạch trên UI ngay lập tức."
   }
 ]
