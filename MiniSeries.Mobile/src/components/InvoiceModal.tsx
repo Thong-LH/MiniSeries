@@ -25,7 +25,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
   };
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: any;
     if (visible) {
       setSecondsLeft(900);
       timer = setInterval(() => {

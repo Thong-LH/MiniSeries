@@ -16,7 +16,7 @@ export const LoadingOverlay: React.FC = () => {
   };
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: any;
     if (isGenerating) {
       setProgress(0);
       interval = setInterval(() => {
