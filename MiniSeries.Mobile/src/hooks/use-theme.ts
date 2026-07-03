@@ -1,14 +1,15 @@
-/**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
- */
-
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useApp } from '../context/AppContext';
 
 export function useTheme() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
+  const { themeId } = useApp();
+  const isDark = themeId === 'bold-typography-dark';
 
-  return Colors[theme];
+  return {
+    background: isDark ? '#121212' : '#FAF9F6',
+    text: isDark ? '#FAF9F6' : '#1A1A1A',
+    textMuted: isDark ? '#CFCFCF' : '#4A4A4A',
+    border: isDark ? '#FFFFFF' : '#000000',
+    primaryAccent: '#FF3E00',
+    cardBg: isDark ? '#1a1a1a' : '#ffffff',
+  };
 }
