@@ -8,11 +8,14 @@ export default function IndexRedirector() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/(tabs)/home');
-    } else {
-      router.replace('/(auth)/login');
-    }
+    const timer = setTimeout(() => {
+      if (isAuthenticated) {
+        router.replace('/(tabs)/home');
+      } else {
+        router.replace('/(auth)/login');
+      }
+    }, 150);
+    return () => clearTimeout(timer);
   }, [isAuthenticated]);
 
   return (
