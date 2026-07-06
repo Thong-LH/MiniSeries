@@ -16,6 +16,8 @@ interface AppContextType {
   setActivePlan: (plan: string) => void;
   lessons: Lesson[];
   setLessons: React.Dispatch<React.SetStateAction<Lesson[]>>;
+  userEmail: string;
+  setUserEmail: (email: string) => void;
   
   // Create forms state
   lessonTitle: string;
@@ -49,6 +51,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [videoTokens, setVideoTokens] = useState<number>(10);
   const [activePlan, setActivePlan] = useState<string>('Basic');
   const [lessons, setLessons] = useState<Lesson[]>(initialLessons);
+  const [userEmail, setUserEmail] = useState<string>('thonglhse182025@fpt.edu.vn'); // Default for support screen
   
   // Create forms state
   const [lessonTitle, setLessonTitle] = useState<string>('');
@@ -105,6 +108,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setViewerPage,
         toastMessage,
         triggerToast,
+        userEmail,
+        setUserEmail,
       }}
     >
       {children}
