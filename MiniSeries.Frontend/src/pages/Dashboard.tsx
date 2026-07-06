@@ -2200,7 +2200,7 @@ export default function Dashboard() {
                 });
 
                 const sorted = sortData(filtered);
-                const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
+                const paginated = sorted.slice((currentPage - 1) * 20, currentPage * 20);
 
                 if (filtered.length === 0) {
                   return renderEmptyState("Không tìm thấy giao dịch phù hợp.");
@@ -2234,7 +2234,7 @@ export default function Dashboard() {
                         ))}
                       </tbody>
                     </table>
-                    {renderPagination(filtered.length)}
+                    {renderPagination(filtered.length, 20)}
                   </>
                 );
               })()}
