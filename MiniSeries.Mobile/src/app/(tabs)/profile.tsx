@@ -203,7 +203,7 @@ export default function ProfileScreen() {
         {/* Support Request Button */}
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => router.push('/support')}
+          onPress={() => router.push('/support' as any)}
           style={[
             styles.supportBtn,
             {
@@ -221,7 +221,7 @@ export default function ProfileScreen() {
           onPress={handleLogout}
           style={[styles.logoutBtn, { borderColor: colors.border }]}
         >
-          <Text style={[styles.logoutBtnText, { color: colors.text }]}>ĐANG XUẤT TÀI KHOẢN</Text>
+          <Text style={[styles.logoutBtnText, { color: colors.text }]}>ĐĂNG XUẤT TÀI KHOẢN</Text>
         </TouchableOpacity>
       </ScrollView>
 
