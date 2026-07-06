@@ -1,179 +1,214 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
-import { apiClient } from '../../services/apiClient';
+import { mockScenes } from '../../data';
+import { Lesson } from '../../types';
 
 export default function ReviewScreen() {
-  const { themeId, setMangaTokens, setVideoTokens, triggerToast } = useApp();
+  const {
+    themeId,
+    lessonTitle,
+    setLessonTitle,
+    lessonContent,
+    setLessonContent,
+    selectedFormat,
+    mangaTokens,
+    setMangaTokens,
+    videoTokens,
+    setVideoTokens,
+    setLessons,
+    setViewingLesson,
+    triggerToast,
+  } = useApp();
   const router = useRouter();
-  const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
 
-  const [loading, setLoading] = useState<boolean>(false);
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [draftScript, setDraftScript] = useState<string>('');
-  const [lessonTitle, setLessonTitle] = useState<string>('');
-  const [format, setFormat] = useState<'manga' | 'video'>('manga');
-  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'summary' | 'scenes'>('scenes');
 
+  const isDark = themeId === 'bold-typography-dark';
   const colors = {
-    bg: '#050811', // Deep dark cosmic blue/black matching Web background
-    text: '#f8fafc',
-    textMuted: '#94a3b8',
-    border: 'rgba(124, 58, 237, 0.3)',
-    borderFocus: '#06b6d4', // Cyan focus glow
-    primaryAccent: '#6366f1', // Indigo purple matching Web button
-    secondaryAccent: '#0ea5e9', // Cyan
-    cardBg: '#0d111d', // Very dark grey-blue matching Web card background
+    bg: isDark ? '#121212' : '#FAF9F6',
+    text: isDark ? '#FAF9F6' : '#1A1A1A',
+    textMuted: isDark ? '#CFCFCF' : '#4A4A4A',
+    border: isDark ? '#FFFFFF' : '#000000',
+    primaryAccent: '#FF3E00',
+    cardBg: isDark ? '#1a1a1a' : '#ffffff',
   };
-
-  const fetchDraftDetails = async () => {
-    if (!lessonId) return;
-    setLoading(true);
-    try {
-      const res = await apiClient.get(`/lessons/${lessonId}`);
-      if (res.data) {
-        setLessonTitle(res.data.title || 'Bài giảng không có tiêu đề');
-        setDraftScript(res.data.overallScript || 'Không có kịch bản.');
-        const isVideo = res.data.outputMode === 0 || res.data.outputMode === 'Video';
-        setFormat(isVideo ? 'video' : 'manga');
-      }
-    } catch (err) {
-      console.log('Lỗi tải kịch bản nháp:', err);
-      triggerToast('Không thể tải kịch bản nháp từ máy chủ.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDraftDetails();
-  }, [lessonId]);
 
   const handleCancel = () => {
-    triggerToast('Đã đóng trình duyệt kịch bản.');
+    setLessonTitle('');
+    setLessonContent('');
+    triggerToast('Đã hủy kịch bản nháp.');
     router.replace('/(tabs)/home');
   };
 
-  const handleApprove = async () => {
-    if (!lessonId) return;
-    if (!draftScript.trim()) {
-      triggerToast('Kịch bản không được để trống.');
+  const handleApprove = () => {
+    // Check tokens
+    if (selectedFormat === 'manga' && mangaTokens < 1) {
+      triggerToast('Bạn không đủ Manga Token! Vui lòng nâng cấp gói.');
+      return;
+    }
+    if (selectedFormat === 'video' && videoTokens < 1) {
+      triggerToast('Bạn không đủ Video Token! Vui lòng nâng cấp gói.');
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const res = await apiClient.post(`/lessons/${lessonId}/approve`, {
-        overallScript: draftScript,
-      });
-
-      const data = res.data;
-      if (data) {
-        // Sync token counts returned in response
-        if (data.quota) {
-          if (data.quota.remainingMangaCount !== undefined) setMangaTokens(data.quota.remainingMangaCount);
-          if (data.quota.remainingVideoCount !== undefined) setVideoTokens(data.quota.remainingVideoCount);
-        }
-        triggerToast('Phê duyệt thành công! Tiến trình sinh media bắt đầu.');
-        router.replace('/(tabs)/home');
-      }
-    } catch (err: any) {
-      console.log('Lỗi phê duyệt kịch bản:', err);
-      const errMsg = err.response?.data?.message || 'Phê duyệt thất bại. Vui lòng kiểm tra lại.';
-      triggerToast(errMsg);
-    } finally {
-      setSubmitting(false);
+    // Deduct token
+    if (selectedFormat === 'manga') {
+      setMangaTokens((prev) => (prev > 1000 ? prev : prev - 1));
+    } else {
+      setVideoTokens((prev) => prev - 1);
     }
-  };
 
-  const getInputStyle = (fieldName: string) => [
-    styles.textArea,
-    {
-      backgroundColor: '#0a0d16',
-      borderColor: focusedField === fieldName ? colors.borderFocus : 'rgba(255, 255, 255, 0.08)',
-      color: colors.text,
-    },
-  ];
+    // Create new lesson
+    const newLesson: Lesson = {
+      id: `lesson-${Date.now()}`,
+      title: lessonTitle || 'Định tuyến gói tin nâng cao',
+      type: selectedFormat,
+      duration: selectedFormat === 'manga' ? '15 trang' : '1m 30s',
+      status: 'Đang học',
+      progress: 0,
+      coverUrl: selectedFormat === 'manga'
+        ? 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80'
+        : 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80',
+      description: lessonContent || 'Một bài học trực quan sinh động được tạo bởi trợ lý AI MiniSeries.'
+    };
+
+    setLessons((prev) => [newLesson, ...prev]);
+    setViewingLesson(newLesson);
+
+    // Clean up forms
+    setLessonTitle('');
+    setLessonContent('');
+
+    triggerToast('Phê duyệt thành công! Bài học mới đã sẵn sàng.');
+    router.replace('/(tabs)/home');
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Background Glows */}
-      <View style={styles.glowTop} />
-
-      {/* Header Bar matching Web header */}
-      <View style={[styles.header, { borderBottomColor: 'rgba(255, 255, 255, 0.05)', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-        <Text style={[styles.brand, { color: '#0ea5e9', fontWeight: '900' }]}>
-          MINISERIES<Text style={{ color: '#d946ef' }}>LEARNING</Text>
-        </Text>
-        <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700' }}>📋 DUYỆT KỊCH BẢN</Text>
+      {/* Header Bar */}
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <Text style={[styles.brand, { color: colors.text }]}>📋 DUYỆT KỊCH BẢN</Text>
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.secondaryAccent} />
-          <Text style={{ color: colors.textMuted, marginTop: 12 }}>Đang tải kịch bản nháp...</Text>
-        </View>
-      ) : (
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          {/* Info Card */}
-          <View style={[styles.infoCard, { borderColor: 'rgba(255,255,255,0.05)', backgroundColor: colors.cardBg }]}>
-            <Text style={[styles.infoTitle, { color: colors.text }]}>
-              {lessonTitle || 'Định tuyến gói tin nâng cao'}
-            </Text>
-            <View style={styles.badgeRow}>
-              <View style={[styles.badge, { backgroundColor: format === 'manga' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(124, 58, 237, 0.15)', borderColor: format === 'manga' ? colors.secondaryAccent : colors.border }]}>
-                <Text style={[styles.badgeText, { color: format === 'manga' ? colors.secondaryAccent : '#c084fc' }]}>
-                  {format === 'manga' ? '📖 MANGA WEBTOON' : '🎬 VIDEO NGẮN'}
-                </Text>
-              </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Info Card */}
+        <View style={[styles.infoCard, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.infoTitle, { color: colors.text }]}>
+            {lessonTitle || 'Định tuyến gói tin nâng cao'}
+          </Text>
+          <View style={styles.badgeRow}>
+            <View style={[styles.badge, { borderColor: colors.border, backgroundColor: colors.text }]}>
+              <Text style={[styles.badgeText, { color: colors.bg }]}>
+                {selectedFormat === 'manga' ? '📖 MANGA WEBTOON' : '🎬 VIDEO NGẮN'}
+              </Text>
             </View>
           </View>
+        </View>
 
-          {/* Script Editor Area matching Web script-editor */}
-          <View style={[styles.editorCard, { backgroundColor: colors.cardBg, borderColor: 'rgba(255,255,255,0.05)' }]}>
-            <Text style={styles.editorLabel}>Kịch bản bài học (Draft Script)</Text>
-            <TextInput
-              multiline
-              value={draftScript}
-              onChangeText={setDraftScript}
-              editable={!submitting}
-              onFocus={() => setFocusedField('script')}
-              onBlur={() => setFocusedField(null)}
-              style={getInputStyle('script')}
-              placeholder="Đang tải kịch bản..."
-              placeholderTextColor="#3e4a68"
-            />
-          </View>
-        </ScrollView>
-      )}
-
-      {/* Approve / Cancel actions */}
-      {!loading && (
-        <View style={[styles.actionsContainer, { borderTopColor: 'rgba(255, 255, 255, 0.05)', backgroundColor: colors.bg }]}>
+        {/* Tab switchers */}
+        <View style={styles.tabsContainer}>
           <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={handleApprove}
-            disabled={submitting}
-            style={[styles.actionBtn, { backgroundColor: colors.primaryAccent }]}
+            activeOpacity={0.8}
+            onPress={() => setActiveTab('summary')}
+            style={[
+              styles.tab,
+              {
+                backgroundColor: activeTab === 'summary' ? colors.text : 'transparent',
+                borderColor: colors.border,
+              }
+            ]}
           >
-            {submitting ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <Text style={styles.actionBtnText}>PHÊ DUYỆT & TẠO MEDIA</Text>
-            )}
+            <Text style={[styles.tabText, { color: activeTab === 'summary' ? colors.bg : colors.text }]}>
+              TÓM TẮT KỊCH BẢN
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={handleCancel}
-            disabled={submitting}
-            style={[styles.actionBtn, { backgroundColor: 'transparent', borderColor: 'rgba(255, 255, 255, 0.15)' }]}
+            onPress={() => setActiveTab('scenes')}
+            style={[
+              styles.tab,
+              {
+                backgroundColor: activeTab === 'scenes' ? colors.text : 'transparent',
+                borderColor: colors.border,
+              }
+            ]}
           >
-            <Text style={[styles.actionBtnText, { color: colors.text }]}>QUAY LẠI</Text>
+            <Text style={[styles.tabText, { color: activeTab === 'scenes' ? colors.bg : colors.text }]}>
+              KỊCH BẢN CHI TIẾT
+            </Text>
           </TouchableOpacity>
         </View>
-      )}
+
+        {/* Outline Summary view */}
+        {activeTab === 'summary' ? (
+          <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: colors.border }]}>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>🎯 MỤC TIÊU BÀI GIẢNG</Text>
+            <Text style={[styles.cardBody, { color: colors.textMuted }]}>
+              Giúp người học tiếp thu một cách trực quan các khái niệm kỹ thuật khô khan thông qua cốt truyện hoạt hình/truyện tranh lôi cuốn, tăng khả năng ghi nhớ lên 200%.
+            </Text>
+
+            <View style={[styles.divider, { borderTopColor: colors.border }]} />
+
+            <Text style={[styles.cardTitle, { color: colors.text }]}>👥 ĐỐI TƯỢNG HƯỚNG TỚI</Text>
+            <Text style={[styles.cardBody, { color: colors.textMuted }]}>
+              Học sinh, sinh viên ngành Công nghệ thông tin hoặc kỹ sư mạng đang chuẩn bị cho kỳ thi chứng chỉ chuyên ngành.
+            </Text>
+          </View>
+        ) : (
+          /* Scene list view */
+          <View style={styles.scenesList}>
+            {mockScenes.map((scene) => (
+              <View
+                key={scene.number}
+                style={[styles.sceneCard, { borderColor: colors.border, backgroundColor: colors.cardBg }]}
+              >
+                <Text style={[styles.sceneNum, { color: colors.primaryAccent, borderBottomColor: colors.border }]}>
+                  SCENE {scene.number}: {scene.title.toUpperCase()} ({scene.duration})
+                </Text>
+
+                <View style={styles.sceneContent}>
+                  <View style={styles.sceneSection}>
+                    <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>🎨 HÌNH ẢNH (VISUAL)</Text>
+                    <Text style={[styles.sectionVal, { color: colors.text }]}>{scene.visual}</Text>
+                  </View>
+
+                  <View style={styles.sceneSection}>
+                    <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>🎙️ THUYẾT MINH (NARRATOR)</Text>
+                    <Text style={[styles.sectionVal, { color: colors.text }]}>{scene.narrator}</Text>
+                  </View>
+
+                  <View style={styles.sceneSection}>
+                    <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>⚡ HÀNH ĐỘNG (ACTION)</Text>
+                    <Text style={[styles.sectionVal, { color: colors.text }]}>{scene.action}</Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Approve / Cancel actions */}
+      <View style={[styles.actionsContainer, { borderTopColor: colors.border, backgroundColor: colors.bg }]}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={handleApprove}
+          style={[styles.actionBtn, { backgroundColor: colors.primaryAccent, borderColor: colors.border }]}
+        >
+          <Text style={styles.actionBtnText}>PHÊ DUYỆT & XUẤT BẢN</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={handleCancel}
+          style={[styles.actionBtn, { backgroundColor: 'transparent', borderColor: colors.border }]}
+        >
+          <Text style={[styles.actionBtnText, { color: colors.text }]}>HỦY KỊCH BẢN</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -181,46 +216,30 @@ export default function ReviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    position: 'relative',
-  },
-  glowTop: {
-    position: 'absolute',
-    top: -120,
-    left: -120,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: 'rgba(124, 58, 237, 0.08)',
   },
   header: {
     paddingTop: 50,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
   },
   brand: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '900',
-    letterSpacing: -0.5,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    letterSpacing: 1.5,
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 160, // Space for bottom actions
+    paddingBottom: 140, // Space for bottom buttons
   },
   infoCard: {
-    borderWidth: 1,
-    borderRadius: 20,
+    borderWidth: 2,
     padding: 16,
     marginBottom: 16,
   },
   infoTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '900',
     marginBottom: 8,
   },
   badgeRow: {
@@ -228,67 +247,103 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderWidth: 1,
-    borderRadius: 8,
     paddingVertical: 2,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
   badgeText: {
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '900',
   },
-  editorCard: {
-    borderWidth: 1,
-    borderRadius: 20,
+  tabsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    borderWidth: 2,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabText: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  card: {
+    borderWidth: 2,
     padding: 16,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
   },
-  editorLabel: {
+  cardTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  cardBody: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#94a3b8',
-    marginBottom: 12,
+    lineHeight: 18,
   },
-  textArea: {
-    borderWidth: 1,
-    borderRadius: 12,
+  divider: {
+    borderTopWidth: 2,
+    marginVertical: 14,
+  },
+  scenesList: {
+    gap: 16,
+  },
+  sceneCard: {
+    borderWidth: 2,
+  },
+  sceneNum: {
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    padding: 10,
+    borderBottomWidth: 2,
+  },
+  sceneContent: {
     padding: 12,
-    fontSize: 14,
-    fontWeight: '500',
-    height: 300,
-    textAlignVertical: 'top',
-    lineHeight: 20,
+    gap: 12,
+  },
+  sceneSection: {
+    flexDirection: 'column',
+    gap: 4,
+  },
+  sectionLabel: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  sectionVal: {
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
   },
   actionsContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    borderTopWidth: 1,
+    borderTopWidth: 2,
     padding: 16,
     gap: 12,
   },
   actionBtn: {
-    borderRadius: 12,
+    borderWidth: 2,
     padding: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'transparent',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#6366f1',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   actionBtnText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '900',
     letterSpacing: 0.5,
+    color: '#FFFFFF',
   },
 });

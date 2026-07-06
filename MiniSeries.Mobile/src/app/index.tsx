@@ -10,7 +10,7 @@ export default function IndexRedirector() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (isAuthenticated) {
-        router.replace('/(tabs)/create');
+        router.replace('/(tabs)/home');
       } else {
         router.replace('/(auth)/login');
       }
@@ -19,8 +19,8 @@ export default function IndexRedirector() {
   }, [isAuthenticated]);
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#030712' }}>
-      <ActivityIndicator size="large" color="#06b6d4" />
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#121212' }}>
+      <ActivityIndicator size="large" color="#FF3E00" />
     </View>
   );
 }

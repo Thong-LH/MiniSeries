@@ -1,7 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { DesignThemeId, DesignTheme, Lesson } from '../types';
 import { designThemes, initialLessons } from '../data';
-import { apiClient } from '../services/apiClient';
 
 interface AppContextType {
   themeId: DesignThemeId;
@@ -15,10 +14,6 @@ interface AppContextType {
   setVideoTokens: React.Dispatch<React.SetStateAction<number>>;
   activePlan: string;
   setActivePlan: (plan: string) => void;
-  userName: string;
-  setUserName: (name: string) => void;
-  userEmail: string;
-  setUserEmail: (email: string) => void;
   lessons: Lesson[];
   setLessons: React.Dispatch<React.SetStateAction<Lesson[]>>;
   
@@ -43,8 +38,6 @@ interface AppContextType {
   // Toast notifications
   toastMessage: string | null;
   triggerToast: (msg: string) => void;
-
-  refreshProfile: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -55,8 +48,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [mangaTokens, setMangaTokens] = useState<number>(29);
   const [videoTokens, setVideoTokens] = useState<number>(10);
   const [activePlan, setActivePlan] = useState<string>('Basic');
-  const [userName, setUserName] = useState<string>('User');
-  const [userEmail, setUserEmail] = useState<string>('');
   const [lessons, setLessons] = useState<Lesson[]>(initialLessons);
   
   // Create forms state
@@ -82,27 +73,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 3500);
   };
 
-  const refreshProfile = async () => {
-    try {
-      const res = await apiClient.get('/profile/me');
-      if (res.data) {
-        if (res.data.planName) setActivePlan(res.data.planName);
-        if (res.data.remainingMangaCount !== undefined) setMangaTokens(res.data.remainingMangaCount);
-        if (res.data.remainingVideoCount !== undefined) setVideoTokens(res.data.remainingVideoCount);
-        if (res.data.fullName) setUserName(res.data.fullName);
-        if (res.data.email) setUserEmail(res.data.email);
-      }
-    } catch (err) {
-      console.log('Lỗi cập nhật profile từ server:', err);
-    }
-  };
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      refreshProfile();
-    }
-  }, [isAuthenticated]);
-
   return (
     <AppContext.Provider
       value={{
@@ -117,10 +87,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setVideoTokens,
         activePlan,
         setActivePlan,
-        userName,
-        setUserName,
-        userEmail,
-        setUserEmail,
         lessons,
         setLessons,
         lessonTitle,
@@ -139,7 +105,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setViewerPage,
         toastMessage,
         triggerToast,
-        refreshProfile,
       }}
     >
       {children}

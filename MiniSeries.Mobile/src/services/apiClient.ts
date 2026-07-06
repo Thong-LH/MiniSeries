@@ -1,17 +1,7 @@
 import axios from 'axios';
 
-import { Platform } from 'react-native';
-
 // Đường dẫn API Server Backend của dự án
-const BASE_URL = Platform.OS === 'android'
-  ? 'http://10.0.2.2:5088/api'
-  : 'http://localhost:5088/api'; 
-
-let authToken: string | null = null;
-
-export const setAuthToken = (token: string | null) => {
-  authToken = token;
-};
+const BASE_URL = 'https://miniseries-api.example.com'; 
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -25,9 +15,12 @@ export const apiClient = axios.create({
 // Bộ đánh chặn (Interceptor) để tự động đính kèm Token vào Header trước khi gửi request
 apiClient.interceptors.request.use(
   async (config) => {
-    if (authToken) {
-      config.headers.Authorization = `Bearer ${authToken}`;
-    }
+    // KAN-90: Khi bạn LH tích hợp lưu Token vào bộ nhớ điện thoại (AsyncStorage/SecureStore),
+    // bạn sẽ lấy token ra tại đây và đính kèm vào header:
+    // const token = await SecureStore.getItemAsync('authToken');
+    // if (token) {
+    //   config.headers.Authorization = `Bearer ${token}`;
+    // }
     return config;
   },
   (error) => {
