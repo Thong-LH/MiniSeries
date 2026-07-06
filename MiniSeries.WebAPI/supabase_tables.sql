@@ -7,8 +7,11 @@ CREATE TABLE IF NOT EXISTS "SupportRequests" (
     "Content" text NOT NULL,
     "Reply" text NOT NULL DEFAULT '',
     "Status" character varying(50) NOT NULL DEFAULT 'Chờ trả lời',
+    "AssignedStaffEmail" character varying(320),
     "CreatedAt" timestamp with time zone NOT NULL DEFAULT now()
 );
+
+ALTER TABLE "SupportRequests" ADD COLUMN IF NOT EXISTS "AssignedStaffEmail" character varying(320);
 
 CREATE TABLE IF NOT EXISTS "Feedbacks" (
     "Id" uuid PRIMARY KEY,

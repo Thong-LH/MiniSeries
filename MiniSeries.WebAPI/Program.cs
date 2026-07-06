@@ -1,4 +1,5 @@
- using MiniSeries.WebAPI.Extensions;
+ using Microsoft.EntityFrameworkCore;
+using MiniSeries.WebAPI.Extensions;
 using MiniSeries.WebAPI.Middleware;
 using MiniSeries.Infrastructure.Options;
 
@@ -31,12 +32,25 @@ _ = Task.Run(async () =>
         if (dbContext is not null)
         {
             // Kích hoạt compilation model và khởi tạo connection đầu tiên
-            await dbContext.Database.CanConnectAsync();
+            if (await dbContext.Database.CanConnectAsync())
+            {
+                // Tự động cập nhật cột AssignedStaffEmail nếu chưa có để đảm bảo chạy mượt mà
+                await dbContext.Database.ExecuteSqlRawAsync("ALTER TABLE \"SupportRequests\" ADD COLUMN IF NOT EXISTS \"AssignedStaffEmail\" character varying(320);");
+                // Cập nhật các ticket cũ chưa được phân phối trong database sang email nhân viên thực tế đầu tiên
+                await dbContext.Database.ExecuteSqlRawAsync(@"
+                    UPDATE ""SupportRequests"" 
+                    SET ""AssignedStaffEmail"" = COALESCE(
+                        (SELECT ""Email"" FROM ""UserProfiles"" WHERE ""Role"" = 'Staff' OR ""Role"" = 'staff' OR ""Role"" = 'Admin' OR ""Role"" = 'admin' LIMIT 1),
+                        'staff_auto@miniseries.com'
+                    ) 
+                    WHERE ""AssignedStaffEmail"" IS NULL OR ""AssignedStaffEmail"" = '' OR ""AssignedStaffEmail"" = 'staff_auto@miniseries.com';
+                ");
+            }
         }
     }
-    catch
+    catch (Exception ex)
     {
-        // Bỏ qua lỗi trong lúc warmup để tránh treo server lúc khởi động
+        Console.WriteLine($"[Database Warmup/Migration Error] {ex.Message}");
     }
 });
 

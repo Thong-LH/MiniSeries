@@ -788,7 +788,6 @@ input:checked + .slider:before {
     transition: opacity 0.15s ease;
 }
 
-.review-section.draft-floating:hover,
 .review-section.draft-floating.expanded {
     width: min(500px, calc(100vw - 48px));
     height: auto;
@@ -799,7 +798,6 @@ input:checked + .slider:before {
     cursor: default;
 }
 
-.review-section.draft-floating:hover .draft-float-toggle,
 .review-section.draft-floating.expanded .draft-float-toggle {
     inset: 16px auto auto 16px;
     width: 32px;
@@ -807,9 +805,6 @@ input:checked + .slider:before {
     font-size: 14px;
 }
 
-.review-section.draft-floating:hover h2,
-.review-section.draft-floating:hover .review-script-main,
-.review-section.draft-floating:hover .review-actions,
 .review-section.draft-floating.expanded h2,
 .review-section.draft-floating.expanded .review-script-main,
 .review-section.draft-floating.expanded .review-actions {
@@ -817,11 +812,42 @@ input:checked + .slider:before {
     pointer-events: auto;
 }
 
-.review-section.draft-floating:hover h2,
 .review-section.draft-floating.expanded h2 {
     padding-left: 48px;
     border-bottom: 0;
     margin-bottom: 12px;
+}
+
+@media (hover: hover) {
+    .review-section.draft-floating:hover {
+        width: min(500px, calc(100vw - 48px));
+        height: auto;
+        max-height: calc(100vh - 120px);
+        padding: 1.5rem;
+        overflow: auto;
+        border-radius: 12px !important;
+        cursor: default;
+    }
+
+    .review-section.draft-floating:hover .draft-float-toggle {
+        inset: 16px auto auto 16px;
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .review-section.draft-floating:hover h2,
+    .review-section.draft-floating:hover .review-script-main,
+    .review-section.draft-floating:hover .review-actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .review-section.draft-floating:hover h2 {
+        padding-left: 48px;
+        border-bottom: 0;
+        margin-bottom: 12px;
+    }
 }
 
 .review-section.draft-floating .script-editor {
@@ -1759,5 +1785,36 @@ input:checked + .slider:before {
 
     .media-loading-step {
         min-height: auto;
+    }
+
+    .media-loading-column {
+        height: auto !important;
+    }
+
+    .media-loading-placeholder {
+        display: none !important;
+    }
+
+    .chapter-reader-header {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 12px !important;
+        padding: 1rem !important;
+    }
+
+    .chapter-nav {
+        width: 100% !important;
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+
+    .chapter-nav-btn {
+        padding: 0 10px !important;
+        font-size: 0.8rem !important;
+    }
+
+    .chapter-bottom-nav-btn {
+        flex: 1;
+        width: 100%;
     }
 }

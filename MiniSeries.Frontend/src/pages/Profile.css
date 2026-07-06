@@ -1,0 +1,330 @@
+/* ===== MiniSeries Profile Page Stylesheet — Sleek Responsive Sci-Fi ===== */
+
+.profile-section {
+    padding: 110px 20px 60px;
+    min-height: 80vh;
+    color: #fff;
+}
+
+.profile-container {
+    max-width: 1040px;
+    margin: 0 auto;
+}
+
+.profile-title {
+    color: #06b6d4;
+    margin-bottom: 18px;
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.profile-tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+
+.profile-tab-btn {
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.profile-card {
+    background: rgba(15, 23, 42, 0.82);
+    border: 1px solid rgba(6, 182, 212, 0.28);
+    border-radius: 18px;
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 24px;
+}
+
+.profile-avatar-col {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-avatar {
+    width: 112px;
+    height: 112px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(139, 92, 246, 0.8);
+    padding: 8px;
+    object-fit: cover;
+}
+
+.profile-plan {
+    margin-top: 16px;
+    color: #a78bfa;
+    font-weight: 800;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.profile-info-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-info-item {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.profile-info-item:last-of-type {
+    margin-bottom: 24px;
+}
+
+.profile-info-item p {
+    color: #94a3b8;
+    margin: 0 0 4px 0;
+    font-size: 0.875rem;
+}
+
+.profile-info-item strong {
+    color: #f8fafc;
+    font-size: 1.05rem;
+}
+
+.profile-quotas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    width: 100%;
+}
+
+.profile-quota-card {
+    padding: 16px;
+    border-radius: 14px;
+    text-align: left;
+}
+
+.profile-quota-card.manga {
+    background: rgba(6, 182, 212, 0.12);
+    border: 1px solid rgba(6, 182, 212, 0.28);
+}
+
+.profile-quota-card.video {
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px solid rgba(168, 85, 247, 0.28);
+}
+
+.profile-quota-card p {
+    margin: 0 0 8px 0;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.profile-quota-card.manga p {
+    color: #67e8f9;
+}
+
+.profile-quota-card.video p {
+    color: #c084fc;
+}
+
+.profile-quota-card strong {
+    font-size: 1.25rem;
+    color: #f8fafc;
+}
+
+.profile-period-text {
+    margin-top: 20px;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    text-align: left;
+}
+
+/* Tab contents base cards */
+.profile-content-card {
+    background: rgba(15, 23, 42, 0.82);
+    border: 1px solid rgba(6, 182, 212, 0.28);
+    border-radius: 18px;
+    padding: 24px;
+}
+
+.profile-content-card h2 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.lessons-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.lesson-card {
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(2, 6, 23, 0.62);
+    cursor: pointer;
+    min-height: 280px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lesson-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(6, 182, 212, 0.5);
+    box-shadow: 0 8px 24px -6px rgba(6, 182, 212, 0.3);
+}
+
+.lesson-thumbnail-container {
+    position: relative;
+    aspect-ratio: 16 / 10;
+}
+
+.lesson-thumbnail-container.manga-mode {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.26), rgba(15, 23, 42, 0.92));
+}
+
+.lesson-thumbnail-container.video-mode {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(15, 23, 42, 0.92));
+}
+
+.lesson-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.lesson-mode-fallback {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.lesson-mode-fallback.manga { color: #67e8f9; }
+.lesson-mode-fallback.video { color: #c084fc; }
+
+.lesson-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: #020617;
+    font-size: 0.75rem;
+    font-weight: 900;
+}
+
+.lesson-badge.manga { background: rgba(6, 182, 212, 0.88); }
+.lesson-badge.video { background: rgba(168, 85, 247, 0.88); }
+
+.lesson-body {
+    padding: 14px;
+    text-align: left;
+}
+
+.lesson-title-text {
+    min-height: 48px;
+    margin: 0 0 10px 0;
+    color: #f8fafc;
+    font-size: 1rem;
+    line-height: 1.35;
+    font-weight: 700;
+}
+
+.lesson-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: #94a3b8;
+    font-size: 0.88rem;
+}
+
+.lesson-status {
+    margin-top: 10px;
+    color: #94a3b8;
+    font-size: 0.86rem;
+}
+
+/* Payments history styling */
+.payments-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.payments-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 680px;
+}
+
+.payments-table th {
+    padding: 12px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+    color: #94a3b8;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.payments-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    text-align: left;
+}
+
+/* Responsive queries */
+@media (max-width: 768px) {
+    .profile-section {
+        padding: 90px 14px 40px;
+    }
+    
+    .profile-title {
+        font-size: 1.6rem;
+    }
+
+    .profile-card {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 20px 16px;
+    }
+    
+    .profile-avatar-col {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 20px;
+    }
+
+    .profile-quotas {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .lessons-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+}
+
+@media (max-width: 540px) {
+    .lessons-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .profile-content-card {
+        padding: 16px 12px;
+    }
+}

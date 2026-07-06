@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './Profile.css';
 import {
   api,
   MY_LESSONS_CACHE_PREFIX,
@@ -51,12 +52,6 @@ type PaymentHistoryItem = {
 type TabKey = 'account' | 'lessons' | 'payments';
 
 const SHOW_LEGACY_LESSON_TABLE = false;
-
-const cardStyle = {
-  background: 'rgba(15, 23, 42, 0.82)',
-  border: '1px solid rgba(6, 182, 212, 0.28)',
-  borderRadius: '18px'
-};
 
 function formatDate(value?: string | null) {
   if (!value) return 'Chưa có';
@@ -313,11 +308,11 @@ export default function Profile() {
   const totalPages = Math.ceil(lessons.length / itemsPerPage);
 
   return (
-    <section style={{ padding: '110px 20px 60px', minHeight: '80vh', color: '#fff' }}>
-      <div style={{ maxWidth: '1040px', margin: '0 auto' }}>
-        <h1 style={{ color: '#06b6d4', marginBottom: '18px' }}>Hồ sơ cá nhân</h1>
+    <section className="profile-section">
+      <div className="profile-container">
+        <h1 className="profile-title">Hồ sơ cá nhân</h1>
 
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '22px' }}>
+        <div className="profile-tabs">
           <button type="button" style={tabButtonStyle(activeTab === 'account')} onClick={() => selectTab('account')}>
             Tài khoản
           </button>
@@ -330,61 +325,44 @@ export default function Profile() {
         </div>
 
         {activeTab === 'account' && (
-          <div style={{
-            ...cardStyle,
-            display: 'grid',
-            gridTemplateColumns: '220px 1fr',
-            gap: '24px',
-            padding: '28px'
-          }}>
-            <div style={{ textAlign: 'center' }}>
+          <div className="profile-card">
+            <div className="profile-avatar-col">
               <img
                 src={profile.avatarUrl}
                 alt="Avatar"
-                style={{
-                  width: '112px',
-                  height: '112px',
-                  borderRadius: '999px',
-                  background: 'rgba(255,255,255,0.08)',
-                  border: '2px solid rgba(139, 92, 246, 0.8)',
-                  padding: '8px'
-                }}
+                className="profile-avatar"
               />
-              <p style={{ marginTop: '16px', color: '#a78bfa', fontWeight: 800 }}>
+              <p className="profile-plan">
                 {profile.planName || 'Free'}
               </p>
             </div>
 
-            <div>
-              <div style={{ marginBottom: '20px' }}>
-                <p style={{ color: '#94a3b8', marginBottom: '4px' }}>Tên</p>
+            <div className="profile-info-col">
+              <div className="profile-info-item">
+                <p>Tên</p>
                 <strong>{profile.fullName}</strong>
               </div>
-              <div style={{ marginBottom: '20px' }}>
-                <p style={{ color: '#94a3b8', marginBottom: '4px' }}>Email</p>
+              <div className="profile-info-item">
+                <p>Email</p>
                 <strong>{profile.email}</strong>
               </div>
-              <div style={{ marginBottom: '24px' }}>
-                <p style={{ color: '#94a3b8', marginBottom: '4px' }}>Vai trò</p>
+              <div className="profile-info-item">
+                <p>Vai trò</p>
                 <strong>{profile.role}</strong>
               </div>
 
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                gap: '14px'
-              }}>
-                <div style={{ padding: '16px', borderRadius: '14px', background: 'rgba(6, 182, 212, 0.12)', border: '1px solid rgba(6, 182, 212, 0.28)' }}>
-                  <p style={{ color: '#67e8f9', marginBottom: '8px', fontWeight: 700 }}>Quota truyện</p>
+              <div className="profile-quotas">
+                <div className="profile-quota-card manga">
+                  <p>Quota truyện</p>
                   <strong>{profile.remainingMangaCount}/{profile.mangaMonthlyLimit}</strong>
                 </div>
-                <div style={{ padding: '16px', borderRadius: '14px', background: 'rgba(168, 85, 247, 0.12)', border: '1px solid rgba(168, 85, 247, 0.28)' }}>
-                  <p style={{ color: '#c084fc', marginBottom: '8px', fontWeight: 700 }}>Quota video</p>
+                <div className="profile-quota-card video">
+                  <p>Quota video</p>
                   <strong>{profile.remainingVideoCount}/{profile.videoMonthlyLimit}</strong>
                 </div>
               </div>
 
-              <p style={{ marginTop: '20px', color: '#94a3b8' }}>
+              <p className="profile-period-text">
                 Chu kỳ hiện tại kết thúc: {formatDate(profile.currentPeriodEnd)}
               </p>
             </div>
@@ -392,8 +370,8 @@ export default function Profile() {
         )}
 
         {activeTab === 'lessons' && (
-          <div style={{ ...cardStyle, padding: '24px' }}>
-            <h2 style={{ marginBottom: '14px', color: '#67e8f9' }}>Bài học đã tạo</h2>
+          <div className="profile-content-card">
+            <h2 style={{ color: '#67e8f9' }}>Bài học đã tạo</h2>
             {lessonsLoading && <p style={{ color: '#94a3b8' }}>Đang tải lịch sử bài học...</p>}
             {lessonsError && <p style={{ color: '#f87171' }}>{lessonsError}</p>}
             {!lessonsLoading && !lessonsError && lessons.length === 0 && (
@@ -401,11 +379,7 @@ export default function Profile() {
             )}
             {lessons.length > 0 && (
               <>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                  gap: '18px'
-                }}>
+                <div className="lessons-grid">
                   {currentLessons.map((lesson) => {
                     const thumbnailUrl = getLessonThumbnail(lesson);
                     const mode = formatOutputMode(lesson.outputMode);
@@ -415,83 +389,34 @@ export default function Profile() {
                       <article
                         key={lesson.id}
                         onClick={() => navigate(`/studio?lessonId=${lesson.id}`)}
-                        style={{
-                          overflow: 'hidden',
-                          borderRadius: '14px',
-                          border: '1px solid rgba(148, 163, 184, 0.22)',
-                          background: 'rgba(2, 6, 23, 0.62)',
-                          cursor: 'pointer',
-                          minHeight: '280px'
-                        }}
+                        className="lesson-card"
                       >
-                        <div style={{
-                          position: 'relative',
-                          aspectRatio: '16 / 10',
-                          background: isVideo
-                            ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(15, 23, 42, 0.92))'
-                            : 'linear-gradient(135deg, rgba(6, 182, 212, 0.26), rgba(15, 23, 42, 0.92))'
-                        }}>
+                        <div className={`lesson-thumbnail-container ${isVideo ? 'video-mode' : 'manga-mode'}`}>
                           {thumbnailUrl ? (
                             <img
                               src={thumbnailUrl}
                               alt={lesson.title}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                display: 'block'
-                              }}
+                              className="lesson-thumbnail"
                             />
                           ) : (
-                            <div style={{
-                              height: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: isVideo ? '#c084fc' : '#67e8f9',
-                              fontWeight: 900,
-                              letterSpacing: '0.08em'
-                            }}>
+                            <div className={`lesson-mode-fallback ${isVideo ? 'video' : 'manga'}`}>
                               {mode}
                             </div>
                           )}
-                          <span style={{
-                            position: 'absolute',
-                            top: '10px',
-                            left: '10px',
-                            padding: '6px 10px',
-                            borderRadius: '999px',
-                            background: isVideo ? 'rgba(168, 85, 247, 0.88)' : 'rgba(6, 182, 212, 0.88)',
-                            color: '#020617',
-                            fontSize: '0.75rem',
-                            fontWeight: 900
-                          }}>
+                          <span className={`lesson-badge ${isVideo ? 'video' : 'manga'}`}>
                             {mode}
                           </span>
                         </div>
 
-                        <div style={{ padding: '14px' }}>
-                          <h3 style={{
-                            minHeight: '48px',
-                            margin: '0 0 10px',
-                            color: '#f8fafc',
-                            fontSize: '1rem',
-                            lineHeight: 1.35
-                          }}>
+                        <div className="lesson-body">
+                          <h3 className="lesson-title-text">
                             {lesson.title}
                           </h3>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '10px',
-                            color: '#94a3b8',
-                            fontSize: '0.88rem'
-                          }}>
+                          <div className="lesson-info-row">
                             <span>{formatDate(lesson.createdAt)}</span>
                             <strong style={{ color: '#e2e8f0' }}>{lesson.chapterCount} chapter</strong>
                           </div>
-                          <p style={{ marginTop: '10px', color: '#94a3b8', fontSize: '0.86rem' }}>
+                          <p className="lesson-status">
                             {formatScriptStatus(lesson.scriptStatus)}
                           </p>
                         </div>
@@ -620,7 +545,7 @@ export default function Profile() {
         )}
 
         {activeTab === 'payments' && (
-          <div style={{ ...cardStyle, padding: '24px', overflowX: 'auto' }}>
+          <div className="profile-content-card payments-table-container">
             <h2 style={{ marginBottom: '14px', color: '#c084fc' }}>Lịch sử thanh toán</h2>
             {paymentsLoading && <p style={{ color: '#94a3b8' }}>Đang tải lịch sử thanh toán...</p>}
             {paymentsError && <p style={{ color: '#f87171' }}>{paymentsError}</p>}
@@ -628,30 +553,30 @@ export default function Profile() {
               <p style={{ color: '#94a3b8' }}>Bạn chưa có giao dịch thanh toán.</p>
             )}
             {payments.length > 0 && (
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '780px' }}>
+              <table className="payments-table">
                 <thead>
-                  <tr style={{ color: '#94a3b8', textAlign: 'left' }}>
-                    <th style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.22)' }}>Mã</th>
-                    <th style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.22)' }}>Gói</th>
-                    <th style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.22)' }}>Số tiền</th>
-                    <th style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.22)' }}>Quota</th>
-                    <th style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.22)' }}>Trạng thái</th>
-                    <th style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.22)' }}>Ngày</th>
+                  <tr>
+                    <th>Mã</th>
+                    <th>Gói</th>
+                    <th>Số tiền</th>
+                    <th>Quota</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày</th>
                   </tr>
                 </thead>
                 <tbody>
                   {payments.map((payment) => (
                     <tr key={`${payment.orderId}-${payment.paymentCode}`}>
-                      <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)', fontWeight: 800 }}>{payment.paymentCode}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>{payment.planName}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>{formatMoney(payment.amount)}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>
+                      <td style={{ fontWeight: 800 }}>{payment.paymentCode}</td>
+                      <td>{payment.planName}</td>
+                      <td>{formatMoney(payment.amount)}</td>
+                      <td>
                         Truyện {payment.mangaMonthlyLimit ?? 0} / Video {payment.videoMonthlyLimit ?? 0}
                       </td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)', color: payment.isCompleted ? '#86efac' : '#facc15' }}>
+                      <td style={{ color: payment.isCompleted ? '#86efac' : '#facc15' }}>
                         {payment.isCompleted ? 'Đã thanh toán' : payment.status}
                       </td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>
+                      <td>
                         {formatDate(payment.paidAt || payment.createdAt)}
                       </td>
                     </tr>

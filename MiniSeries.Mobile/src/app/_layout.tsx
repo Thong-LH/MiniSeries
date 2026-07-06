@@ -25,6 +25,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="review/index" />
         <Stack.Screen name="lesson/[id]" />
+        <Stack.Screen name="support/index" />
       </Stack>
 
       {/* Global Toast Notification */}

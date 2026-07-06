@@ -294,17 +294,22 @@
 }
 
 @media (max-width: 768px) {
+  .login-container {
+    padding: 1.5rem !important;
+    margin: 0.5rem;
+  }
   .login-container.dual-layout {
     max-width: 420px;
+    padding: 2rem 1.5rem !important;
   }
   .login-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
   .login-divider-col {
     flex-direction: row;
     width: 100%;
-    margin: 0.5rem 0;
+    margin: 0.25rem 0;
   }
   .login-divider-line-v {
     height: 1px;
@@ -314,5 +319,16 @@
   }
   .login-divider-text-v {
     margin: 0 1rem;
+    width: 32px;
+    height: 32px;
+    font-size: 0.7rem;
+  }
+  .login-title {
+    font-size: 1.45rem;
+  }
+  .google-btn {
+    padding: 0.9rem 1.2rem;
+    font-size: 0.95rem;
+    gap: 12px;
   }
 }

@@ -162,5 +162,40 @@ namespace MiniSeries.WebAPI.Helpers
                 .Replace("{EMAIL_BODY}", body)
                 .Replace("{EMAIL_FOOTER}", "Thư này được gửi từ ban quản trị hệ thống MiniSeriesLearning.");
         }
+
+        public static string BuildStaffTicketNotification(string staffName, string ticketId, string customerEmail, string ticketContent)
+        {
+            var body = $@"
+            <h2 style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; color: #24292f; margin-top: 0; margin-bottom: 16px; line-height: 1.4;"">Yêu Cầu Hỗ Trợ Mới Được Phân Phối</h2>
+            <p style=""margin-top: 0; margin-bottom: 12px;"">Chào <strong>{staffName}</strong>,</p>
+            <p style=""margin-top: 0; margin-bottom: 16px;"">Một yêu cầu hỗ trợ mới từ khách hàng đã được phân phối tự động đến hòm thư của bạn:</p>
+
+            <div style=""margin-bottom: 4px; font-size: 11.5px; text-transform: uppercase; color: #8c8a82; font-weight: 700; letter-spacing: 0.5px;"">Thông tin phiếu hỗ trợ:</div>
+            <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin-bottom: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13.5px; line-height: 1.5;"">
+                <tr>
+                    <td style=""padding: 4px 0; color: #8c8a82; width: 120px;"">Mã phiếu:</td>
+                    <td style=""padding: 4px 0; color: #24292f; font-weight: 600;"">#{ticketId}</td>
+                </tr>
+                <tr>
+                    <td style=""padding: 4px 0; color: #8c8a82;"">Khách hàng:</td>
+                    <td style=""padding: 4px 0; color: #24292f; font-weight: 600;"">{customerEmail}</td>
+                </tr>
+            </table>
+
+            <div style=""margin-bottom: 4px; font-size: 11.5px; text-transform: uppercase; color: #8c8a82; font-weight: 700; letter-spacing: 0.5px;"">Nội dung yêu cầu:</div>
+            <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""margin-bottom: 24px;"">
+                <tr>
+                    <td style=""background-color: #fcfbf9; border: 1px solid #e4e2db; border-left: 3px solid #6366f1; border-radius: 4px; padding: 12px 16px; color: #24292f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap;"">""{ticketContent}""</td>
+                </tr>
+            </table>
+
+            <p style=""margin-top: 20px; margin-bottom: 0; color: #8c8a82; font-size: 13px;"">
+                Vui lòng truy cập hệ thống Quản Trị MiniSeries và phản hồi hỗ trợ khách hàng kịp thời.
+            </p>";
+
+            return CommonLayout
+                .Replace("{EMAIL_BODY}", body)
+                .Replace("{EMAIL_FOOTER}", "Thư thông báo nội bộ hệ thống MiniSeries.");
+        }
     }
 }

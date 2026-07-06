@@ -179,6 +179,7 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.Content).HasColumnType("text");
             entity.Property(x => x.Reply).HasColumnType("text");
             entity.Property(x => x.Status).HasMaxLength(50);
+            entity.Property(x => x.AssignedStaffEmail).HasMaxLength(320);
             entity.HasIndex(x => x.CreatedAt);
         });
 
