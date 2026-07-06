@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
+import { router } from 'expo-router';
 
 const BASE_URL = Platform.OS === 'android'
   ? 'http://10.0.2.2:5088/api'
@@ -53,20 +54,49 @@ apiClient.interceptors.request.use(
   }
 );
 
+let isAlerting = false;
+
 // Bộ đánh chặn xử lý lỗi phản hồi từ Server (ví dụ: Token hết hạn - 401 Unauthorized)
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.log('Token đã hết hạn hoặc không hợp lệ! Đang đăng xuất...');
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        try {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('isAuthenticated');
-          // Reload để buộc router chuyển về trang đăng nhập
-          window.location.reload();
-        } catch (e) {
-          console.log('Không thể xóa session:', e);
+      if (!isAlerting) {
+        isAlerting = true;
+        
+        const logout = () => {
+          isAlerting = false;
+          // Clear session variables
+          if (Platform.OS === 'web' && typeof window !== 'undefined') {
+            try {
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('isAuthenticated');
+              window.location.reload();
+            } catch (e) {
+              console.log('Không thể xóa session:', e);
+            }
+          } else {
+            // For native mobile
+            setAuthToken(null);
+            router.replace('/(auth)/login');
+          }
+        };
+
+        if (Platform.OS === 'web') {
+          alert('Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại.');
+          logout();
+        } else {
+          Alert.alert(
+            'Phiên làm việc hết hạn',
+            'Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.',
+            [
+              {
+                text: 'Đồng ý',
+                onPress: logout
+              }
+            ],
+            { cancelable: false }
+          );
         }
       }
     }

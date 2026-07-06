@@ -52,6 +52,15 @@ async function readJsonResponse(response: Response) {
     const text = await response.text();
     const data = text ? JSON.parse(text) : {};
 
+    if (response.status === 401) {
+        if (!(window as any).isSessionExpiredAlerting) {
+            (window as any).isSessionExpiredAlerting = true;
+            alert("Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.");
+            clearAuthSession();
+            window.location.href = "/login";
+        }
+    }
+
     if (!response.ok) {
         const message = data.detail || data.message || data.title || "Request failed.";
         const error = new Error(message);
