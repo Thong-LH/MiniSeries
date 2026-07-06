@@ -49,7 +49,9 @@ export default function HomeScreen() {
   };
 
   const fetchLessons = async () => {
-    setLoading(true);
+    if (lessons.length === 0) {
+      setLoading(true);
+    }
     try {
       const res = await apiClient.get('/lessons/my');
       if (res.data && Array.isArray(res.data)) {
