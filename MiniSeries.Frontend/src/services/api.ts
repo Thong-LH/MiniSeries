@@ -498,5 +498,13 @@ export const api = {
             body: JSON.stringify({ id: String(id), adminReply })
         });
         return await readJsonResponse(response);
+    },
+
+    async adminGetTrafficStats(groupBy: string = "month") {
+        const response = await fetch(`${API_BASE}/analytics/traffic-stats?groupBy=${groupBy}`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
     }
 };

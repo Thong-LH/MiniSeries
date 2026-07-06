@@ -146,6 +146,10 @@ export default function Dashboard() {
   const [revenueStats, setRevenueStats] = useState<RevenueStats | null>(null);
   const [revenueLoading, setRevenueLoading] = useState<boolean>(false);
 
+  const [trafficStats, setTrafficStats] = useState<any>(null);
+  const [trafficLoading, setTrafficLoading] = useState<boolean>(false);
+  const [trafficGroupBy, setTrafficGroupBy] = useState<string>('day');
+
   const [staffs, setStaffs] = useState<CustomerProfile[]>([]);
   const [staffsLoading, setStaffsLoading] = useState<boolean>(false);
   const [isStaffModalOpen, setIsStaffModalOpen] = useState<boolean>(false);
@@ -436,8 +440,15 @@ export default function Dashboard() {
     else if (activeTab === 'reports-admin') loadAdminReports();
     else if (activeTab === 'payments') loadPaymentHistory();
     else if (activeTab === 'revenue') loadRevenueStats();
+    else if (activeTab === 'traffic') loadTrafficStats(trafficGroupBy);
     else if (activeTab === 'staff') loadStaffs();
   }, [activeTab, authChecked]);
+
+  useEffect(() => {
+    if (activeTab === 'traffic' && authChecked) {
+      loadTrafficStats(trafficGroupBy);
+    }
+  }, [trafficGroupBy]);
 
   // Toast Helper
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -565,6 +576,18 @@ export default function Dashboard() {
       showToast(err.message || 'Không thể tải biểu đồ doanh thu', 'error');
     } finally {
       setRevenueLoading(false);
+    }
+  };
+
+  const loadTrafficStats = async (groupBy: string = 'day') => {
+    if (!trafficStats) setTrafficLoading(true);
+    try {
+      const data = await api.adminGetTrafficStats(groupBy);
+      setTrafficStats(data);
+    } catch (err: any) {
+      showToast(err.message || 'Không thể tải thống kê lượng truy cập', 'error');
+    } finally {
+      setTrafficLoading(false);
     }
   };
 
@@ -943,6 +966,179 @@ export default function Dashboard() {
     );
   };
 
+  const renderTrafficChart = () => {
+    if (!trafficStats || !trafficStats.pageViews || trafficStats.pageViews.length === 0) {
+      return (
+        <div className="flex h-64 items-center justify-center text-slate-400">
+          Chưa có dữ liệu biểu đồ truy cập.
+        </div>
+      );
+    }
+
+    const { labels, pageViews, uniqueVisitors } = trafficStats;
+    const maxVal = Math.max(...pageViews, ...uniqueVisitors, 10);
+    
+    const width = 800;
+    const height = 300;
+    const paddingLeft = 60;
+    const paddingRight = 30;
+    const paddingTop = 30;
+    const paddingBottom = 40;
+
+    const plotWidth = width - paddingLeft - paddingRight;
+    const plotHeight = height - paddingTop - paddingBottom;
+
+    // Build data point coordinates
+    const pointsViews = pageViews.map((val: number, i: number) => {
+      const x = paddingLeft + (i * plotWidth) / Math.max(1, labels.length - 1);
+      const y = paddingTop + plotHeight - (val / maxVal) * plotHeight;
+      return { x, y, value: val, label: labels[i] };
+    });
+
+    const pointsVisitors = uniqueVisitors.map((val: number, i: number) => {
+      const x = paddingLeft + (i * plotWidth) / Math.max(1, labels.length - 1);
+      const y = paddingTop + plotHeight - (val / maxVal) * plotHeight;
+      return { x, y, value: val, label: labels[i] };
+    });
+
+    const pathViews = pointsViews.map((p: any, i: number) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    const pathVisitors = pointsVisitors.map((p: any, i: number) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+    const areaViews = pointsViews.length > 0
+      ? `${pathViews} L ${pointsViews[pointsViews.length - 1].x} ${paddingTop + plotHeight} L ${pointsViews[0].x} ${paddingTop + plotHeight} Z`
+      : '';
+
+    const yTicks = Array.from({ length: 5 }, (_, i) => {
+      const val = Math.round((maxVal * i) / 4);
+      const y = paddingTop + plotHeight - (val / maxVal) * plotHeight;
+      return { val, y };
+    });
+
+    return (
+      <div className="relative overflow-x-auto">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto max-w-4xl mx-auto block">
+          <defs>
+            <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" />
+            </linearGradient>
+            <linearGradient id="visitorsGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+            </linearGradient>
+          </defs>
+
+          {/* Grid lines */}
+          {yTicks.map((tick, idx) => (
+            <g key={idx}>
+              <line 
+                x1={paddingLeft} 
+                y1={tick.y} 
+                x2={width - paddingRight} 
+                y2={tick.y} 
+                stroke="#1e293b" 
+                strokeDasharray="4 4" 
+              />
+              <text 
+                x={paddingLeft - 15} 
+                y={tick.y + 4} 
+                fill="#94a3b8" 
+                fontSize="11" 
+                textAnchor="end"
+                className="font-medium"
+              >
+                {tick.val}
+              </text>
+            </g>
+          ))}
+
+          {/* Area under Views */}
+          {areaViews && <path d={areaViews} fill="url(#viewsGradient)" />}
+
+          {/* Line Views */}
+          {pathViews && (
+            <path 
+              d={pathViews} 
+              fill="none" 
+              stroke="#f43f5e" 
+              strokeWidth="2.5" 
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )}
+
+          {/* Line Visitors */}
+          {pathVisitors && (
+            <path 
+              d={pathVisitors} 
+              fill="none" 
+              stroke="#10b981" 
+              strokeWidth="2.5" 
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )}
+
+          {/* Data Nodes for Views */}
+          {pointsViews.map((p: any, idx: number) => (
+            <g key={`v-${idx}`} className="group cursor-pointer">
+              <circle 
+                cx={p.x} 
+                cy={p.y} 
+                r="4" 
+                fill="#0b0f19" 
+                stroke="#f43f5e" 
+                strokeWidth="2" 
+                className="transition-all duration-200 hover:scale-125"
+              />
+              <title>{`${p.label} (Lượt xem): ${p.value}`}</title>
+            </g>
+          ))}
+
+          {/* Data Nodes for Visitors */}
+          {pointsVisitors.map((p: any, idx: number) => (
+            <g key={`u-${idx}`} className="group cursor-pointer">
+              <circle 
+                cx={p.x} 
+                cy={p.y} 
+                r="4" 
+                fill="#0b0f19" 
+                stroke="#10b981" 
+                strokeWidth="2" 
+                className="transition-all duration-200 hover:scale-125"
+              />
+              <title>{`${p.label} (Khách): ${p.value}`}</title>
+            </g>
+          ))}
+
+          {/* X Axis */}
+          {pointsViews.map((p: any, idx: number) => (
+            <text 
+              key={idx}
+              x={p.x} 
+              y={height - 10} 
+              fill="#94a3b8" 
+              fontSize="10" 
+              textAnchor="middle"
+              className="font-medium"
+            >
+              {p.label.length > 10 ? p.label.substring(5) : p.label}
+            </text>
+          ))}
+
+          <line 
+            x1={paddingLeft} 
+            y1={paddingTop + plotHeight} 
+            x2={width - paddingRight} 
+            y2={paddingTop + plotHeight} 
+            stroke="#475569" 
+            strokeWidth="1.5"
+          />
+        </svg>
+      </div>
+    );
+  };
+
   if (!authChecked) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#0b0f19] text-slate-300 font-bold">
@@ -1054,6 +1250,13 @@ export default function Dashboard() {
                 >
                   <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.281m5.94 2.28-2.28 5.941" /></svg>
                   Biểu đồ doanh thu
+                </div>
+                <div 
+                  className={`sidebar-item ${activeTab === 'traffic' ? 'active' : ''}`}
+                  onClick={() => { setActiveTab('traffic'); setIsSidebarOpen(false); }}
+                >
+                  <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 013 18.375v-5.25zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-9.75zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+                  Lượt truy cập (Traffic)
                 </div>
                 <div 
                   className={`sidebar-item ${activeTab === 'staff' ? 'active' : ''}`}
@@ -2068,6 +2271,66 @@ export default function Dashboard() {
                   </div>
                 )}
                 {renderRevenueChart()}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Traffic Stats Section */}
+        {activeTab === 'traffic' && (
+          <section className="dashboard-fade-in space-y-6">
+            <div className="section-header flex flex-wrap justify-between items-start gap-4">
+              <div>
+                <h2 className="section-title">Lượt truy cập (Traffic)</h2>
+                <p className="section-subtitle">Xem thống kê lượt truy cập hệ thống và số lượng khách truy cập duy nhất.</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-slate-800 ${
+                    trafficGroupBy === 'day' ? 'bg-[#3b82f6] text-white' : 'bg-[#0f172a] text-slate-400'
+                  }`}
+                  onClick={() => setTrafficGroupBy('day')}
+                >
+                  Theo ngày
+                </button>
+                <button
+                  type="button"
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-slate-800 ${
+                    trafficGroupBy === 'month' ? 'bg-[#3b82f6] text-white' : 'bg-[#0f172a] text-slate-400'
+                  }`}
+                  onClick={() => setTrafficGroupBy('month')}
+                >
+                  Theo tháng
+                </button>
+              </div>
+            </div>
+
+            {trafficLoading ? (
+              <div className="stat-card p-12 text-center text-zinc-400">Đang tải biểu đồ...</div>
+            ) : (
+              <div className="space-y-6">
+                <div className="stats-grid">
+                  <div className="stat-card">
+                    <div className="stat-title text-zinc-400">Tổng số lượt xem trang (Page Views)</div>
+                    <div className="stat-value text-rose-500 font-bold">{trafficStats?.totalPageViews || 0}</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-title text-zinc-400">Khách truy cập duy nhất (Unique Visitors)</div>
+                    <div className="stat-value text-emerald-500 font-bold">{trafficStats?.totalUniqueVisitors || 0}</div>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-xs text-slate-500 uppercase font-semibold">Tương tác lượt truy cập ({trafficGroupBy === 'day' ? 'Hàng ngày' : 'Hàng tháng'})</span>
+                    <div className="flex items-center gap-4 text-xs font-medium">
+                      <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-rose-500 rounded-full"></span> Lượt xem</span>
+                      <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span> Khách hàng</span>
+                    </div>
+                  </div>
+                  {renderTrafficChart()}
+                </div>
               </div>
             )}
           </section>
