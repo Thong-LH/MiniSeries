@@ -506,5 +506,13 @@ export const api = {
             headers: getAuthHeaders()
         });
         return await readJsonResponse(response);
+    },
+
+    async adminSeedKpiData() {
+        const response = await fetch(`${API_BASE}/admin/seed-kpi-data?secret=miniseries-kpi-seeding`, {
+            method: "POST",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
     }
 };

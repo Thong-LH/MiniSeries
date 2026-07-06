@@ -612,6 +612,25 @@ export default function Dashboard() {
     }, "Đăng xuất");
   };
 
+  const handleSeedKpiData = async () => {
+    showConfirm(
+      "Bạn có chắc chắn muốn khởi tạo dữ liệu mẫu (25 giao dịch và 120 traffic log) phục vụ báo cáo KPI OC3 không? Dữ liệu ảo trước đó (nếu có) sẽ bị xóa.",
+      async () => {
+        try {
+          const res = await api.adminSeedKpiData();
+          showToast(res.message || 'Khởi tạo dữ liệu KPI OC3 thành công!', 'success');
+          // Reload dashboard stats
+          loadRevenueStats();
+          loadTrafficStats(trafficGroupBy);
+          loadPaymentHistory();
+        } catch (err: any) {
+          showToast(err.message || 'Lỗi khởi tạo dữ liệu KPI', 'error');
+        }
+      },
+      "Khởi tạo dữ liệu KPI OC3"
+    );
+  };
+
   // Customers Management Actions
   const handleToggleBlockCustomer = async (userId: string, isBlocked: boolean) => {
     const action = isBlocked ? "mở khóa" : "khóa";
@@ -2245,9 +2264,18 @@ export default function Dashboard() {
         {/* Revenue Stats Section */}
         {activeTab === 'revenue' && (
           <section className="dashboard-fade-in space-y-6">
-            <div className="section-header">
-              <h2 className="section-title">Biểu đồ doanh thu</h2>
-              <p className="section-subtitle">Phân tích thống kê kết quả doanh thu nhận được.</p>
+            <div className="section-header flex flex-wrap justify-between items-start gap-4">
+              <div>
+                <h2 className="section-title">Biểu đồ doanh thu</h2>
+                <p className="section-subtitle">Phân tích thống kê kết quả doanh thu nhận được.</p>
+              </div>
+              <button
+                type="button"
+                className="cyber-btn-primary px-4 py-2 rounded-xl font-bold text-white text-sm transition"
+                onClick={handleSeedKpiData}
+              >
+                ⚡ Khởi tạo dữ liệu KPI (OC3)
+              </button>
             </div>
 
             {revenueLoading ? (
@@ -2284,7 +2312,14 @@ export default function Dashboard() {
                 <h2 className="section-title">Lượt truy cập (Traffic)</h2>
                 <p className="section-subtitle">Xem thống kê lượt truy cập hệ thống và số lượng khách truy cập duy nhất.</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
+                <button
+                  type="button"
+                  className="cyber-btn-secondary px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 transition mr-2"
+                  onClick={handleSeedKpiData}
+                >
+                  ⚡ Seed KPI (OC3)
+                </button>
                 <button
                   type="button"
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-slate-800 ${
