@@ -122,12 +122,41 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
             .FirstOrDefaultAsync(x => x.Id == lessonId);
     }
 
-    public async Task<IReadOnlyList<Lesson>> ListByUserIdAsync(Guid userId)
+    public async Task<IReadOnlyList<Lesson>> ListByUserIdAsync(
+        Guid userId,
+        int? page = null,
+        int? pageSize = null,
+        ScriptStatus? scriptStatus = null,
+        OutputMode? outputMode = null,
+        string? search = null)
     {
-        var data = await dbContext.Lessons
+        var query = dbContext.Lessons
             .AsNoTracking()
-            .Where(x => x.UserId == userId)
-            .OrderByDescending(x => x.CreatedAt)
+            .Where(x => x.UserId == userId);
+
+        if (scriptStatus.HasValue)
+        {
+            query = query.Where(x => x.ScriptStatus == scriptStatus.Value);
+        }
+
+        if (outputMode.HasValue)
+        {
+            query = query.Where(x => x.OutputMode == outputMode.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(x => x.Title.ToLower().Contains(search.ToLower()));
+        }
+
+        query = query.OrderByDescending(x => x.CreatedAt);
+
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
+        }
+
+        var data = await query
             .Select(x => new
             {
                 x.Id,
@@ -140,27 +169,39 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
                 x.CreatedAt,
                 x.UpdatedAt,
                 x.ApprovedAt,
-                Chapters = x.Chapters.Select(c => new { c.Order, c.MangaUrl }).ToList()
+                ChapterCount = x.Chapters.Count,
+                FirstMangaUrl = x.Chapters
+                    .OrderBy(c => c.Order)
+                    .Select(c => c.MangaUrl)
+                    .FirstOrDefault(url => url != null && url != "")
             })
             .ToListAsync();
 
-        return data.Select(x => new Lesson
-        {
-            Id = x.Id,
-            UserId = x.UserId,
-            UserEmail = x.UserEmail,
-            Title = x.Title,
-            AnchorImageUrl = x.AnchorImageUrl,
-            OutputMode = x.OutputMode,
-            ScriptStatus = x.ScriptStatus,
-            CreatedAt = x.CreatedAt,
-            UpdatedAt = x.UpdatedAt,
-            ApprovedAt = x.ApprovedAt,
-            Chapters = x.Chapters.Select(c => new Chapter
+        return data.Select(x => {
+            var resolvedAnchor = !string.IsNullOrWhiteSpace(x.AnchorImageUrl)
+                ? x.AnchorImageUrl
+                : x.FirstMangaUrl;
+
+            var mockChapters = new List<Chapter>();
+            for (int i = 0; i < x.ChapterCount; i++)
             {
-                Order = c.Order,
-                MangaUrl = c.MangaUrl
-            }).ToList()
+                mockChapters.Add(new Chapter { Order = i + 1, MangaUrl = (i == 0 ? x.FirstMangaUrl : null) });
+            }
+
+            return new Lesson
+            {
+                Id = x.Id,
+                UserId = x.UserId,
+                UserEmail = x.UserEmail,
+                Title = x.Title,
+                AnchorImageUrl = resolvedAnchor,
+                OutputMode = x.OutputMode,
+                ScriptStatus = x.ScriptStatus,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt,
+                ApprovedAt = x.ApprovedAt,
+                Chapters = mockChapters
+            };
         }).ToList();
     }
 }

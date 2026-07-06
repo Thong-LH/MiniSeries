@@ -41,7 +41,12 @@ public sealed class LessonsController(
 
     [Authorize(Policy = "CustomerOnly")]
     [HttpGet("my")]
-    public async Task<IActionResult> GetMyLessons()
+    public async Task<IActionResult> GetMyLessons(
+        [FromQuery] int? page = null,
+        [FromQuery] int? pageSize = null,
+        [FromQuery] Domain.Enums.ScriptStatus? scriptStatus = null,
+        [FromQuery] Domain.Enums.OutputMode? outputMode = null,
+        [FromQuery] string? search = null)
     {
         var currentUserId = AuthUser.GetCurrentUserId(User);
         if (currentUserId is null)
@@ -49,7 +54,13 @@ public sealed class LessonsController(
             return Unauthorized();
         }
 
-        var result = await mediator.Send(new GetMyLessonsQuery(currentUserId.Value));
+        var result = await mediator.Send(new GetMyLessonsQuery(
+            currentUserId.Value,
+            page,
+            pageSize,
+            scriptStatus,
+            outputMode,
+            search));
         return Ok(result);
     }
 

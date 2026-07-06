@@ -17,7 +17,13 @@ public sealed class GetMyLessonsQueryHandler(ILessonRepository lessonRepository)
             throw new AppValidationException("UserId is required.");
         }
 
-        var lessons = await lessonRepository.ListByUserIdAsync(request.UserId);
+        var lessons = await lessonRepository.ListByUserIdAsync(
+            request.UserId,
+            request.Page,
+            request.PageSize,
+            request.ScriptStatus,
+            request.OutputMode,
+            request.Search);
         return lessons
             .Select(LessonSummaryDto.FromEntity)
             .ToList();

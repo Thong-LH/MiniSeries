@@ -36,12 +36,39 @@ public sealed class InMemoryLessonRepository : ILessonRepository
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<Lesson>> ListByUserIdAsync(Guid userId)
+    public Task<IReadOnlyList<Lesson>> ListByUserIdAsync(
+        Guid userId,
+        int? page = null,
+        int? pageSize = null,
+        ScriptStatus? scriptStatus = null,
+        OutputMode? outputMode = null,
+        string? search = null)
     {
-        IReadOnlyList<Lesson> lessons = _lessons.Values
-            .Where(x => x.UserId == userId)
-            .OrderByDescending(x => x.CreatedAt)
-            .ToList();
+        var query = _lessons.Values.Where(x => x.UserId == userId);
+
+        if (scriptStatus.HasValue)
+        {
+            query = query.Where(x => x.ScriptStatus == scriptStatus.Value);
+        }
+
+        if (outputMode.HasValue)
+        {
+            query = query.Where(x => x.OutputMode == outputMode.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(x => x.Title.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        query = query.OrderByDescending(x => x.CreatedAt);
+
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
+        }
+
+        IReadOnlyList<Lesson> lessons = query.ToList();
         return Task.FromResult(lessons);
     }
 }

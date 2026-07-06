@@ -31,6 +31,8 @@ export default function HomeScreen() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [slideLessons, setSlideLessons] = useState<Lesson[]>([]);
   const pageSize = 4;
 
   const isDark = themeId === 'bold-typography-dark';
@@ -48,30 +50,64 @@ export default function HomeScreen() {
     setThemeId(isDark ? 'bold-typography' : 'bold-typography-dark');
   };
 
-  const fetchLessons = async () => {
+  const mapDtoToLesson = (dto: any): Lesson => {
+    const isVideo = dto.outputMode === 1 || dto.outputMode === 'Video';
+    const isApproved = dto.scriptStatus === 3 || dto.scriptStatus === 'Approved';
+    return {
+      id: dto.id,
+      title: dto.title,
+      type: isVideo ? 'video' : 'manga',
+      duration: '',
+      status: isApproved ? 'Hoàn thành' : 'Đang tạo',
+      progress: isApproved ? 100 : 45,
+      coverUrl: dto.thumbnailUrl || (isVideo
+        ? 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600'
+        : 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600'),
+      description: dto.creativeBrief || 'Bài giảng tạo tự động.'
+    };
+  };
+
+  const fetchSlideshowLessons = async () => {
+    try {
+      const res = await apiClient.get('/lessons/my', {
+        params: { page: 1, pageSize: 5 }
+      });
+      if (res.data && Array.isArray(res.data)) {
+        const mapped = res.data.map(mapDtoToLesson);
+        setSlideLessons(mapped);
+      }
+    } catch (err) {
+      console.log('Lỗi tải slideshow:', err);
+    }
+  };
+
+  const fetchLessons = async (pageToFetch: any = currentPage) => {
+    const page = typeof pageToFetch === 'number' ? pageToFetch : currentPage;
     if (lessons.length === 0) {
       setLoading(true);
     }
     try {
-      const res = await apiClient.get('/lessons/my');
+      let outputModeParam: number | undefined = undefined;
+      if (activeFilter === 'Manga') outputModeParam = 0;
+      if (activeFilter === 'Video') outputModeParam = 1;
+
+      let scriptStatusParam: number | undefined = undefined;
+      // 0 = Draft, 1 = AwaitingReview. If "Đang xử lý", we query Draft/0 for mock processing list
+      if (activeFilter === 'Đang xử lý') scriptStatusParam = 0;
+
+      const res = await apiClient.get('/lessons/my', {
+        params: {
+          page: page,
+          pageSize: pageSize,
+          search: searchQuery || undefined,
+          outputMode: outputModeParam,
+          scriptStatus: scriptStatusParam
+        }
+      });
       if (res.data && Array.isArray(res.data)) {
-        const apiLessons: Lesson[] = res.data.map((dto: any) => {
-          const isVideo = dto.outputMode === 1 || dto.outputMode === 'Video';
-          const isApproved = dto.scriptStatus === 3 || dto.scriptStatus === 'Approved';
-          return {
-            id: dto.id,
-            title: dto.title,
-            type: isVideo ? 'video' : 'manga',
-            duration: '', // Bỏ thời gian hiển thị random theo yêu cầu người dùng
-            status: isApproved ? 'Hoàn thành' : 'Đang tạo',
-            progress: isApproved ? 100 : 45,
-            coverUrl: dto.thumbnailUrl || (isVideo
-              ? 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600'
-              : 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600'),
-            description: dto.creativeBrief || 'Bài giảng tạo tự động.'
-          };
-        });
-        setLessons(apiLessons);
+        const mapped = res.data.map(mapDtoToLesson);
+        setLessons(mapped);
+        setHasMore(res.data.length === pageSize);
       }
     } catch (err) {
       console.log('Lỗi tải danh sách bài học:', err);
@@ -80,17 +116,26 @@ export default function HomeScreen() {
     }
   };
 
+  // Trigger when filters/search changes - resets to page 1
+  useEffect(() => {
+    setCurrentPage(1);
+    fetchLessons(1);
+  }, [activeFilter, searchQuery]);
+
+  // Trigger when page changes
+  useEffect(() => {
+    fetchLessons(currentPage);
+  }, [currentPage]);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      fetchLessons();
+      fetchLessons(1);
+      fetchSlideshowLessons();
       refreshProfile();
       apiClient.post('/analytics/track', { path: '/home', deviceType: 'Mobile' }).catch(() => {});
     });
     return unsubscribe;
-  }, [navigation]);
-
-  // Real lessons for slideshow (limit to 5)
-  const slideLessons = lessons.slice(0, 5);
+  }, [navigation, activeFilter, searchQuery]);
 
   // Auto-slide effect
   useEffect(() => {
@@ -108,26 +153,6 @@ export default function HomeScreen() {
       Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: false }),
     ]).start();
   }, [currentSlideIndex]);
-
-  // Filter lessons
-  const filteredLessons = lessons.filter((lesson) => {
-    const matchesSearch = lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (lesson.description && lesson.description.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    if (activeFilter === 'Tất cả') return matchesSearch;
-    if (activeFilter === 'Manga') return matchesSearch && lesson.type === 'manga';
-    if (activeFilter === 'Video') return matchesSearch && lesson.type === 'video';
-    if (activeFilter === 'Đang xử lý') return matchesSearch && lesson.status === 'Đang tạo';
-    return matchesSearch;
-  });
-
-  // Pagination calculation
-  const totalPages = Math.ceil(filteredLessons.length / pageSize) || 1;
-  const paginatedLessons = filteredLessons.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeFilter, searchQuery]);
 
   const handleLessonClick = (lesson: Lesson) => {
     if (lesson.status === 'Đang tạo') {
@@ -284,13 +309,13 @@ export default function HomeScreen() {
         {/* Grid List with Paginated Lessons */}
         {loading ? (
           <ActivityIndicator size="large" color={colors.primaryAccent} style={{ marginVertical: 30 }} />
-        ) : paginatedLessons.length === 0 ? (
+        ) : lessons.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={{ color: colors.textMuted, fontSize: 13, fontWeight: '700', textAlign: 'center' }}>KHÔNG TÌM THẤY BÀI GIẢNG NÀO.</Text>
           </View>
         ) : (
           <View style={styles.gridContainer}>
-            {paginatedLessons.map((item) => (
+            {lessons.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 activeOpacity={0.9}
@@ -348,7 +373,7 @@ export default function HomeScreen() {
             ))}
 
             {/* Neo-Brutalist Pagination Controls (Always show if there are lessons) */}
-            {filteredLessons.length > 0 && (
+            {(currentPage > 1 || hasMore) && (
               <View style={styles.paginationRow}>
                 <TouchableOpacity
                   activeOpacity={0.8}
@@ -367,23 +392,23 @@ export default function HomeScreen() {
                 </TouchableOpacity>
 
                 <Text style={[styles.pageIndicator, { color: colors.text }]}>
-                  TRANG {currentPage} / {totalPages}
+                  TRANG {currentPage}
                 </Text>
 
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  disabled={currentPage === totalPages}
-                  onPress={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={!hasMore}
+                  onPress={() => setCurrentPage((p) => p + 1)}
                   style={[
                     styles.pageBtn,
                     {
                       borderColor: colors.border,
-                      backgroundColor: currentPage === totalPages ? 'transparent' : colors.text,
-                      opacity: currentPage === totalPages ? 0.3 : 1
+                      backgroundColor: !hasMore ? 'transparent' : colors.text,
+                      opacity: !hasMore ? 0.3 : 1
                     }
                   ]}
                 >
-                  <Text style={[styles.pageBtnText, { color: currentPage === totalPages ? colors.text : colors.bg }]}>SAU</Text>
+                  <Text style={[styles.pageBtnText, { color: !hasMore ? colors.text : colors.bg }]}>SAU</Text>
                 </TouchableOpacity>
               </View>
             )}
