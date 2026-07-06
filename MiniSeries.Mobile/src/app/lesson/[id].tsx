@@ -277,7 +277,7 @@ export default function LessonViewerScreen() {
         </View>
       </ScrollView>
 
-      {/* Fullscreen Lightbox / Media Viewer Modal */}
+      {/* Fullscreen Zoomable Lightbox Modal */}
       <Modal
         visible={fullscreenVisible}
         transparent={true}
@@ -285,29 +285,30 @@ export default function LessonViewerScreen() {
         onRequestClose={() => setFullscreenVisible(false)}
       >
         <View style={styles.fullscreenOverlay}>
-          {/* Top Bar with Close Button */}
-          <View style={styles.fullscreenHeader}>
-            <Text style={styles.fullscreenHeaderTitle}>
-              {isVideoMode ? 'XEM VIDEO CHI TIẾT' : 'XEM TRANH CHI TIẾT'}
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setFullscreenVisible(false)}
-              style={styles.fullscreenCloseBtn}
-            >
-              <Ionicons name="close" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          {/* Close Button Floating */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setFullscreenVisible(false)}
+            style={styles.fullscreenCloseBtnFloating}
+          >
+            <Ionicons name="close" size={28} color="#FFFFFF" />
+          </TouchableOpacity>
 
-          {/* Media Body */}
-          <View style={styles.fullscreenMediaContainer}>
+          {/* Zoomable Content Area */}
+          <ScrollView
+            contentContainerStyle={styles.zoomScrollContent}
+            maximumZoomScale={4}
+            minimumZoomScale={1}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+          >
             {isVideoMode ? (
               Platform.OS === 'web' && currentChapter?.videoUrl ? (
                 <video
                   src={currentChapter.videoUrl}
                   controls
                   autoPlay
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  style={{ width: '100vw', height: '100vh', objectFit: 'contain' }}
                 />
               ) : currentChapter?.videoUrl ? (
                 <View style={styles.videoPlaceholderActive}>
@@ -329,22 +330,7 @@ export default function LessonViewerScreen() {
                 <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Không có ảnh</Text>
               )
             )}
-          </View>
-
-          {/* Bottom Details Panel */}
-          <View style={styles.fullscreenBottomPanel}>
-            <Text style={styles.fullscreenTitle}>
-              CHƯƠNG {currentChapter?.order || currentChapterIndex + 1}: {currentChapter?.title || 'Không có tiêu đề'}
-            </Text>
-            <Text style={styles.fullscreenDesc}>
-              {currentChapter?.summary}
-            </Text>
-            {currentChapter?.fullPrompt && (
-              <Text style={styles.fullscreenPrompt}>
-                PROMPT: {currentChapter.fullPrompt}
-              </Text>
-            )}
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -489,63 +475,29 @@ const styles = StyleSheet.create({
   // Fullscreen Modal Styles
   fullscreenOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.96)',
-    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0, 0, 0, 0.98)',
+    position: 'relative',
   },
-  fullscreenHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 50,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#262626',
+  fullscreenCloseBtnFloating: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 9999,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 10,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
-  fullscreenHeaderTitle: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 13,
-    letterSpacing: 0.5,
-  },
-  fullscreenCloseBtn: {
-    padding: 8,
-  },
-  fullscreenMediaContainer: {
-    flex: 1,
+  zoomScrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   fullscreenMangaImage: {
     width: '100%',
-    height: '90%',
+    height: '100%',
+    minWidth: 320,
+    minHeight: 500,
     resizeMode: 'contain',
-  },
-  fullscreenBottomPanel: {
-    borderTopWidth: 2,
-    borderTopColor: '#FFFFFF',
-    backgroundColor: '#121212',
-    padding: 20,
-    paddingBottom: 40,
-  },
-  fullscreenTitle: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '900',
-    marginBottom: 8,
-  },
-  fullscreenDesc: {
-    color: '#CFCFCF',
-    fontSize: 11,
-    fontWeight: '700',
-    lineHeight: 16,
-    marginBottom: 10,
-  },
-  fullscreenPrompt: {
-    color: '#FF3E00',
-    fontSize: 9,
-    fontWeight: '900',
-    fontFamily: 'System',
-    lineHeight: 14,
   },
 });
