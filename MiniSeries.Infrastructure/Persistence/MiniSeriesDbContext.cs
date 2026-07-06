@@ -18,6 +18,7 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<StaffReport> StaffReports => Set<StaffReport>();
     public DbSet<CskhMessage> CskhMessages => Set<CskhMessage>();
+    public DbSet<TrafficLog> TrafficLogs => Set<TrafficLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -198,6 +199,17 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.Content).HasColumnType("text");
             entity.Property(x => x.AdminReply).HasColumnType("text");
             entity.Property(x => x.Status).HasMaxLength(50);
+            entity.HasIndex(x => x.CreatedAt);
+        });
+
+        modelBuilder.Entity<TrafficLog>(entity =>
+        {
+            entity.ToTable("TrafficLogs");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.UserId).HasMaxLength(100);
+            entity.Property(x => x.Path).HasMaxLength(500);
+            entity.Property(x => x.IpAddress).HasMaxLength(100);
+            entity.Property(x => x.DeviceType).HasMaxLength(50);
             entity.HasIndex(x => x.CreatedAt);
         });
     }

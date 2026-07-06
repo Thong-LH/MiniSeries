@@ -382,6 +382,108 @@ public sealed class AdminController(
         }
     }
 
+    [HttpPost("seed-kpi-data")]
+    public async Task<IActionResult> SeedKpiData([FromQuery] string? secret)
+    {
+        if (secret != "miniseries-kpi-seeding")
+        {
+            return Unauthorized(new { message = "Sai ma bao mat." });
+        }
+
+        try
+        {
+            // Clear old seeded data to prevent duplicate runs bloating the DB
+            var oldSeedPayments = await dbContext.PaymentHistories
+                .Where(p => p.PaymentCode.StartsWith("SEED_MGX"))
+                .ToListAsync();
+            dbContext.PaymentHistories.RemoveRange(oldSeedPayments);
+
+            var oldSeedTraffic = await dbContext.TrafficLogs
+                .Where(t => t.Path.StartsWith("/seed") || t.IpAddress.StartsWith("192.168.99."))
+                .ToListAsync();
+            dbContext.TrafficLogs.RemoveRange(oldSeedTraffic);
+            await dbContext.SaveChangesAsync();
+
+            var random = new Random();
+            var now = DateTime.UtcNow;
+
+            // 1. Generate 25 realistic PaymentHistory records
+            var baseEmails = new[] 
+            {
+                "nguyen.van.a@gmail.com", "tran.thi.b@yahoo.com", "le.hoang.c@gmail.com", 
+                "pham.minh.d@hotmail.com", "hoang.ngoc.e@gmail.com", "vu.viet.f@outlook.com",
+                "phan.thanh.g@gmail.com", "do.thi.h@yahoo.com", "bui.quang.i@gmail.com",
+                "dang.minh.j@hotmail.com"
+            };
+
+            var plans = new[] { "Basic", "Premium" };
+
+            for (int i = 0; i < 25; i++)
+            {
+                var email = baseEmails[i % baseEmails.Length];
+                var plan = plans[i % plans.Length];
+                var amount = plan == "Basic" ? 150000m : 300000m;
+                var tokens = plan == "Basic" ? 10 : 30;
+                var daysAgo = random.Next(0, 30);
+                var paymentDate = now.AddDays(-daysAgo).AddHours(-random.Next(0, 24)).AddMinutes(-random.Next(0, 60));
+
+                var history = new PaymentHistory
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = Guid.NewGuid().ToString(), // Simulated user ID
+                    UserEmail = email,
+                    PaymentCode = $"SEED_MGX{random.Next(10000, 99999)}",
+                    Amount = amount,
+                    PlanName = plan,
+                    TokensReceived = tokens,
+                    Status = "Paid",
+                    Content = $"SEED_MGX payment for {plan} plan by {email}",
+                    CreatedAt = paymentDate,
+                    PaidAt = paymentDate
+                };
+
+                dbContext.PaymentHistories.Add(history);
+            }
+
+            // 2. Generate 120 realistic TrafficLogs records
+            var paths = new[] { "/", "/home", "/create", "/profile", "/support", "/lesson/1", "/lesson/2" };
+            var devices = new[] { "Web", "Mobile" };
+
+            for (int i = 0; i < 120; i++)
+            {
+                var path = paths[random.Next(paths.Length)];
+                var device = devices[random.Next(devices.Length)];
+                var ip = $"192.168.99.{random.Next(2, 254)}"; // Simulated subnet for seed detection
+                var daysAgo = random.Next(0, 30);
+                var logDate = now.AddDays(-daysAgo).AddHours(-random.Next(0, 24)).AddMinutes(-random.Next(0, 60));
+
+                var log = new TrafficLog
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = random.Next(10) > 6 ? Guid.NewGuid().ToString() : null, // 30% logged-in users
+                    Path = "/seed" + path,
+                    DeviceType = device,
+                    IpAddress = ip,
+                    CreatedAt = logDate
+                };
+
+                dbContext.TrafficLogs.Add(log);
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            return Ok(new 
+            { 
+                success = true, 
+                message = "Da khoi tao thanh cong 25 giao dich va 120 luot truy cap mau cho 30 ngay gan nhat!" 
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     private async Task<IActionResult> ToggleBlockUserAsync(Guid id, string expectedRole)
     {
         try

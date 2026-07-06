@@ -85,3 +85,20 @@ CREATE INDEX IF NOT EXISTS "IX_PaymentHistory_CreatedAt" ON "PaymentHistory" ("C
 ALTER TABLE "PaymentHistory" ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "anon_all_paymenthistory" ON "PaymentHistory";
 CREATE POLICY "anon_all_paymenthistory" ON "PaymentHistory" FOR ALL TO anon USING (true) WITH CHECK (true);
+
+-- TrafficLogs (Website & App traffic tracking - KAN-81)
+CREATE TABLE IF NOT EXISTS "TrafficLogs" (
+    "Id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "UserId" character varying(100),
+    "Path" character varying(500) NOT NULL,
+    "IpAddress" character varying(100) NOT NULL,
+    "DeviceType" character varying(50) NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS "IX_TrafficLogs_CreatedAt" ON "TrafficLogs" ("CreatedAt");
+
+ALTER TABLE "TrafficLogs" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "anon_all_trafficlogs" ON "TrafficLogs";
+CREATE POLICY "anon_all_trafficlogs" ON "TrafficLogs" FOR ALL TO anon USING (true) WITH CHECK (true);
+
