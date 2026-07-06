@@ -55,6 +55,7 @@ export default function SupportScreen() {
 
   useEffect(() => {
     fetchTickets();
+    apiClient.post('/analytics/track', { path: '/support', deviceType: 'Mobile' }).catch(() => {});
   }, []);
 
   const handleSubmit = async () => {

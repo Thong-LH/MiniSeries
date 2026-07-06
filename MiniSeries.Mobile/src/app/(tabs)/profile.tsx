@@ -4,6 +4,7 @@ import { useRouter, useNavigation } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { InvoiceModal } from '../../components/InvoiceModal';
 import { Ionicons } from '@expo/vector-icons';
+import { apiClient } from '../../services/apiClient';
 
 export default function ProfileScreen() {
   const { 
@@ -42,6 +43,7 @@ export default function ProfileScreen() {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       refreshProfile();
+      apiClient.post('/analytics/track', { path: '/profile', deviceType: 'Mobile' }).catch(() => {});
     });
     return unsubscribe;
   }, [navigation]);
