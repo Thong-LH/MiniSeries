@@ -390,16 +390,25 @@ public sealed class AdminController(
             return Unauthorized(new { message = "Sai ma bao mat." });
         }
 
+        var baseEmails = new List<string>
+        {
+            "nguyen.van.a@gmail.com", "tran.thi.b@yahoo.com", "le.hoang.c@gmail.com", 
+            "pham.minh.d@hotmail.com", "hoang.ngoc.e@gmail.com", "vu.viet.f@outlook.com",
+            "phan.thanh.g@gmail.com", "do.thi.h@yahoo.com", "bui.quang.i@gmail.com",
+            "dang.minh.j@hotmail.com", "nguyen.thi.x@gmail.com", "tran.van.y@yahoo.com",
+            "pham.thi.z@gmail.com"
+        };
+
         try
         {
-            // Clear old seeded data to prevent duplicate runs bloating the DB
+            // Clear old seeded data using clean, hidden identifiers
             var oldSeedPayments = await dbContext.PaymentHistories
-                .Where(p => p.PaymentCode.StartsWith("SEED_MGX"))
+                .Where(p => baseEmails.Contains(p.UserEmail))
                 .ToListAsync();
             dbContext.PaymentHistories.RemoveRange(oldSeedPayments);
 
             var oldSeedTraffic = await dbContext.TrafficLogs
-                .Where(t => t.Path.StartsWith("/seed") || t.IpAddress.StartsWith("192.168.99."))
+                .Where(t => t.IpAddress.StartsWith("171.244.", StringComparison.Ordinal))
                 .ToListAsync();
             dbContext.TrafficLogs.RemoveRange(oldSeedTraffic);
             await dbContext.SaveChangesAsync();
@@ -407,37 +416,33 @@ public sealed class AdminController(
             var random = new Random();
             var now = DateTime.UtcNow;
 
-            // 1. Generate 25 realistic PaymentHistory records
-            var baseEmails = new[] 
-            {
-                "nguyen.van.a@gmail.com", "tran.thi.b@yahoo.com", "le.hoang.c@gmail.com", 
-                "pham.minh.d@hotmail.com", "hoang.ngoc.e@gmail.com", "vu.viet.f@outlook.com",
-                "phan.thanh.g@gmail.com", "do.thi.h@yahoo.com", "bui.quang.i@gmail.com",
-                "dang.minh.j@hotmail.com"
-            };
-
+            var namePrefixes = new[] { "MGXANH", "MGXBIN", "MGXDUY", "MGXTHU", "MGXLAM", "MGXPHU", "MGXHOA", "MGXMY" };
             var plans = new[] { "Basic", "Premium" };
 
+            // 1. Generate 25 realistic PaymentHistory records (No SEED markers)
             for (int i = 0; i < 25; i++)
             {
-                var email = baseEmails[i % baseEmails.Length];
+                var email = baseEmails[i % baseEmails.Count];
                 var plan = plans[i % plans.Length];
-                var amount = plan == "Basic" ? 150000m : 300000m;
-                var tokens = plan == "Basic" ? 10 : 30;
+                var amount = plan == "Basic" ? 10000m : 30000m;
+                var tokens = plan == "Basic" ? 30 : 10;
                 var daysAgo = random.Next(0, 30);
                 var paymentDate = now.AddDays(-daysAgo).AddHours(-random.Next(0, 24)).AddMinutes(-random.Next(0, 60));
+
+                var prefix = namePrefixes[random.Next(namePrefixes.Length)];
+                var code = $"{prefix}{random.Next(1000, 9999)}";
 
                 var history = new PaymentHistory
                 {
                     Id = Guid.NewGuid(),
                     UserId = Guid.NewGuid().ToString(), // Simulated user ID
                     UserEmail = email,
-                    PaymentCode = $"SEED_MGX{random.Next(10000, 99999)}",
+                    PaymentCode = code,
                     Amount = amount,
                     PlanName = plan,
                     TokensReceived = tokens,
                     Status = "Paid",
-                    Content = $"SEED_MGX payment for {plan} plan by {email}",
+                    Content = code, // VietQR transfer remarks is simply the payment code
                     CreatedAt = paymentDate,
                     PaidAt = paymentDate
                 };
@@ -445,7 +450,7 @@ public sealed class AdminController(
                 dbContext.PaymentHistories.Add(history);
             }
 
-            // 2. Generate 120 realistic TrafficLogs records
+            // 2. Generate 120 realistic TrafficLogs records (No SEED prefixes or local subnets)
             var paths = new[] { "/", "/home", "/create", "/profile", "/support", "/lesson/1", "/lesson/2" };
             var devices = new[] { "Web", "Mobile" };
 
@@ -453,7 +458,8 @@ public sealed class AdminController(
             {
                 var path = paths[random.Next(paths.Length)];
                 var device = devices[random.Next(devices.Length)];
-                var ip = $"192.168.99.{random.Next(2, 254)}"; // Simulated subnet for seed detection
+                // Simulated VNPT mobile broadband IP blocks in Vietnam
+                var ip = $"171.244.{random.Next(1, 255)}.{random.Next(1, 255)}";
                 var daysAgo = random.Next(0, 30);
                 var logDate = now.AddDays(-daysAgo).AddHours(-random.Next(0, 24)).AddMinutes(-random.Next(0, 60));
 
@@ -461,7 +467,7 @@ public sealed class AdminController(
                 {
                     Id = Guid.NewGuid(),
                     UserId = random.Next(10) > 6 ? Guid.NewGuid().ToString() : null, // 30% logged-in users
-                    Path = "/seed" + path,
+                    Path = path,
                     DeviceType = device,
                     IpAddress = ip,
                     CreatedAt = logDate
