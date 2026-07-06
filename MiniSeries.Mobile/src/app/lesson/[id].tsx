@@ -1,20 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { QuizSection } from '../../components/QuizSection';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../services/apiClient';
-
-interface MangaPanel {
-  id: string | number;
-  title: string;
-  imageUrl: string;
-  bubble: string;
-  bubblePosition: 'left' | 'right';
-  bubbleBg: string;
-  bubbleTextColor: string;
-}
 
 export default function LessonViewerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -23,8 +13,7 @@ export default function LessonViewerScreen() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [lessonData, setLessonData] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'content' | 'quiz'>('content');
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [currentChapterIndex, setCurrentChapterIndex] = useState<number>(0);
 
   const isDark = themeId === 'bold-typography-dark';
   const colors = {
@@ -34,6 +23,7 @@ export default function LessonViewerScreen() {
     border: isDark ? '#FFFFFF' : '#000000',
     primaryAccent: '#FF3E00',
     cardBg: isDark ? '#1a1a1a' : '#ffffff',
+    inputBg: isDark ? '#1e1e1e' : '#ffffff',
   };
 
   const fetchLessonDetails = async () => {
@@ -75,7 +65,7 @@ export default function LessonViewerScreen() {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => router.replace('/(tabs)/home')}
-          style={[styles.backBtn, { borderColor: colors.border }]}
+          style={[styles.backBtn, { borderColor: colors.border, marginTop: 12 }]}
         >
           <Text style={{ color: colors.text, fontWeight: '900' }}>QUAY LẠI</Text>
         </TouchableOpacity>
@@ -83,33 +73,22 @@ export default function LessonViewerScreen() {
     );
   }
 
-  const isVideoMode = lessonData.outputMode === 0 || lessonData.outputMode === 'Video';
+  // OutputMode: Manga = 0, Video = 1 in C# backend
+  const isVideoMode = lessonData.outputMode === 1 || lessonData.outputMode === 'Video';
+  const chapters = lessonData.chapters ? [...lessonData.chapters].sort((a: any, b: any) => a.order - b.order) : [];
+  const currentChapter = chapters[currentChapterIndex];
 
-  // Map backend chapters to manga panels structure
-  const mangaPanels: MangaPanel[] = (lessonData.chapters || []).map((ch: any, idx: number) => ({
-    id: ch.id || idx,
-    title: `Khung ${ch.order || idx + 1}`,
-    imageUrl: ch.mangaUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400',
-    bubble: ch.summary || 'Đang cập nhật kiến thức...',
-    bubblePosition: idx % 2 === 0 ? 'right' : 'left',
-    bubbleBg: '#ffffff',
-    bubbleTextColor: '#000000',
-  }));
-
-  // Parse backend quiz
-  const chaptersWithQuiz = lessonData.chapters ? lessonData.chapters.filter((c: any) => c.quiz) : [];
-  const apiQuizDto = chaptersWithQuiz.length > 0 ? chaptersWithQuiz[0].quiz : null;
-
+  // Parse quiz for current chapter
+  const q = currentChapter?.quiz;
   let parsedQuiz = undefined;
-  if (apiQuizDto) {
-    const rawCorrect = (apiQuizDto.correctOption || '').trim().toUpperCase();
+  if (q) {
+    const rawCorrect = (q.correctOption || '').trim().toUpperCase();
     const correctIdx = rawCorrect === 'A' ? 0 : rawCorrect === 'B' ? 1 : rawCorrect === 'C' ? 2 : 3;
-
     parsedQuiz = {
-      question: apiQuizDto.question,
-      options: [apiQuizDto.optionA, apiQuizDto.optionB, apiQuizDto.optionC, apiQuizDto.optionD],
+      question: q.question,
+      options: [q.optionA, q.optionB, q.optionC, q.optionD],
       correctAnswer: correctIdx,
-      explanation: apiQuizDto.explanation || 'Không có giải thích chi tiết.'
+      explanation: q.explanation || 'Không có giải thích chi tiết.'
     };
   }
 
@@ -129,126 +108,137 @@ export default function LessonViewerScreen() {
         </Text>
       </View>
 
-      {/* Tab bar */}
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => setActiveTab('content')}
-          style={[
-            styles.tab,
-            {
-              backgroundColor: activeTab === 'content' ? colors.text : 'transparent',
-              borderColor: colors.border,
-            }
-          ]}
-        >
-          <Text style={[styles.tabText, { color: activeTab === 'content' ? colors.bg : colors.text }]}>
-            NỘI DUNG BÀI HỌC
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Page / Chapter Counter at top */}
+        <View style={styles.topCounterRow}>
+          <Text style={[styles.counterText, { color: colors.text }]}>
+            PHÂN CẢNH {currentChapterIndex + 1} / {chapters.length}
           </Text>
-        </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => setActiveTab('quiz')}
-          style={[
-            styles.tab,
-            {
-              backgroundColor: activeTab === 'quiz' ? colors.text : 'transparent',
-              borderColor: colors.border,
-            }
-          ]}
-        >
-          <Text style={[styles.tabText, { color: activeTab === 'quiz' ? colors.bg : colors.text }]}>
-            TRẮC NGHIỆM
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Main content viewport */}
-      <View style={styles.mainViewport}>
-        {activeTab === 'content' ? (
-          isVideoMode ? (
-            /* Video Mode Player */
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-              <View style={[styles.videoPlayer, { borderColor: colors.border, backgroundColor: '#000000' }]}>
-                {isPlaying ? (
-                  <View style={styles.videoPlaceholderActive}>
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                    <Text style={{ color: '#FFFFFF', marginTop: 12, fontWeight: '700', fontSize: 11 }}>ĐANG TẢI STREAM VIDEO...</Text>
-                  </View>
-                ) : (
-                  <TouchableOpacity
-                    activeOpacity={0.9}
-                    onPress={() => setIsPlaying(true)}
-                    style={styles.videoPlaceholderEmpty}
-                  >
-                    <Image
-                      source={{ uri: lessonData.anchorImageUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600' }}
-                      style={styles.videoPoster}
-                    />
-                    <View style={[styles.playBtnCircle, { borderColor: '#FFFFFF' }]}>
-                      <Ionicons name="play" size={32} color="#FFFFFF" style={{ marginLeft: 4 }} />
-                    </View>
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              <View style={[styles.videoInfo, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
-                <Text style={[styles.videoTitle, { color: colors.text }]}>{lessonData.title}</Text>
-                <Text style={[styles.videoDesc, { color: colors.textMuted }]}>
-                  {lessonData.creativeBrief || 'Bài giảng hoạt hình tương tác sinh động.'}
+        {/* Media Frame */}
+        <View style={[styles.mediaFrame, { borderColor: colors.border, backgroundColor: '#000000' }]}>
+          {isVideoMode ? (
+            Platform.OS === 'web' && currentChapter?.videoUrl ? (
+              <video
+                key={currentChapter.id}
+                src={currentChapter.videoUrl}
+                controls
+                autoPlay
+                poster={lessonData.anchorImageUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600'}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            ) : currentChapter?.videoUrl ? (
+              <View style={styles.videoPlaceholderActive}>
+                <Ionicons name="play-circle" size={48} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
+                  Video URL: {currentChapter.videoUrl.substring(0, 40)}...
                 </Text>
               </View>
-            </ScrollView>
-          ) : (
-            /* Manga Mode Viewer */
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-              <View style={styles.mangaStrip}>
-                {mangaPanels.length === 0 ? (
-                  <View style={styles.emptyContainer}>
-                    <Text style={{ color: colors.textMuted, fontWeight: '700' }}>ĐANG TẢI TRANH MANGA...</Text>
-                  </View>
-                ) : (
-                  mangaPanels.map((panel) => (
-                    <View
-                      key={panel.id}
-                      style={[styles.panelCard, { borderColor: colors.border, backgroundColor: colors.cardBg }]}
-                    >
-                      <Image source={{ uri: panel.imageUrl }} style={styles.panelImage} />
-                      
-                      {/* Subtitle speech bubble */}
-                      <View style={[
-                        styles.bubbleContainer,
-                        panel.bubblePosition === 'right' ? styles.bubbleRight : styles.bubbleLeft
-                      ]}>
-                        <View style={[
-                          styles.speechBubble,
-                          {
-                            backgroundColor: panel.bubbleBg,
-                            borderColor: colors.border,
-                          }
-                        ]}>
-                          <Text style={[styles.bubbleText, { color: panel.bubbleTextColor }]}>
-                            {panel.bubble}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  ))
-                )}
+            ) : (
+              <View style={styles.videoPlaceholderActive}>
+                <ActivityIndicator size="small" color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', marginTop: 12, fontWeight: '700', fontSize: 11 }}>ĐANG TẢI PHÂN CẢNH...</Text>
               </View>
-            </ScrollView>
-          )
-        ) : (
-          /* Quiz Interactive Section */
-          <QuizSection 
-            quiz={parsedQuiz} 
-            onComplete={() => {
-              triggerToast('Tuyệt vời! Bạn đã vượt qua bài học thành công.');
-            }}
-          />
+            )
+          ) : (
+            currentChapter?.mangaUrl ? (
+              <Image 
+                source={{ uri: currentChapter.mangaUrl }} 
+                style={styles.mangaImage} 
+              />
+            ) : (
+              <View style={styles.videoPlaceholderActive}>
+                <Ionicons name="image-outline" size={48} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
+                  Chưa có tranh manga cho chương {currentChapterIndex + 1}
+                </Text>
+              </View>
+            )
+          )}
+        </View>
+
+        {/* Chapter metadata / narration / summary */}
+        {currentChapter && (
+          <View style={[styles.chapterInfoCard, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+            <Text style={[styles.chapterKicker, { color: colors.primaryAccent }]}>
+              CHƯƠNG {currentChapter.order || currentChapterIndex + 1}
+            </Text>
+            <Text style={[styles.chapterTitle, { color: colors.text }]}>
+              {currentChapter.title || `Chương ${currentChapter.order || currentChapterIndex + 1}`}
+            </Text>
+            <Text style={[styles.chapterSummary, { color: colors.text }]}>
+              {currentChapter.summary}
+            </Text>
+          </View>
         )}
-      </View>
+
+        {/* Interactive Quiz corresponding to the current chapter */}
+        {parsedQuiz ? (
+          <View style={styles.quizWrapper}>
+            <QuizSection 
+              key={currentChapterIndex}
+              quiz={parsedQuiz}
+              onComplete={() => {
+                triggerToast('Tuyệt vời! Bạn đã trả lời đúng câu hỏi của chương này.');
+              }}
+            />
+          </View>
+        ) : (
+          <View style={[styles.emptyQuizBox, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+            <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: '900', fontStyle: 'italic', textAlign: 'center' }}>
+              CHƯƠNG NÀY CHƯA CÓ CÂU HỎI TRẮC NGHIỆM.
+            </Text>
+          </View>
+        )}
+
+        {/* Bottom Navigation Buttons */}
+        <View style={styles.bottomNavContainer}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            disabled={currentChapterIndex === 0}
+            onPress={() => {
+              setCurrentChapterIndex(prev => prev - 1);
+            }}
+            style={[
+              styles.bottomNavBtn,
+              {
+                borderColor: colors.border,
+                backgroundColor: currentChapterIndex === 0 ? 'transparent' : colors.text,
+                opacity: currentChapterIndex === 0 ? 0.3 : 1,
+              }
+            ]}
+          >
+            <Text style={[styles.bottomNavBtnText, { color: currentChapterIndex === 0 ? colors.text : colors.bg }]}>
+              TRƯỚC
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={[styles.counterText, { color: colors.text }]}>
+            {currentChapterIndex + 1} / {chapters.length}
+          </Text>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            disabled={currentChapterIndex === chapters.length - 1}
+            onPress={() => {
+              setCurrentChapterIndex(prev => prev + 1);
+            }}
+            style={[
+              styles.bottomNavBtn,
+              {
+                borderColor: colors.border,
+                backgroundColor: currentChapterIndex === chapters.length - 1 ? 'transparent' : colors.text,
+                opacity: currentChapterIndex === chapters.length - 1 ? 0.3 : 1,
+              }
+            ]}
+          >
+            <Text style={[styles.bottomNavBtnText, { color: currentChapterIndex === chapters.length - 1 ? colors.text : colors.bg }]}>
+              TIẾP theo
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -278,124 +268,85 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     flex: 1,
   },
-  tabsContainer: {
-    flexDirection: 'row',
-    borderBottomWidth: 2,
-    borderColor: '#000000',
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 60,
   },
-  tab: {
-    flex: 1,
-    borderWidth: 0,
-    borderRightWidth: 1,
-    paddingVertical: 14,
+  topCounterRow: {
+    marginBottom: 12,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  tabText: {
-    fontSize: 10,
+  counterText: {
+    fontSize: 12,
     fontWeight: '900',
     letterSpacing: 0.5,
   },
-  mainViewport: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  videoPlayer: {
-    height: 200,
+  mediaFrame: {
+    height: 260,
     borderWidth: 2,
     marginBottom: 16,
     overflow: 'hidden',
   },
-  videoPlaceholderEmpty: {
+  mangaImage: {
     width: '100%',
     height: '100%',
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  videoPoster: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    opacity: 0.8,
-  },
-  playBtnCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 3,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    resizeMode: 'contain',
   },
   videoPlaceholderActive: {
     width: '100%',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#000000',
+    padding: 20,
   },
-  videoInfo: {
+  chapterInfoCard: {
     borderWidth: 2,
     padding: 16,
+    marginBottom: 20,
   },
-  videoTitle: {
-    fontSize: 16,
+  chapterKicker: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  chapterTitle: {
+    fontSize: 14,
     fontWeight: '900',
     marginBottom: 8,
   },
-  videoDesc: {
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 18,
-  },
-  mangaStrip: {
-    gap: 20,
-  },
-  panelCard: {
-    borderWidth: 2,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  panelImage: {
-    width: '100%',
-    height: 300,
-    resizeMode: 'cover',
-  },
-  bubbleContainer: {
-    position: 'absolute',
-    bottom: 12,
-    left: 12,
-    right: 12,
-    flexDirection: 'row',
-  },
-  bubbleLeft: {
-    justifyContent: 'flex-start',
-  },
-  bubbleRight: {
-    justifyContent: 'flex-end',
-  },
-  speechBubble: {
-    borderWidth: 2,
-    padding: 10,
-    maxWidth: '85%',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
-  bubbleText: {
+  chapterSummary: {
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 16,
   },
-  emptyContainer: {
-    padding: 40,
+  quizWrapper: {
+    marginBottom: 24,
+  },
+  emptyQuizBox: {
     borderWidth: 2,
+    padding: 20,
+    marginBottom: 24,
     borderStyle: 'dashed',
+  },
+  bottomNavContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 10,
+    gap: 10,
+  },
+  bottomNavBtn: {
+    borderWidth: 2,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  bottomNavBtnText: {
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
 });

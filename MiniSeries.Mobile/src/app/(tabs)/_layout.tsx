@@ -2,6 +2,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { useTheme } from '../../hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
 
 export default function TabsLayout() {
   const theme = useTheme();
@@ -39,15 +40,24 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="create"
         options={{
-          title: 'SÁNG TẠO',
-          tabBarIcon: ({ focused }) => (
-            <Ionicons name={focused ? 'add-circle' : 'add-circle-outline'} size={22} color="#FF3E00" />
+          tabBarButton: (props: any) => (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={props.onPress}
+              style={styles.customCreateButtonContainer}
+            >
+              <View style={[
+                styles.customCreateButton,
+                {
+                  backgroundColor: '#FF3E00',
+                  borderColor: theme.border,
+                  shadowColor: theme.border,
+                }
+              ]}>
+                <Ionicons name="add" size={28} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
           ),
-          tabBarLabelStyle: {
-            fontSize: 10,
-            fontWeight: '900',
-            color: '#FF3E00',
-          }
         }}
       />
       <Tabs.Screen
@@ -62,3 +72,25 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  customCreateButtonContainer: {
+    top: -14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 60,
+    height: 60,
+  },
+  customCreateButton: {
+    width: 48,
+    height: 48,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 0, 
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+});
