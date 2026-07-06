@@ -58,7 +58,17 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.log('Token đã hết hạn hoặc không hợp lệ!');
+      console.log('Token đã hết hạn hoặc không hợp lệ! Đang đăng xuất...');
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('isAuthenticated');
+          // Reload để buộc router chuyển về trang đăng nhập
+          window.location.reload();
+        } catch (e) {
+          console.log('Không thể xóa session:', e);
+        }
+      }
     }
     return Promise.reject(error);
   }
