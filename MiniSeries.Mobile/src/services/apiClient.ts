@@ -1,7 +1,35 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 
-// Đường dẫn API Server Backend của dự án
-const BASE_URL = 'https://miniseries-api.example.com'; 
+const BASE_URL = Platform.OS === 'android'
+  ? 'http://10.0.2.2:5088/api'
+  : 'http://localhost:5088/api'; 
+
+let authToken: string | null = null;
+
+// Khôi phục token từ localStorage nếu đang chạy trên trình duyệt (Web)
+if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  try {
+    authToken = localStorage.getItem('authToken');
+  } catch (e) {
+    console.log('Không thể đọc token từ localStorage:', e);
+  }
+}
+
+export const setAuthToken = (token: string | null) => {
+  authToken = token;
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    try {
+      if (token) {
+        localStorage.setItem('authToken', token);
+      } else {
+        localStorage.removeItem('authToken');
+      }
+    } catch (e) {
+      console.log('Không thể lưu/xóa token trong localStorage:', e);
+    }
+  }
+};
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -15,12 +43,9 @@ export const apiClient = axios.create({
 // Bộ đánh chặn (Interceptor) để tự động đính kèm Token vào Header trước khi gửi request
 apiClient.interceptors.request.use(
   async (config) => {
-    // KAN-90: Khi bạn LH tích hợp lưu Token vào bộ nhớ điện thoại (AsyncStorage/SecureStore),
-    // bạn sẽ lấy token ra tại đây và đính kèm vào header:
-    // const token = await SecureStore.getItemAsync('authToken');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    if (authToken) {
+      config.headers.Authorization = `Bearer ${authToken}`;
+    }
     return config;
   },
   (error) => {
@@ -33,7 +58,6 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Xử lý đăng xuất hoặc refresh token tại đây
       console.log('Token đã hết hạn hoặc không hợp lệ!');
     }
     return Promise.reject(error);

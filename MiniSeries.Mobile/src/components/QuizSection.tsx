@@ -3,7 +3,19 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import { useApp } from '../context/AppContext';
 import { mockQuiz } from '../data';
 
-export const QuizSection: React.FC = () => {
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
+interface QuizSectionProps {
+  quiz?: QuizQuestion;
+  onComplete?: () => void;
+}
+
+export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onComplete }) => {
   const { themeId, triggerToast } = useApp();
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [checked, setChecked] = useState<boolean>(false);
@@ -23,6 +35,8 @@ export const QuizSection: React.FC = () => {
     selectedBg: isDark ? '#FFFFFF' : '#000000',
     selectedText: isDark ? '#000000' : '#FAF9F6',
   };
+
+  const activeQuiz = quiz || mockQuiz;
 
   const handleSelect = (index: number) => {
     if (checked) return;
@@ -44,9 +58,12 @@ export const QuizSection: React.FC = () => {
     }
 
     setChecked(true);
-    if (selectedAnswer === mockQuiz.correctAnswer) {
+    if (selectedAnswer === activeQuiz.correctAnswer) {
       setSuccess(true);
       triggerToast('Tuyệt vời! Đáp án hoàn toàn chính xác.');
+      if (onComplete) {
+        onComplete();
+      }
     } else {
       setSuccess(false);
       triggerToast('Chưa chính xác! Thử lại đáp án khác nhé.');
@@ -61,13 +78,13 @@ export const QuizSection: React.FC = () => {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={[styles.question, { color: colors.text }]}>
-          {mockQuiz.question}
+          {activeQuiz.question}
         </Text>
 
         <View style={styles.optionsContainer}>
-          {mockQuiz.options.map((option, index) => {
+          {activeQuiz.options.map((option, index) => {
             const isSelected = selectedAnswer === index;
-            const isCorrectAnswer = index === mockQuiz.correctAnswer;
+            const isCorrectAnswer = index === activeQuiz.correctAnswer;
             
             let optionBorderColor = colors.border;
             let optionBg = 'transparent';
@@ -136,10 +153,10 @@ export const QuizSection: React.FC = () => {
               styles.explanationTitle,
               { color: success ? colors.correct : colors.incorrect }
             ]}>
-              {success ? '✓ ĐÁP ÁN CHÍNH XÁC' : '✗ CHƯA CHÍNH XÁC'}
+              {success ? 'ĐÁP ÁN CHÍNH XÁC' : 'CHƯA CHÍNH XÁC'}
             </Text>
             <Text style={[styles.explanationText, { color: colors.text }]}>
-              {mockQuiz.explanation}
+              {activeQuiz.explanation}
             </Text>
           </View>
         )}

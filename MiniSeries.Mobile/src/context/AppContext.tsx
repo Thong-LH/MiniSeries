@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { DesignThemeId, DesignTheme, Lesson } from '../types';
-import { designThemes, initialLessons } from '../data';
+import { designThemes } from '../data';
+import { apiClient } from '../services/apiClient';
+import { Platform } from 'react-native';
 
 interface AppContextType {
   themeId: DesignThemeId;
@@ -18,6 +20,7 @@ interface AppContextType {
   setLessons: React.Dispatch<React.SetStateAction<Lesson[]>>;
   userEmail: string;
   setUserEmail: (email: string) => void;
+  refreshProfile: () => Promise<void>;
   
   // Create forms state
   lessonTitle: string;
@@ -45,13 +48,33 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [themeId, setThemeId] = useState<DesignThemeId>('bold-typography-dark');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [themeId, setThemeId] = useState<DesignThemeId>(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      return (localStorage.getItem('themeId') as DesignThemeId) || 'bold-typography-dark';
+    }
+    return 'bold-typography-dark';
+  });
+
+  const [isAuthenticated, setIsAuthenticatedState] = useState<boolean>(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      return localStorage.getItem('isAuthenticated') === 'true';
+    }
+    return false;
+  });
+
   const [mangaTokens, setMangaTokens] = useState<number>(29);
   const [videoTokens, setVideoTokens] = useState<number>(10);
   const [activePlan, setActivePlan] = useState<string>('Basic');
-  const [lessons, setLessons] = useState<Lesson[]>(initialLessons);
-  const [userEmail, setUserEmail] = useState<string>('thonglhse182025@fpt.edu.vn'); // Default for support screen
+  
+  // Initialize lessons to empty array instead of initialLessons to avoid displaying mock lessons before API finishes
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+
+  const [userEmail, setUserEmailState] = useState<string>(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      return localStorage.getItem('userEmail') || 'thonglhse182025@fpt.edu.vn';
+    }
+    return 'thonglhse182025@fpt.edu.vn';
+  });
   
   // Create forms state
   const [lessonTitle, setLessonTitle] = useState<string>('');
@@ -69,6 +92,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const activeTheme = designThemes.find(t => t.id === themeId) || designThemes[0];
 
+  const setIsAuthenticated = (auth: boolean) => {
+    setIsAuthenticatedState(auth);
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      localStorage.setItem('isAuthenticated', String(auth));
+    }
+  };
+
+  const setUserEmail = (email: string) => {
+    setUserEmailState(email);
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      localStorage.setItem('userEmail', email);
+    }
+  };
+
+  const changeThemeId = (id: DesignThemeId) => {
+    setThemeId(id);
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      localStorage.setItem('themeId', id);
+    }
+  };
+
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
@@ -76,11 +120,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 3500);
   };
 
+  const refreshProfile = async () => {
+    try {
+      const res = await apiClient.get('/profile/me');
+      if (res.data) {
+        if (res.data.planName) setActivePlan(res.data.planName);
+        if (res.data.remainingMangaCount !== undefined) setMangaTokens(res.data.remainingMangaCount);
+        if (res.data.remainingVideoCount !== undefined) setVideoTokens(res.data.remainingVideoCount);
+        if (res.data.email) setUserEmail(res.data.email);
+      }
+    } catch (err) {
+      console.log('Lỗi cập nhật profile từ server:', err);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
         themeId,
-        setThemeId,
+        setThemeId: changeThemeId,
         activeTheme,
         isAuthenticated,
         setIsAuthenticated,
@@ -110,6 +168,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         triggerToast,
         userEmail,
         setUserEmail,
+        refreshProfile,
       }}
     >
       {children}

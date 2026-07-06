@@ -1,21 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../services/apiClient';
 
-// DTO Interface for Support Request
 interface SupportTicket {
   id: string;
   customerEmail: string;
@@ -29,25 +18,25 @@ interface SupportTicket {
 export default function SupportScreen() {
   const { themeId, userEmail, triggerToast } = useApp();
   const router = useRouter();
+  const { mode } = useLocalSearchParams<{ mode: string }>();
 
   const [content, setContent] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
-  
-  // Real tickets state from DB
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
 
+  const isDark = themeId === 'bold-typography-dark';
   const colors = {
-    bg: '#050811', // Deep dark cosmic blue/black matching Web background
-    text: '#f8fafc',
-    textMuted: '#94a3b8',
-    border: 'rgba(124, 58, 237, 0.3)',
-    borderFocus: '#06b6d4', // Cyan focus glow
-    primaryAccent: '#6366f1', // Indigo purple matching Web button
-    secondaryAccent: '#0ea5e9', // Cyan
-    cardBg: '#0d111d', // Very dark grey-blue matching Web card background
+    bg: isDark ? '#121212' : '#FAF9F6',
+    text: isDark ? '#FAF9F6' : '#1A1A1A',
+    textMuted: isDark ? '#CFCFCF' : '#4A4A4A',
+    border: isDark ? '#FFFFFF' : '#000000',
+    primaryAccent: '#FF3E00',
+    cardBg: isDark ? '#1a1a1a' : '#ffffff',
+    inputBg: isDark ? '#1e1e1e' : '#ffffff',
   };
+
+  const isIssueMode = mode === 'issue';
 
   const fetchTickets = async () => {
     setLoading(true);
@@ -57,7 +46,7 @@ export default function SupportScreen() {
         setTickets(res.data);
       }
     } catch (err) {
-      console.log('Lỗi tải danh sách phản hồi từ Backend:', err);
+      console.log('Lỗi tải danh sách phản hồi:', err);
       triggerToast('Không thể tải lịch sử phản hồi từ máy chủ.');
     } finally {
       setLoading(false);
@@ -70,24 +59,25 @@ export default function SupportScreen() {
 
   const handleSubmit = async () => {
     if (!content.trim()) {
-      triggerToast('Vui lòng nhập nội dung báo lỗi / thắc mắc!');
+      triggerToast(isIssueMode ? 'Vui lòng nhập nội dung báo lỗi!' : 'Vui lòng nhập nội dung thắc mắc!');
       return;
     }
 
     setSubmitting(true);
     try {
+      const prefix = isIssueMode ? '[BÁO LỖI] ' : '[CSKH] ';
       const res = await apiClient.post('/support/create', {
         customerEmail: userEmail,
-        content: content.trim()
+        content: prefix + content.trim()
       });
 
       if (res.data) {
-        triggerToast('Gửi yêu cầu hỗ trợ thành công!');
+        triggerToast(isIssueMode ? 'Gửi báo lỗi thành công!' : 'Gửi yêu cầu hỗ trợ thành công!');
         setContent('');
         fetchTickets();
       }
     } catch (err: any) {
-      console.log('Lỗi gửi API support:', err);
+      console.log('Lỗi gửi phản hồi:', err);
       const errMsg = err.response?.data?.message || 'Gửi yêu cầu thất bại. Vui lòng kiểm tra lại.';
       triggerToast(errMsg);
     } finally {
@@ -104,66 +94,58 @@ export default function SupportScreen() {
     }
   };
 
-  const getInputStyle = (fieldName: string) => [
-    styles.input,
-    {
-      backgroundColor: '#0a0d16',
-      borderColor: focusedField === fieldName ? colors.borderFocus : 'rgba(255, 255, 255, 0.08)',
-      color: colors.text,
-    },
-  ];
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: colors.bg }]}
     >
-      {/* Header Bar matching Web header */}
-      <View style={[styles.header, { borderBottomColor: 'rgba(255, 255, 255, 0.05)', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+      {/* Header Bar */}
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => router.back()}
-          style={styles.backButtonCircle}
+          style={[styles.backBtn, { borderColor: colors.border }]}
         >
           <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.brand, { color: '#0ea5e9', fontWeight: '900' }]}>
-          MINISERIES<Text style={{ color: '#d946ef' }}>LEARNING</Text>
+        <Text style={[styles.brand, { color: colors.text }]}>
+          {isIssueMode ? 'BÁO CÁO SỰ CỐ' : 'CSKH & TƯ VẤN'}
         </Text>
-        <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: '700' }}>🛠️ CSKH</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        {/* New Ticket Form */}
-        <View style={[styles.card, { borderColor: 'rgba(255,255,255,0.05)', backgroundColor: colors.cardBg }]}>
-          <Text style={[styles.cardHeader, { color: colors.text, borderBottomColor: 'rgba(255,255,255,0.1)' }]}>
-            📝 GỬI YÊU CẦU MỚI
+        {/* Form Card */}
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: colors.border }]}>
+          <Text style={[styles.cardHeader, { color: colors.text, borderBottomColor: colors.border }]}>
+            {isIssueMode ? 'GỬI BÁO LỖI HỆ THỐNG / KỊCH BẢN' : 'GỬI YÊU CẦU MỚI'}
           </Text>
 
           <View style={styles.formBody}>
-            <Text style={styles.label}>NỘI DUNG CHI TIẾT CẦN HỖ TRỢ</Text>
+            <Text style={[styles.label, { color: colors.textMuted }]}>
+              {isIssueMode ? 'MÔ TẢ CHI TIẾT SỰ CỐ GẶP PHẢI' : 'NỘI DUNG CHI TIẾT CẦN HỖ TRỢ'}
+            </Text>
             <TextInput
               multiline
               numberOfLines={5}
-              placeholder="Vui lòng mô tả chi tiết lỗi bạn gặp phải hoặc câu hỏi cần giải đáp tại đây..."
-              placeholderTextColor="#3e4a68"
+              placeholder={isIssueMode ? "Nhập chi tiết sự cố hoặc phản hồi của bạn..." : "Nhập câu hỏi hoặc nội dung cần tư vấn..."}
+              placeholderTextColor={isDark ? '#666' : '#999'}
               value={content}
               onChangeText={setContent}
-              onFocus={() => setFocusedField('content')}
-              onBlur={() => setFocusedField(null)}
-              style={[...getInputStyle('content'), styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
             />
 
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={handleSubmit}
               disabled={submitting}
-              style={[styles.submitBtn, { backgroundColor: colors.primaryAccent }]}
+              style={[styles.submitBtn, { backgroundColor: colors.primaryAccent, borderColor: colors.border }]}
             >
               {submitting ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={styles.submitBtnText}>GỬI YÊU CẦU CSKH</Text>
+                <Text style={styles.submitBtnText}>
+                  {isIssueMode ? 'GỬI BÁO LỖI' : 'GỬI HỖ TRỢ'}
+                </Text>
               )}
             </TouchableOpacity>
           </View>
@@ -172,14 +154,14 @@ export default function SupportScreen() {
         {/* History Section */}
         <View style={styles.historySection}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            📬 LỊCH SỬ HỖ TRỢ ĐÃ GỬI ({tickets.length})
+            LỊCH SỬ YÊU CẦU ĐÃ GỬI ({tickets.length})
           </Text>
 
           {loading ? (
-            <ActivityIndicator size="small" color={colors.secondaryAccent} style={{ marginVertical: 20 }} />
+            <ActivityIndicator size="small" color={colors.primaryAccent} style={{ marginVertical: 20 }} />
           ) : tickets.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={{ color: colors.textMuted, fontSize: 13 }}>Bạn chưa gửi yêu cầu hỗ trợ nào.</Text>
+            <View style={[styles.emptyContainer, { borderColor: colors.border }]}>
+              <Text style={{ color: colors.textMuted, fontSize: 13, fontWeight: '700' }}>CHƯA CÓ YÊU CẦU NÀO.</Text>
             </View>
           ) : (
             <View style={styles.ticketsList}>
@@ -188,18 +170,18 @@ export default function SupportScreen() {
                 return (
                   <View
                     key={ticket.id}
-                    style={[styles.ticketCard, { borderColor: 'rgba(255,255,255,0.05)', backgroundColor: colors.cardBg }]}
+                    style={[styles.ticketCard, { borderColor: colors.border, backgroundColor: colors.cardBg }]}
                   >
                     <View style={styles.ticketHeader}>
-                      <Text style={[styles.ticketId, { color: colors.secondaryAccent }]}>Phiếu #{ticket.id.substring(0, 8).toUpperCase()}</Text>
+                      <Text style={[styles.ticketId, { color: colors.text }]}>MÃ PHIẾU #{ticket.id.substring(0, 8).toUpperCase()}</Text>
                       <View style={[
                         styles.statusBadge,
                         {
-                          borderColor: isResolved ? '#10B981' : '#EAB308',
-                          backgroundColor: isResolved ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 179, 8, 0.15)'
+                          borderColor: colors.border,
+                          backgroundColor: isResolved ? '#10B981' : '#EAB308'
                         }
                       ]}>
-                        <Text style={[styles.statusBadgeText, { color: isResolved ? '#10B981' : '#EAB308' }]}>
+                        <Text style={[styles.statusBadgeText, { color: colors.bg }]}>
                           {ticket.status.toUpperCase()}
                         </Text>
                       </View>
@@ -207,20 +189,20 @@ export default function SupportScreen() {
 
                     <Text style={[styles.ticketTime, { color: colors.textMuted }]}>{formatDate(ticket.createdAt)}</Text>
                     
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, { borderTopColor: colors.border }]} />
                     
-                    <Text style={[styles.ticketLabel, { color: '#818cf8' }]}>Yêu cầu của bạn:</Text>
+                    <Text style={[styles.ticketLabel, { color: colors.primaryAccent }]}>Nội dung:</Text>
                     <Text style={[styles.ticketContentText, { color: colors.text }]}>{ticket.content}</Text>
 
                     {ticket.reply ? (
-                      <View style={[styles.replyBox, { backgroundColor: '#0a0d16', borderColor: 'rgba(255,255,255,0.05)' }]}>
-                        <Text style={[styles.ticketLabel, { color: '#34d399' }]}>Phản hồi từ Ban quản trị:</Text>
+                      <View style={[styles.replyBox, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
+                        <Text style={[styles.ticketLabel, { color: '#10B981' }]}>Trả lời:</Text>
                         <Text style={[styles.replyContentText, { color: colors.text }]}>{ticket.reply}</Text>
                       </View>
                     ) : (
-                      <View style={[styles.replyBox, { backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.03)' }]}>
-                        <Text style={{ color: colors.textMuted, fontStyle: 'italic', fontSize: 11 }}>
-                          Đang chờ Staff tiếp nhận và trả lời...
+                      <View style={[styles.replyBox, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
+                        <Text style={{ color: colors.textMuted, fontStyle: 'italic', fontSize: 11, fontWeight: '700' }}>
+                          Đang chờ tiếp nhận và trả lời...
                         </Text>
                       </View>
                     )}
@@ -240,54 +222,58 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: Platform.OS === 'ios' ? 48 : 28,
+    paddingTop: 50,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  backButtonCircle: {
-    padding: 6,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+  backBtn: {
+    borderWidth: 2,
+    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   brand: {
     fontSize: 16,
     fontWeight: '900',
-    letterSpacing: -0.5,
+    letterSpacing: 0.5,
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
   },
   card: {
-    borderWidth: 1,
-    borderRadius: 20,
-    overflow: 'hidden',
+    borderWidth: 2,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
   },
   cardHeader: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '900',
     padding: 14,
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
     letterSpacing: 0.5,
   },
   formBody: {
     padding: 16,
   },
   label: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#06b6d4',
+    fontSize: 9,
+    fontWeight: '900',
     letterSpacing: 1,
     marginBottom: 8,
   },
   input: {
-    borderWidth: 1,
-    borderRadius: 12,
+    borderWidth: 2,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   textArea: {
     height: 120,
@@ -295,35 +281,24 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   submitBtn: {
-    borderRadius: 12,
+    borderWidth: 2,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#6366f1',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '900',
     letterSpacing: 0.5,
   },
   historySection: {
     marginTop: 24,
   },
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '900',
     letterSpacing: 0.5,
     marginBottom: 16,
   },
@@ -331,8 +306,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   ticketCard: {
-    borderWidth: 1,
-    borderRadius: 20,
+    borderWidth: 2,
     padding: 16,
   },
   ticketHeader: {
@@ -342,54 +316,53 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   ticketId: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '900',
   },
   statusBadge: {
     borderWidth: 1,
-    borderRadius: 6,
     paddingVertical: 2,
     paddingHorizontal: 6,
   },
   statusBadgeText: {
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '900',
   },
   ticketTime: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '700',
     marginBottom: 12,
   },
   divider: {
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopWidth: 1,
     marginBottom: 12,
   },
   ticketLabel: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 10,
+    fontWeight: '900',
     marginBottom: 4,
   },
   ticketContentText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '700',
     lineHeight: 18,
     marginBottom: 12,
   },
   replyBox: {
-    borderWidth: 1,
-    borderRadius: 12,
+    borderWidth: 2,
     padding: 12,
     marginTop: 4,
   },
   replyContentText: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '700',
     lineHeight: 18,
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 30,
+    borderWidth: 2,
+    borderStyle: 'dashed',
   },
 });

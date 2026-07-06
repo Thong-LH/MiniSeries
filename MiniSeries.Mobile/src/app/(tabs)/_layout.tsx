@@ -40,15 +40,20 @@ export default function TabsLayout() {
         name="create"
         options={{
           title: 'SÁNG TẠO',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'add-circle' : 'add-circle-outline'} size={20} color={color} />
+          tabBarIcon: ({ focused }) => (
+            <Ionicons name={focused ? 'add-circle' : 'add-circle-outline'} size={22} color="#FF3E00" />
           ),
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontWeight: '900',
+            color: '#FF3E00',
+          }
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'VIP / HỒ SƠ',
+          title: 'HỒ SƠ',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'person' : 'person-outline'} size={20} color={color} />
           ),
