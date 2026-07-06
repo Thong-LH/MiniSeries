@@ -20,6 +20,7 @@ export default function TabsLayout() {
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
+          overflow: 'visible',
         },
         tabBarLabelStyle: {
           fontSize: 10,
@@ -44,7 +45,7 @@ export default function TabsLayout() {
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={props.onPress}
-              style={styles.customCreateButtonContainer}
+              style={[props.style, styles.customCreateButtonContainer]}
             >
               <View style={[
                 styles.customCreateButton,
@@ -75,15 +76,14 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   customCreateButtonContainer: {
-    top: -14,
+    top: -15, // Lift it up above the tab bar line
     justifyContent: 'center',
     alignItems: 'center',
-    width: 60,
-    height: 60,
+    zIndex: 999,
   },
   customCreateButton: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -91,6 +91,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 4,
+    elevation: 5,
   },
 });

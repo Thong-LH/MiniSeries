@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Platform, Modal } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { QuizSection } from '../../components/QuizSection';
@@ -14,6 +14,7 @@ export default function LessonViewerScreen() {
   const [loading, setLoading] = useState<boolean>(false);
   const [lessonData, setLessonData] = useState<any>(null);
   const [currentChapterIndex, setCurrentChapterIndex] = useState<number>(0);
+  const [fullscreenVisible, setFullscreenVisible] = useState<boolean>(false);
 
   const isDark = themeId === 'bold-typography-dark';
   const colors = {
@@ -109,30 +110,60 @@ export default function LessonViewerScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Page / Chapter Counter at top */}
-        <View style={styles.topCounterRow}>
+        {/* Page / Chapter Counter with navigation arrows on top */}
+        <View style={[styles.topCounterRow, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            disabled={currentChapterIndex === 0}
+            onPress={() => {
+              setCurrentChapterIndex(prev => prev - 1);
+            }}
+            style={[styles.topNavArrowBtn, { borderRightWidth: 2, borderRightColor: colors.border, opacity: currentChapterIndex === 0 ? 0.3 : 1 }]}
+          >
+            <Ionicons name="chevron-back" size={18} color={colors.text} />
+          </TouchableOpacity>
+
           <Text style={[styles.counterText, { color: colors.text }]}>
             PHÂN CẢNH {currentChapterIndex + 1} / {chapters.length}
           </Text>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            disabled={currentChapterIndex === chapters.length - 1}
+            onPress={() => {
+              setCurrentChapterIndex(prev => prev + 1);
+            }}
+            style={[styles.topNavArrowBtn, { borderLeftWidth: 2, borderLeftColor: colors.border, opacity: currentChapterIndex === chapters.length - 1 ? 0.3 : 1 }]}
+          >
+            <Ionicons name="chevron-forward" size={18} color={colors.text} />
+          </TouchableOpacity>
         </View>
 
-        {/* Media Frame */}
-        <View style={[styles.mediaFrame, { borderColor: colors.border, backgroundColor: '#000000' }]}>
+        {/* Clickable Media Frame to view details */}
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => setFullscreenVisible(true)}
+          style={[styles.mediaFrame, { borderColor: colors.border, backgroundColor: '#000000' }]}
+        >
           {isVideoMode ? (
             Platform.OS === 'web' && currentChapter?.videoUrl ? (
-              <video
-                key={currentChapter.id}
-                src={currentChapter.videoUrl}
-                controls
-                autoPlay
-                poster={lessonData.anchorImageUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600'}
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              />
+              <View style={{ pointerEvents: 'none', width: '100%', height: '100%' }}>
+                <video
+                  key={currentChapter.id}
+                  src={currentChapter.videoUrl}
+                  poster={lessonData.anchorImageUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600'}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+                <View style={styles.playOverlay}>
+                  <Ionicons name="expand" size={32} color="#FFFFFF" />
+                  <Text style={styles.playOverlayText}>Bấm để xem phóng to</Text>
+                </View>
+              </View>
             ) : currentChapter?.videoUrl ? (
               <View style={styles.videoPlaceholderActive}>
                 <Ionicons name="play-circle" size={48} color="#FFFFFF" />
                 <Text style={{ color: '#FFFFFF', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
-                  Video URL: {currentChapter.videoUrl.substring(0, 40)}...
+                  Bấm để xem video chi tiết
                 </Text>
               </View>
             ) : (
@@ -143,10 +174,16 @@ export default function LessonViewerScreen() {
             )
           ) : (
             currentChapter?.mangaUrl ? (
-              <Image 
-                source={{ uri: currentChapter.mangaUrl }} 
-                style={styles.mangaImage} 
-              />
+              <View style={{ width: '100%', height: '100%' }}>
+                <Image 
+                  source={{ uri: currentChapter.mangaUrl }} 
+                  style={styles.mangaImage} 
+                />
+                <View style={styles.playOverlay}>
+                  <Ionicons name="expand" size={32} color="#FFFFFF" />
+                  <Text style={styles.playOverlayText}>Bấm để xem phóng to</Text>
+                </View>
+              </View>
             ) : (
               <View style={styles.videoPlaceholderActive}>
                 <Ionicons name="image-outline" size={48} color="#FFFFFF" />
@@ -156,7 +193,7 @@ export default function LessonViewerScreen() {
               </View>
             )
           )}
-        </View>
+        </TouchableOpacity>
 
         {/* Chapter metadata / narration / summary */}
         {currentChapter && (
@@ -234,11 +271,82 @@ export default function LessonViewerScreen() {
             ]}
           >
             <Text style={[styles.bottomNavBtnText, { color: currentChapterIndex === chapters.length - 1 ? colors.text : colors.bg }]}>
-              TIẾP theo
+              TIẾP THEO
             </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Fullscreen Lightbox / Media Viewer Modal */}
+      <Modal
+        visible={fullscreenVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setFullscreenVisible(false)}
+      >
+        <View style={styles.fullscreenOverlay}>
+          {/* Top Bar with Close Button */}
+          <View style={styles.fullscreenHeader}>
+            <Text style={styles.fullscreenHeaderTitle}>
+              {isVideoMode ? 'XEM VIDEO CHI TIẾT' : 'XEM TRANH CHI TIẾT'}
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setFullscreenVisible(false)}
+              style={styles.fullscreenCloseBtn}
+            >
+              <Ionicons name="close" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Media Body */}
+          <View style={styles.fullscreenMediaContainer}>
+            {isVideoMode ? (
+              Platform.OS === 'web' && currentChapter?.videoUrl ? (
+                <video
+                  src={currentChapter.videoUrl}
+                  controls
+                  autoPlay
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              ) : currentChapter?.videoUrl ? (
+                <View style={styles.videoPlaceholderActive}>
+                  <Ionicons name="videocam" size={64} color="#FFFFFF" />
+                  <Text style={{ color: '#FFFFFF', marginTop: 16, fontWeight: '700' }}>
+                    Video URL: {currentChapter.videoUrl}
+                  </Text>
+                </View>
+              ) : (
+                <ActivityIndicator size="large" color="#FFFFFF" />
+              )
+            ) : (
+              currentChapter?.mangaUrl ? (
+                <Image
+                  source={{ uri: currentChapter.mangaUrl }}
+                  style={styles.fullscreenMangaImage}
+                />
+              ) : (
+                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Không có ảnh</Text>
+              )
+            )}
+          </View>
+
+          {/* Bottom Details Panel */}
+          <View style={styles.fullscreenBottomPanel}>
+            <Text style={styles.fullscreenTitle}>
+              CHƯƠNG {currentChapter?.order || currentChapterIndex + 1}: {currentChapter?.title || 'Không có tiêu đề'}
+            </Text>
+            <Text style={styles.fullscreenDesc}>
+              {currentChapter?.summary}
+            </Text>
+            {currentChapter?.fullPrompt && (
+              <Text style={styles.fullscreenPrompt}>
+                PROMPT: {currentChapter.fullPrompt}
+              </Text>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -273,8 +381,18 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   topCounterRow: {
-    marginBottom: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 2,
+    marginBottom: 16,
+    height: 44,
+  },
+  topNavArrowBtn: {
+    paddingHorizontal: 16,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   counterText: {
     fontSize: 12,
@@ -286,11 +404,30 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     marginBottom: 16,
     overflow: 'hidden',
+    position: 'relative',
   },
   mangaImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+  },
+  playOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    opacity: 0, // hidden until hovered on Web, click feedback on mobile
+  },
+  playOverlayText: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+    fontSize: 11,
+    marginTop: 6,
+    letterSpacing: 0.5,
   },
   videoPlaceholderActive: {
     width: '100%',
@@ -348,5 +485,67 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 0.5,
+  },
+  // Fullscreen Modal Styles
+  fullscreenOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.96)',
+    justifyContent: 'space-between',
+  },
+  fullscreenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 50,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#262626',
+  },
+  fullscreenHeaderTitle: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+    fontSize: 13,
+    letterSpacing: 0.5,
+  },
+  fullscreenCloseBtn: {
+    padding: 8,
+  },
+  fullscreenMediaContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenMangaImage: {
+    width: '100%',
+    height: '90%',
+    resizeMode: 'contain',
+  },
+  fullscreenBottomPanel: {
+    borderTopWidth: 2,
+    borderTopColor: '#FFFFFF',
+    backgroundColor: '#121212',
+    padding: 20,
+    paddingBottom: 40,
+  },
+  fullscreenTitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
+    marginBottom: 8,
+  },
+  fullscreenDesc: {
+    color: '#CFCFCF',
+    fontSize: 11,
+    fontWeight: '700',
+    lineHeight: 16,
+    marginBottom: 10,
+  },
+  fullscreenPrompt: {
+    color: '#FF3E00',
+    fontSize: 9,
+    fontWeight: '900',
+    fontFamily: 'System',
+    lineHeight: 14,
   },
 });

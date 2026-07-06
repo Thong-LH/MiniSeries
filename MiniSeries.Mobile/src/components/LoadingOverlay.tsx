@@ -43,7 +43,7 @@ export const LoadingOverlay: React.FC = () => {
       <View style={[styles.overlay, { backgroundColor: colors.bg }]}>
         <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border, shadowColor: colors.border }]}>
           <Text style={[styles.title, { color: colors.text }]}>
-            🤖 AI ĐANG KHỞI TẠO BÀI HỌC
+            HỆ THỐNG ĐANG TẠO BÀI HỌC
           </Text>
           
           <ActivityIndicator size="large" color={colors.primaryAccent} style={styles.spinner} />
