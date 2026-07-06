@@ -26,6 +26,7 @@ export default function CreateScreen() {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       refreshProfile();
+      apiClient.post('/analytics/track', { path: '/create', deviceType: 'Mobile' }).catch(() => {});
     });
     return unsubscribe;
   }, [navigation]);

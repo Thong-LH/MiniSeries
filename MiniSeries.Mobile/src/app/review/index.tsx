@@ -48,6 +48,9 @@ export default function ReviewScreen() {
 
   useEffect(() => {
     fetchDraftDetails();
+    if (lessonId) {
+      apiClient.post('/analytics/track', { path: `/review/${lessonId}`, deviceType: 'Mobile' }).catch(() => {});
+    }
   }, [lessonId]);
 
   const handleCancel = () => {

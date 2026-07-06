@@ -70,6 +70,7 @@ export default function HomeScreen() {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchLessons();
       refreshProfile();
+      apiClient.post('/analytics/track', { path: '/home', deviceType: 'Mobile' }).catch(() => {});
     });
     return unsubscribe;
   }, [navigation]);

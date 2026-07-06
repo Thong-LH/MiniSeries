@@ -45,6 +45,9 @@ export default function LessonViewerScreen() {
 
   useEffect(() => {
     fetchLessonDetails();
+    if (id) {
+      apiClient.post('/analytics/track', { path: `/lesson/${id}`, deviceType: 'Mobile' }).catch(() => {});
+    }
   }, [id]);
 
   if (loading) {
