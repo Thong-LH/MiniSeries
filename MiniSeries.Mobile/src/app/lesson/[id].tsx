@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Platform, Modal } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Platform, Modal, Animated } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { QuizSection } from '../../components/QuizSection';
@@ -15,6 +15,7 @@ export default function LessonViewerScreen() {
   const [lessonData, setLessonData] = useState<any>(null);
   const [currentChapterIndex, setCurrentChapterIndex] = useState<number>(0);
   const [fullscreenVisible, setFullscreenVisible] = useState<boolean>(false);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const isDark = themeId === 'bold-typography-dark';
   const colors = {
@@ -49,6 +50,15 @@ export default function LessonViewerScreen() {
       apiClient.post('/analytics/track', { path: `/lesson/${id}`, deviceType: 'Mobile' }).catch(() => {});
     }
   }, [id]);
+
+  useEffect(() => {
+    fadeAnim.setValue(0.3);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [currentChapterIndex]);
 
   if (loading) {
     return (
@@ -139,76 +149,79 @@ export default function LessonViewerScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Clickable Media Frame to view details */}
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={() => setFullscreenVisible(true)}
-          style={[styles.mediaFrame, { borderColor: colors.border, backgroundColor: '#000000' }]}
-        >
-          {isVideoMode ? (
-            Platform.OS === 'web' && currentChapter?.videoUrl ? (
-              <View style={{ pointerEvents: 'none', width: '100%', height: '100%' }}>
-                <video
-                  key={currentChapter.id}
-                  src={currentChapter.videoUrl}
-                  poster={lessonData.anchorImageUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600'}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
-                <View style={styles.playOverlay}>
-                  <Ionicons name="expand" size={32} color="#FFFFFF" />
-                  <Text style={styles.playOverlayText}>Bấm để xem phóng to</Text>
+        {/* Animated container for smooth chapter lating transitions */}
+        <Animated.View style={{ opacity: fadeAnim }}>
+          {/* Clickable Media Frame to view details */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => setFullscreenVisible(true)}
+            style={[styles.mediaFrame, { borderColor: colors.border, backgroundColor: '#000000' }]}
+          >
+            {isVideoMode ? (
+              Platform.OS === 'web' && currentChapter?.videoUrl ? (
+                <View style={{ pointerEvents: 'none', width: '100%', height: '100%' }}>
+                  <video
+                    key={currentChapter.id}
+                    src={currentChapter.videoUrl}
+                    poster={lessonData.anchorImageUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600'}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                  <View style={styles.playOverlay}>
+                    <Ionicons name="expand" size={32} color="#FFFFFF" />
+                    <Text style={styles.playOverlayText}>Bấm để xem phóng to</Text>
+                  </View>
                 </View>
-              </View>
-            ) : currentChapter?.videoUrl ? (
-              <View style={styles.videoPlaceholderActive}>
-                <Ionicons name="play-circle" size={48} color="#FFFFFF" />
-                <Text style={{ color: '#FFFFFF', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
-                  Bấm để xem video chi tiết
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.videoPlaceholderActive}>
-                <ActivityIndicator size="small" color="#FFFFFF" />
-                <Text style={{ color: '#FFFFFF', marginTop: 12, fontWeight: '700', fontSize: 11 }}>ĐANG TẢI PHÂN CẢNH...</Text>
-              </View>
-            )
-          ) : (
-            currentChapter?.mangaUrl ? (
-              <View style={{ width: '100%', height: '100%' }}>
-                <Image 
-                  source={{ uri: currentChapter.mangaUrl }} 
-                  style={styles.mangaImage} 
-                />
-                <View style={styles.playOverlay}>
-                  <Ionicons name="expand" size={32} color="#FFFFFF" />
-                  <Text style={styles.playOverlayText}>Bấm để xem phóng to</Text>
+              ) : currentChapter?.videoUrl ? (
+                <View style={styles.videoPlaceholderActive}>
+                  <Ionicons name="play-circle" size={48} color="#FFFFFF" />
+                  <Text style={{ color: '#FFFFFF', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
+                    Bấm để xem video chi tiết
+                  </Text>
                 </View>
-              </View>
+              ) : (
+                <View style={styles.videoPlaceholderActive}>
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <Text style={{ color: '#FFFFFF', marginTop: 12, fontWeight: '700', fontSize: 11 }}>ĐANG TẢI PHÂN CẢNH...</Text>
+                </View>
+              )
             ) : (
-              <View style={styles.videoPlaceholderActive}>
-                <Ionicons name="image-outline" size={48} color="#FFFFFF" />
-                <Text style={{ color: '#FFFFFF', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
-                  Chưa có tranh manga cho chương {currentChapterIndex + 1}
-                </Text>
-              </View>
-            )
-          )}
-        </TouchableOpacity>
+              currentChapter?.mangaUrl ? (
+                <View style={{ width: '100%', height: '100%' }}>
+                  <Image 
+                    source={{ uri: currentChapter.mangaUrl }} 
+                    style={styles.mangaImage} 
+                  />
+                  <View style={styles.playOverlay}>
+                    <Ionicons name="expand" size={32} color="#FFFFFF" />
+                    <Text style={styles.playOverlayText}>Bấm để xem phóng to</Text>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.videoPlaceholderActive}>
+                  <Ionicons name="image-outline" size={48} color="#FFFFFF" />
+                  <Text style={{ color: '#FFFFFF', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
+                    Chưa có tranh manga cho chương {currentChapterIndex + 1}
+                  </Text>
+                </View>
+              )
+            )}
+          </TouchableOpacity>
 
-        {/* Chapter metadata / narration / summary */}
-        {currentChapter && (
-          <View style={[styles.chapterInfoCard, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
-            <Text style={[styles.chapterKicker, { color: colors.primaryAccent }]}>
-              CHƯƠNG {currentChapter.order || currentChapterIndex + 1}
-            </Text>
-            <Text style={[styles.chapterTitle, { color: colors.text }]}>
-              {currentChapter.title || `Chương ${currentChapter.order || currentChapterIndex + 1}`}
-            </Text>
-            <Text style={[styles.chapterSummary, { color: colors.text }]}>
-              {currentChapter.summary}
-            </Text>
-          </View>
-        )}
+          {/* Chapter metadata / narration / summary */}
+          {currentChapter && (
+            <View style={[styles.chapterInfoCard, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+              <Text style={[styles.chapterKicker, { color: colors.primaryAccent }]}>
+                CHƯƠNG {currentChapter.order || currentChapterIndex + 1}
+              </Text>
+              <Text style={[styles.chapterTitle, { color: colors.text }]}>
+                {currentChapter.title || `Chương ${currentChapter.order || currentChapterIndex + 1}`}
+              </Text>
+              <Text style={[styles.chapterSummary, { color: colors.text }]}>
+                {currentChapter.summary}
+              </Text>
+            </View>
+          )}
+        </Animated.View>
 
         {/* Interactive Quiz corresponding to the current chapter */}
         {parsedQuiz ? (
