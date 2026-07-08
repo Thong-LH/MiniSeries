@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
+import FlyingPageBadgeWeb from '../components/FlyingPageBadgeWeb';
 import {
   api,
   MY_LESSONS_CACHE_PREFIX,
@@ -116,7 +117,11 @@ function readJsonCache<T>(key: string): T | null {
 }
 
 function writeJsonCache(key: string, value: unknown) {
-  localStorage.setItem(key, JSON.stringify(value));
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.warn("localStorage write failed (quota exceeded or disabled):", e);
+  }
 }
 
 function readCachedProfile(): ProfileData | null {
@@ -157,12 +162,16 @@ export default function Profile() {
   const [lessons, setLessons] = useState<LessonSummary[]>(() =>
     readJsonCache<LessonSummary[]>(getScopedCacheKey(MY_LESSONS_CACHE_PREFIX)) ?? []
   );
+  const [totalLessonsCount, setTotalLessonsCount] = useState(() =>
+    Number(localStorage.getItem(getScopedCacheKey("my_lessons_total_count"))) || 0
+  );
   const [currentPage, setCurrentPage] = useState(1);
+  const [inputPage, setInputPage] = useState(String(currentPage));
   const itemsPerPage = 6;
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [lessons.length]);
+    setInputPage(String(currentPage));
+  }, [currentPage]);
 
   const [lessonsLoading, setLessonsLoading] = useState(false);
   const [lessonsLoaded, setLessonsLoaded] = useState(() =>
@@ -177,6 +186,8 @@ export default function Profile() {
     readJsonCache<PaymentHistoryItem[]>(getScopedCacheKey(MY_PAYMENTS_CACHE_PREFIX)) !== null
   );
   const [paymentsError, setPaymentsError] = useState<string | null>(null);
+
+
 
   const handleAuthError = useCallback((err: unknown) => {
     const status = typeof err === 'object' && err !== null && 'status' in err
@@ -233,15 +244,28 @@ export default function Profile() {
     if (activeTab !== 'lessons') return;
 
     let ignore = false;
+    setLessonsLoading(true);
 
-    api.getMyLessons()
-      .then((data) => {
-        if (!ignore) {
-          const nextLessons = Array.isArray(data) ? data : [];
-          setLessons(nextLessons);
-          writeJsonCache(getScopedCacheKey(MY_LESSONS_CACHE_PREFIX), nextLessons);
-          setLessonsLoaded(true);
+    api.getMyLessons(currentPage, itemsPerPage)
+      .then((res) => {
+        if (ignore) return;
+
+        let fetchedLessons: LessonSummary[] = [];
+        let fetchedCount = 0;
+
+        if (res && typeof res === 'object' && 'data' in res) {
+          fetchedLessons = Array.isArray((res as any).data) ? (res as any).data : [];
+          fetchedCount = Number((res as any).totalCount) || 0;
+        } else {
+          fetchedLessons = Array.isArray(res) ? res : [];
+          fetchedCount = fetchedLessons.length;
         }
+
+        setLessons(fetchedLessons);
+        setTotalLessonsCount(fetchedCount);
+        writeJsonCache(getScopedCacheKey(MY_LESSONS_CACHE_PREFIX), fetchedLessons);
+        localStorage.setItem(getScopedCacheKey("my_lessons_total_count"), String(fetchedCount));
+        setLessonsLoaded(true);
       })
       .catch((err) => {
         if (ignore || handleAuthError(err)) return;
@@ -255,7 +279,7 @@ export default function Profile() {
     return () => {
       ignore = true;
     };
-  }, [activeTab, handleAuthError, readErrorMessage]);
+  }, [activeTab, currentPage, handleAuthError, readErrorMessage]);
 
   useEffect(() => {
     if (activeTab !== 'payments') return;
@@ -285,6 +309,8 @@ export default function Profile() {
     };
   }, [activeTab, handleAuthError, readErrorMessage]);
 
+
+
   if (profileError) {
     return (
       <section style={{ padding: '110px 20px 60px', color: '#fff', textAlign: 'center', minHeight: '70vh' }}>
@@ -302,15 +328,51 @@ export default function Profile() {
     );
   }
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentLessons = lessons.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(lessons.length / itemsPerPage);
+  const currentLessons = lessons;
+  const totalPages = Math.ceil(totalLessonsCount / itemsPerPage) || 1;
 
   return (
     <section className="profile-section">
       <div className="profile-container">
-        <h1 className="profile-title">Hồ sơ cá nhân</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+          <h1 className="profile-title" style={{ margin: 0 }}>Hồ sơ cá nhân</h1>
+          <button
+            type="button"
+            onClick={() => navigate('/studio')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: '1px solid rgba(6, 182, 212, 0.4)',
+              background: 'rgba(6, 182, 212, 0.12)',
+              color: '#67e8f9',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              transition: 'all 0.2s',
+              fontFamily: 'inherit'
+            }}
+          >
+            <svg 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Quay lại Studio
+          </button>
+        </div>
 
         <div className="profile-tabs">
           <button type="button" style={tabButtonStyle(activeTab === 'account')} onClick={() => selectTab('account')}>
@@ -453,28 +515,42 @@ export default function Profile() {
                     >
                       Trước
                     </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <button
-                        key={page}
-                        type="button"
-                        onClick={() => {
-                          setCurrentPage(page);
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#cbd5e1', fontSize: '0.85rem', fontWeight: 700, margin: '0 10px' }}>
+                      <span>Trang</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={totalPages}
+                        value={inputPage}
+                        onChange={(e) => setInputPage(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const val = Math.max(1, Math.min(totalPages, Number(inputPage) || 1));
+                            setCurrentPage(val);
+                            setInputPage(String(val));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }
+                        }}
+                        onBlur={() => {
+                          const val = Math.max(1, Math.min(totalPages, Number(inputPage) || 1));
+                          setCurrentPage(val);
+                          setInputPage(String(val));
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
                         style={{
-                          padding: '8px 14px',
-                          borderRadius: '8px',
-                          border: page === currentPage ? '1px solid rgba(6, 182, 212, 0.75)' : '1px solid rgba(148, 163, 184, 0.28)',
-                          background: page === currentPage ? 'rgba(6, 182, 212, 0.2)' : 'rgba(15, 23, 42, 0.6)',
-                          color: page === currentPage ? '#67e8f9' : '#cbd5e1',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          fontWeight: page === currentPage ? 900 : 500
+                          width: '56px',
+                          textAlign: 'center',
+                          padding: '6px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(6, 182, 212, 0.42)',
+                          background: 'rgba(15, 23, 42, 0.75)',
+                          color: '#67e8f9',
+                          fontWeight: 800,
+                          outline: 'none',
                         }}
-                      >
-                        {page}
-                      </button>
-                    ))}
+                      />
+                      <span style={{ color: '#64748b' }}>/ {totalPages}</span>
+                    </div>
                     <button
                       type="button"
                       disabled={currentPage === totalPages}
@@ -586,6 +662,8 @@ export default function Profile() {
             )}
           </div>
         )}
+
+
       </div>
     </section>
   );

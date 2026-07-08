@@ -1,6 +1,8 @@
+/* ===== MiniSeries Pricing Page — Premium Glassmorphic Theme ===== */
+
 .pricing-page {
-  background-color: #0c0a1a;
-  color: #ffffff;
+  background-color: transparent; /* Reveal Layout's BookPortalBackground */
+  color: #fafafa;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -8,17 +10,12 @@
   min-height: 100vh;
   overflow-x: hidden;
   box-sizing: border-box;
-  padding: 40px 20px;
+  padding: 110px 20px 60px;
+  font-family: 'Inter', sans-serif;
 }
 
 #solar-system-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
-  pointer-events: none;
+  display: none !important; /* Hide old solar system bg */
 }
 
 .pricing-shell, .pricing-header, .pricing-container {
@@ -30,17 +27,22 @@
   text-align: center;
   margin-bottom: 42px;
   max-width: 720px;
-  margin-top: 40px;
+  margin-top: 10px;
 }
 
 .pricing-header h1 {
-  font-size: 36px;
-  color: #c084fc;
-  margin-bottom: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #fafafa;
+  margin-bottom: 12px;
 }
 
 .pricing-header p {
-  color: #94a3b8;
+  color: rgba(250, 250, 250, 0.55);
+  font-size: 0.9rem;
   line-height: 1.6;
   margin: 0;
 }
@@ -55,63 +57,78 @@
 }
 
 .pricing-card {
-  background-color: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid #334155;
-  border-radius: 18px;
-  padding: 30px;
-  width: 280px;
+  background-color: rgba(12, 12, 14, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 35px 30px;
+  width: 290px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.3s, border-color 0.3s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
 }
 
 .pricing-card.popular {
-  border-color: #a855f7;
-  box-shadow: 0 10px 25px -5px rgba(168, 85, 247, 0.3);
+  border-color: var(--soft-orange);
+  box-shadow: 0 16px 40px -10px rgba(251, 146, 60, 0.2), 0 32px 64px -16px rgba(0, 0, 0, 0.6);
 }
 
 .pricing-card:hover {
   transform: translateY(-5px);
-  border-color: #a855f7;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.pricing-card.popular:hover {
+  border-color: #fdba74;
 }
 
 .pricing-badge {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background-color: #a855f7;
-  color: white;
-  font-size: 11px;
-  font-weight: bold;
+  top: 18px;
+  right: 18px;
+  background-color: var(--soft-orange);
+  color: #09090b;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   padding: 4px 10px;
   border-radius: 9999px;
 }
 
 .plan-name {
-  font-size: 22px;
+  font-family: 'Cinzel', serif;
+  font-size: 1.35rem;
   font-weight: 700;
   margin: 0 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .price {
-  font-size: 32px;
+  font-size: 2.2rem;
   font-weight: 700;
   margin-bottom: 10px;
 }
 
 .price span {
-  font-size: 14px;
-  color: #94a3b8;
+  font-size: 0.9rem;
+  color: rgba(250, 250, 250, 0.45);
   font-weight: 400;
 }
 
 .quota {
-  color: #c084fc;
+  color: var(--soft-orange);
   font-weight: 700;
-  margin-bottom: 20px;
+  font-size: 0.85rem;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .features {
@@ -122,7 +139,7 @@
 }
 
 .features li {
-  font-size: 14px;
+  font-size: 0.88rem;
   color: #cbd5e1;
   margin-bottom: 12px;
   display: flex;
@@ -133,13 +150,36 @@
 .btn-buy {
   width: 100%;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: 999px;
   border: none;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
-.btn-free { background-color: #475569; color: #cbd5e1; }
-.btn-premium { background-color: #a855f7; color: white; }
-.btn-premium:hover { background-color: #9333ea; }
+.btn-free {
+  background-color: rgba(255, 255, 255, 0.02);
+  color: #fafafa;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-free:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-premium {
+  background-color: #fafafa;
+  color: #09090b;
+}
+
+.btn-premium:hover {
+  background-color: #ffffff;
+  box-shadow: 0 12px 30px rgba(255, 255, 255, 0.2);
+  transform: translateY(-1.5px);
+}

@@ -270,12 +270,23 @@ export const api = {
         return await readJsonResponse(response);
     },
 
-    async getMyLessons() {
-        const response = await fetch(`${API_BASE}/lessons/my`, {
+    async getMyLessons(page?: number, pageSize?: number) {
+        const url = page && pageSize
+            ? `${API_BASE}/lessons/my?page=${page}&pageSize=${pageSize}`
+            : `${API_BASE}/lessons/my`;
+        const response = await fetch(url, {
             method: "GET",
             headers: getAuthHeaders()
         });
-        return await readJsonResponse(response);
+        const data = await readJsonResponse(response);
+        const totalCountHeader = response.headers.get("X-Total-Count");
+        if (totalCountHeader !== null) {
+            return {
+                data,
+                totalCount: parseInt(totalCountHeader, 10)
+            };
+        }
+        return data;
     },
 
     async getMyPaymentHistory() {
@@ -511,6 +522,56 @@ export const api = {
     async adminSeedKpiData() {
         const response = await fetch(`${API_BASE}/admin/seed-kpi-data?secret=miniseries-kpi-seeding`, {
             method: "POST",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async updateProgress(lessonId: string, lastReadChapterOrder: number, totalChapters: number) {
+        const response = await fetch(`${API_BASE}/progress/update`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ lessonId, lastReadChapterOrder, totalChapters })
+        });
+        return await readJsonResponse(response);
+    },
+
+    async logQuizAttempt(chapterId: string, selectedOption: string, isCorrect: boolean) {
+        const response = await fetch(`${API_BASE}/progress/quiz-attempt`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ chapterId, selectedOption, isCorrect })
+        });
+        return await readJsonResponse(response);
+    },
+
+    async getMyProgress() {
+        const response = await fetch(`${API_BASE}/progress/my`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async getMyQuizAttempts() {
+        const response = await fetch(`${API_BASE}/progress/my-quiz-attempts`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async getAchievements() {
+        const response = await fetch(`${API_BASE}/progress/achievements`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
+    async getDashboardStats() {
+        const response = await fetch(`${API_BASE}/progress/dashboard`, {
+            method: "GET",
             headers: getAuthHeaders()
         });
         return await readJsonResponse(response);

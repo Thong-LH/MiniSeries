@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Toast from '../components/Toast';
 import { api } from '../services/api';
+import './TuVan.css';
 
 export default function TuVan() {
   const [message, setMessage] = useState<string | null>(null);
@@ -38,56 +39,48 @@ export default function TuVan() {
   };
 
   return (
-    <div style={{ padding: '110px 20px 60px', textAlign: 'center', minHeight: '80vh', color: '#fff' }}>
+    <div className="tuvan-page">
       <Toast message={message} type="success" onClose={() => setMessage(null)} />
       <Toast message={error} type="error" onClose={() => setError(null)} />
 
-      <h1 style={{ color: '#38bdf8', marginBottom: '20px' }}>Tư vấn dịch vụ</h1>
-      <p style={{ color: '#94a3b8', marginBottom: '40px' }}>
+      <h1 className="tuvan-title">Tư vấn dịch vụ</h1>
+      <p className="tuvan-subtitle">
         Liên hệ với đội ngũ chuyên gia để được giải đáp thắc mắc và tư vấn giải pháp phù hợp.
       </p>
 
-      <div style={{
-        maxWidth: '500px',
-        margin: '0 auto',
-        padding: '30px',
-        background: 'rgba(15, 23, 42, 0.6)',
-        borderRadius: '16px',
-        border: '1px solid rgba(56, 189, 248, 0.3)',
-        textAlign: 'left'
-      }}>
+      <div className="tuvan-container">
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px' }}>Họ và tên</label>
+          <div className="tuvan-form-group">
+            <label className="tuvan-label">Họ và tên</label>
             <input 
               type="text" 
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #334155', borderRadius: '8px', color: 'white' }} 
+              className="tuvan-input"
               placeholder="Nhập tên của bạn" 
               required 
             />
           </div>
 
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px' }}>Email liên hệ</label>
+          <div className="tuvan-form-group">
+            <label className="tuvan-label">Email liên hệ</label>
             <input 
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #334155', borderRadius: '8px', color: 'white' }} 
+              className="tuvan-input"
               placeholder="Nhập email" 
               required 
             />
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px' }}>Nội dung cần tư vấn</label>
+          <div className="tuvan-form-group">
+            <label className="tuvan-label">Nội dung cần tư vấn</label>
             <textarea 
               rows={5} 
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #334155', borderRadius: '8px', color: 'white', resize: 'vertical' }} 
+              className="tuvan-textarea"
               placeholder="Bạn cần chúng tôi giúp gì?" 
               required 
             />
@@ -96,17 +89,7 @@ export default function TuVan() {
           <button 
             type="submit" 
             disabled={submitting}
-            style={{
-              width: '100%',
-              padding: '14px',
-              background: 'linear-gradient(135deg, #0284c7 0%, #3b82f6 100%)',
-              border: 'none',
-              color: 'white',
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              opacity: submitting ? 0.7 : 1
-            }}
+            className="tuvan-btn"
           >
             {submitting ? 'Đang gửi...' : 'Gửi yêu cầu'}
           </button>

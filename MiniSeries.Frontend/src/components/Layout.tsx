@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PROFILE_CACHE_KEY, PROFILE_UPDATED_EVENT, api } from '../services/api';
+import BookPortalBackground from './BookPortalBackground';
+import Logo from './Logo';
 import '../pages/Home.css';
 
 type HeaderProfile = {
@@ -90,6 +92,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const isProfilePage = location.pathname === '/profile';
   const useStudioNavbar = !isHomePage;
 
   const [profile, setProfile] = useState<HeaderProfile | null>(null);
@@ -178,23 +181,12 @@ export default function Layout() {
 
   return (
     <div className="content-wrapper">
-      <div className="side-accent side-left">
-        <span className="accent-text">MINISERIES // CREATIVE SYSTEM</span>
-        <div style={{ width: '1px', flex: 1, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent)', margin: '20px 0' }} />
-        <span className="accent-text" style={{ color: 'var(--sky-blue)' }}>STORY PLATFORM</span>
-      </div>
-      <div className="side-accent side-right">
-        <span className="accent-text" style={{ color: 'var(--soft-orange)' }}>AI CORE ACTIVE</span>
-        <div style={{ width: '1px', flex: 1, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent)', margin: '20px 0' }} />
-        <span className="accent-text">IDEA TO ANIMATION</span>
-      </div>
+      {!isHomePage && !isProfilePage && <BookPortalBackground />}
 
       {useStudioNavbar ? (
         <header className="nav studio-nav cyber-nav-glass" style={{ height: '70px', padding: '0 40px' }}>
-          <Link to="/" className="cyber-logo-container">
-            <span className="highlight-letter">M</span>ini
-            <span className="highlight-letter">S</span>eries
-            <span className="highlight-letter">L</span>earning
+          <Link to="/" className="cyber-logo-container" style={{ textDecoration: 'none' }}>
+            <Logo width={32} height={32} />
           </Link>
 
           <div className="studio-nav-right">
@@ -285,7 +277,9 @@ export default function Layout() {
         </header>
       ) : (
         <header className="nav">
-          <Link to="/" className="nav-brand">MiniSeries</Link>
+          <Link to="/" className="nav-brand" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <Logo width={32} height={32} />
+          </Link>
           <div className="nav-links">
             <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Trang chủ</Link>
             <a href="#flow">Tính năng</a>

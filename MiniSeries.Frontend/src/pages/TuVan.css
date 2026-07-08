@@ -1,0 +1,110 @@
+/* ===== MiniSeries TuVan Page — Premium Glassmorphic Theme ===== */
+
+.tuvan-page {
+  padding: 110px 20px 60px;
+  text-align: center;
+  min-height: 80vh;
+  color: #fafafa;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+.tuvan-title {
+  font-family: 'Cinzel', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #fafafa;
+  margin-bottom: 12px;
+}
+
+.tuvan-subtitle {
+  color: rgba(250, 250, 250, 0.55);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 auto 40px;
+  max-width: 600px;
+}
+
+.tuvan-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 35px 30px;
+  background: rgba(12, 12, 14, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  text-align: left;
+  box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
+}
+
+.tuvan-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.tuvan-label {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(250, 250, 250, 0.6);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.tuvan-input,
+.tuvan-textarea {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #fafafa;
+  font-size: 0.92rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  outline: none;
+}
+
+.tuvan-input:focus,
+.tuvan-textarea:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+}
+
+.tuvan-textarea {
+  resize: vertical;
+}
+
+.tuvan-btn {
+  width: 100%;
+  padding: 0.85rem;
+  margin-top: 1rem;
+  background: #fafafa;
+  color: #09090b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.8rem;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 25px -5px rgba(255, 255, 255, 0.05);
+  box-sizing: border-box;
+}
+
+.tuvan-btn:hover:not(:disabled) {
+  transform: translateY(-1.5px);
+  background: #ffffff;
+  box-shadow: 0 12px 35px rgba(255, 255, 255, 0.22);
+}
+
+.tuvan-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

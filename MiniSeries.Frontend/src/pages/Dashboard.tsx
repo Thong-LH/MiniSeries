@@ -1,6 +1,9 @@
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import CustomerTab from './Dashboard/components/CustomerTab';
+import SupportTab from './Dashboard/components/SupportTab';
+import RevenueTab from './Dashboard/components/RevenueTab';
 import './Dashboard.css';
 
 interface CustomerProfile {
@@ -12,44 +15,6 @@ interface CustomerProfile {
   accountStatus: string;
   createdAt: string;
   role: string;
-  mangaLimit?: number;
-  usedManga?: number;
-  videoLimit?: number;
-  usedVideo?: number;
-}
-
-interface SupportTicket {
-  id: string;
-  customerEmail: string;
-  content: string;
-  createdAt: string;
-  status: string;
-  reply?: string;
-  assignedStaffEmail?: string;
-}
-
-interface CskhMessage {
-  id: string;
-  customer_email?: string;
-  email_customer?: string;
-  customerEmail?: string;
-  subject?: string;
-  Subject?: string;
-  content: string;
-  createdAt?: string;
-  created_at?: string;
-  status?: string;
-  reply?: string;
-  sender_role?: string;
-  senderRole?: string;
-}
-
-interface FeedbackItem {
-  id: string;
-  email: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
 }
 
 interface StaffReport {
@@ -59,21 +24,6 @@ interface StaffReport {
   status: string;
   adminReply?: string;
   createdAt: string;
-}
-
-interface PaymentHistory {
-  id: string;
-  transactionCode: string;
-  userEmail: string;
-  amount: number;
-  createdAt: string;
-}
-
-interface RevenueStats {
-  labels: string[];
-  amounts: number[];
-  totalRevenue: number;
-  transactionCount: number;
 }
 
 export default function Dashboard() {
@@ -95,60 +45,13 @@ export default function Dashboard() {
     onConfirm: () => void;
   } | null>(null);
 
-  // Section Data
-  const [customers, setCustomers] = useState<CustomerProfile[]>([]);
-  const [customersLoading, setCustomersLoading] = useState<boolean>(false);
-
-  const [tokenSummary, setTokenSummary] = useState<{
-    totalTokens: number;
-    plusPackageCount: number;
-    proMaxPackageCount: number;
-  }>({ totalTokens: 0, plusPackageCount: 0, proMaxPackageCount: 0 });
-  const [tokenUsers, setTokenUsers] = useState<CustomerProfile[]>([]);
-  const [tokensLoading, setTokensLoading] = useState<boolean>(false);
-  const [editingTokenUser, setEditingTokenUser] = useState<CustomerProfile | null>(null);
-  const [mangaDelta, setMangaDelta] = useState<number>(0);
-  const [videoDelta, setVideoDelta] = useState<number>(0);
-  const [tokenPlan, setTokenPlan] = useState<string>('Free');
-
-  const [supportTab, setSupportTab] = useState<'support-tickets' | 'cskh-emails'>('support-tickets');
-  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
-  const [supportAssigneeFilter, setSupportAssigneeFilter] = useState<'all' | 'mine'>('all');
-  const [cskhHistory, setCskhHistory] = useState<CskhMessage[]>([]);
-  const [supportLoading, setSupportLoading] = useState<boolean>(false);
-
-  const [cskhEmail, setCskhEmail] = useState<string>('');
-  const [cskhSubject, setCskhSubject] = useState<string>('');
-  const [cskhContent, setCskhContent] = useState<string>('');
-  const [selectedCskhTicketId, setSelectedCskhTicketId] = useState<string | null>(null);
-  const [isComposeOpen, setIsComposeOpen] = useState<boolean>(false);
-  const [isComposeMinimized, setIsComposeMinimized] = useState<boolean>(false);
-
-  const [activeReplySupportId, setActiveReplySupportId] = useState<string | null>(null);
-  const [supportReplyText, setSupportReplyText] = useState<string>('');
-  const [activeViewCskhId, setActiveViewCskhId] = useState<string | null>(null);
-  const [replyingSupportId, setReplyingSupportId] = useState<string | null>(null);
-  const [isSendingCskhEmail, setIsSendingCskhEmail] = useState<boolean>(false);
-
-  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
-  const [feedbacksLoading, setFeedbacksLoading] = useState<boolean>(false);
-
+  // Staff Reports and Accounts states
   const [staffReports, setStaffReports] = useState<StaffReport[]>([]);
   const [staffReportContent, setStaffReportContent] = useState<string>('');
   const [reportsLoading, setReportsLoading] = useState<boolean>(false);
 
   const [adminReports, setAdminReports] = useState<StaffReport[]>([]);
   const [adminReplies, setAdminReplies] = useState<Record<string, string>>({});
-
-  const [payments, setPayments] = useState<PaymentHistory[]>([]);
-  const [paymentsLoading, setPaymentsLoading] = useState<boolean>(false);
-
-  const [revenueStats, setRevenueStats] = useState<RevenueStats | null>(null);
-  const [revenueLoading, setRevenueLoading] = useState<boolean>(false);
-
-  const [trafficStats, setTrafficStats] = useState<any>(null);
-  const [trafficLoading, setTrafficLoading] = useState<boolean>(false);
-  const [trafficGroupBy, setTrafficGroupBy] = useState<string>('day');
 
   const [staffs, setStaffs] = useState<CustomerProfile[]>([]);
   const [staffsLoading, setStaffsLoading] = useState<boolean>(false);
@@ -158,260 +61,22 @@ export default function Dashboard() {
   const [newStaffPassword, setNewStaffPassword] = useState<string>('');
   const [creatingStaff, setCreatingStaff] = useState<boolean>(false);
 
-  // Search, Filter & Pagination states
+  // Search & Pagination & Sorting
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filterOption1, setFilterOption1] = useState<string>('');
-  const [filterOption2, setFilterOption2] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
-
-  // Sorting states
   const [sortColumn, setSortColumn] = useState<string>('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  // Reset states on activeTab or supportTab changes
   useEffect(() => {
     setSearchTerm('');
     setFilterOption1('');
-    setFilterOption2('');
     setCurrentPage(1);
     setSortColumn('');
     setSortDirection('desc');
-  }, [activeTab, supportTab]);
+  }, [activeTab]);
 
-  // Sorting helper handler
-  const handleSort = (column: string) => {
-    if (sortColumn === column) {
-      if (sortDirection === 'asc') {
-        setSortDirection('desc');
-      } else {
-        setSortColumn('');
-        setSortDirection('desc');
-      }
-    } else {
-      setSortColumn(column);
-      setSortDirection('asc');
-    }
-    setCurrentPage(1);
-  };
-
-  // UI Helper for sortable headers
-  const renderSortableHeader = (label: string, field: string) => {
-    const isCurrent = sortColumn === field;
-    return (
-      <th 
-        onClick={() => handleSort(field)} 
-        className="sortable-header"
-        style={{ cursor: 'pointer', userSelect: 'none' }}
-      >
-        <div className="flex items-center gap-1">
-          {label}
-          <span className={`sort-arrow ${isCurrent ? 'active' : ''}`} style={{ fontSize: '10px', opacity: isCurrent ? 1 : 0.4 }}>
-            {isCurrent ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : ' ↕'}
-          </span>
-        </div>
-      </th>
-    );
-  };
-
-  // Generic data sorting utility
-  const sortData = <T extends Record<string, any>>(data: T[]): T[] => {
-    if (!sortColumn) return data;
-    return [...data].sort((a, b) => {
-      let valA = a[sortColumn];
-      let valB = b[sortColumn];
-
-      // Handle inconsistent API naming formats
-      if (sortColumn === 'customerEmail') {
-        valA = a.customerEmail ?? a.customer_email ?? a.email_customer;
-        valB = b.customerEmail ?? b.customer_email ?? b.email_customer;
-      } else if (sortColumn === 'createdAt') {
-        valA = a.createdAt ?? a.created_at;
-        valB = b.createdAt ?? b.created_at;
-      } else if (sortColumn === 'subject') {
-        valA = a.subject ?? a.Subject;
-        valB = b.subject ?? b.Subject;
-      } else if (sortColumn === 'senderRole') {
-        valA = a.senderRole ?? a.sender_role;
-        valB = b.senderRole ?? b.sender_role;
-      }
-
-      if (valA === undefined || valA === null) return 1;
-      if (valB === undefined || valB === null) return -1;
-
-      // Handle numbers
-      if (typeof valA === 'number' && typeof valB === 'number') {
-        return sortDirection === 'asc' ? valA - valB : valB - valA;
-      }
-
-      // Handle strings/dates
-      const strA = String(valA);
-      const strB = String(valB);
-
-      // Check if it's a valid date string
-      const dateA = Date.parse(strA);
-      const dateB = Date.parse(strB);
-      if (!isNaN(dateA) && !isNaN(dateB) && isNaN(Number(strA)) && isNaN(Number(strB))) {
-        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
-      }
-
-      return sortDirection === 'asc' 
-        ? strA.toLowerCase().localeCompare(strB.toLowerCase(), 'vi', { sensitivity: 'base' })
-        : strB.toLowerCase().localeCompare(strA.toLowerCase(), 'vi', { sensitivity: 'base' });
-    });
-  };
-
-  // UI Helper for Search & Filter Bar
-  const renderSearchFilterBar = (
-    placeholder: string,
-    filters?: {
-      value: string;
-      onChange: (val: string) => void;
-      options: { value: string; label: string }[];
-    }[]
-  ) => {
-    return (
-      <div className="search-filter-bar">
-        <div className="search-input-wrapper">
-          <svg className="search-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder={placeholder}
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="search-input"
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              className="clear-search-btn"
-              onClick={() => {
-                setSearchTerm('');
-                setCurrentPage(1);
-              }}
-            >
-              &times;
-            </button>
-          )}
-        </div>
-        {filters && filters.length > 0 && (
-          <div className="filter-group">
-            {filters.map((filter, index) => (
-              <div className="filter-select-wrapper" key={index}>
-                <select
-                  value={filter.value}
-                  onChange={(e) => {
-                    filter.onChange(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="filter-select"
-                >
-                  {filter.options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // UI Helper for Pagination
-  const renderPagination = (totalItems: number, itemsPerPage: number = 10) => {
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    if (totalPages <= 1) return null;
-
-    const pages: number[] = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1);
-      if (currentPage > 3) {
-        pages.push(-1); // ellipsis
-      }
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-      for (let i = start; i <= end; i++) {
-        if (!pages.includes(i)) pages.push(i);
-      }
-      if (currentPage < totalPages - 2) {
-        pages.push(-2); // ellipsis
-      }
-      if (!pages.includes(totalPages)) pages.push(totalPages);
-    }
-
-    return (
-      <div className="table-pagination-bar">
-        <div className="pagination-controls">
-          <button
-            type="button"
-            className="btn-pagination-nav"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-          >
-            Trước
-          </button>
-          {pages.map((p, idx) => {
-            if (p < 0) {
-              return <span key={`ellipsis-${idx}`} className="pagination-ellipsis">...</span>;
-            }
-            return (
-              <button
-                key={p}
-                type="button"
-                className={`btn-pagination-page ${currentPage === p ? 'active' : ''}`}
-                onClick={() => setCurrentPage(p)}
-              >
-                {p}
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            className="btn-pagination-nav"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-          >
-            Sau
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  // UI Helper for Loading State
-  const renderLoadingState = (message: string) => {
-    return (
-      <div className="cyber-loading-state">
-        <div className="cyber-spinner"></div>
-        <p className="cyber-loading-text">{message}</p>
-      </div>
-    );
-  };
-
-  // UI Helper for Empty State
-  const renderEmptyState = (message: string) => {
-    return (
-      <div className="cyber-empty-state">
-        <svg className="cyber-empty-icon" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.008 1.24l.885 1.77a2.25 2.25 0 002.007 1.24h1.98a2.25 2.25 0 002.007-1.24l.885-1.77a2.25 2.25 0 012.007-1.24h3.86m-18 0h18a2.25 2.25 0 012.25 2.25v4.5A2.25 2.25 0 0118 21H6a2.25 2.25 0 01-2.25-2.25v-4.5a2.25 2.25 0 012.25-2.25zM6 7.5l6-6 6 6m-6-6v12" />
-        </svg>
-        <p className="cyber-empty-text">{message}</p>
-      </div>
-    );
-  };
-
-  // 1. Starfield Background effect removed
-
-  // 2. Auth checking & Session loading
+  // Auth checking
   useEffect(() => {
     const role = localStorage.getItem("userRole") || localStorage.getItem("user_role");
     const name = localStorage.getItem("user_name") || "User";
@@ -428,35 +93,20 @@ export default function Dashboard() {
     setAuthChecked(true);
   }, [navigate]);
 
-  // 3. Load tab data
+  // Load tab data
   useEffect(() => {
     if (!authChecked) return;
 
-    if (activeTab === 'customers') loadCustomers();
-    else if (activeTab === 'tokens') loadTokens();
-    else if (activeTab === 'support') loadSupportData();
-    else if (activeTab === 'feedback') loadFeedbacks();
-    else if (activeTab === 'reports-staff') loadStaffReports();
+    if (activeTab === 'reports-staff') loadStaffReports();
     else if (activeTab === 'reports-admin') loadAdminReports();
-    else if (activeTab === 'payments') loadPaymentHistory();
-    else if (activeTab === 'revenue') loadRevenueStats();
-    else if (activeTab === 'traffic') loadTrafficStats(trafficGroupBy);
     else if (activeTab === 'staff') loadStaffs();
   }, [activeTab, authChecked]);
 
-  useEffect(() => {
-    if (activeTab === 'traffic' && authChecked) {
-      loadTrafficStats(trafficGroupBy);
-    }
-  }, [trafficGroupBy]);
-
-  // Toast Helper
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
 
-  // Confirm Dialog Helper
   const showConfirm = (message: string, onConfirm: () => void, title: string = 'Xác nhận') => {
     setConfirmModal({
       show: true,
@@ -469,70 +119,9 @@ export default function Dashboard() {
     });
   };
 
-  // --- API Load Callbacks ---
-
-  const loadCustomers = async () => {
-    if (customers.length === 0) setCustomersLoading(true);
-    try {
-      const data = await api.adminGetCustomers();
-      setCustomers(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      showToast(err.message || 'Không thể tải danh sách khách hàng', 'error');
-    } finally {
-      setCustomersLoading(false);
-    }
-  };
-
-  const loadTokens = async () => {
-    if (tokenUsers.length === 0) setTokensLoading(true);
-    try {
-      const [summary, users] = await Promise.all([
-        api.adminGetTokenSummary(),
-        api.adminGetTokenUsers()
-      ]);
-      setTokenSummary({
-        totalTokens: summary.totalTokensIssued ?? summary.totalTokens ?? 0,
-        plusPackageCount: summary.plusPackageCount ?? summary.totalPlus ?? 0,
-        proMaxPackageCount: summary.proMaxPackageCount ?? summary.totalProMax ?? 0
-      });
-      setTokenUsers(Array.isArray(users) ? users : []);
-    } catch (err: any) {
-      showToast(err.message || 'Không thể tải dữ liệu token', 'error');
-    } finally {
-      setTokensLoading(false);
-    }
-  };
-
-  const loadSupportData = async () => {
-    if (supportTickets.length === 0 && cskhHistory.length === 0) setSupportLoading(true);
-    try {
-      const [tickets, history] = await Promise.all([
-        api.supportGetList(),
-        api.cskhGetHistory()
-      ]);
-      setSupportTickets(Array.isArray(tickets) ? tickets : []);
-      setCskhHistory(Array.isArray(history) ? history : []);
-    } catch (err: any) {
-      showToast(err.message || 'Không thể tải phiếu yêu cầu hỗ trợ', 'error');
-    } finally {
-      setSupportLoading(false);
-    }
-  };
-
-  const loadFeedbacks = async () => {
-    if (feedbacks.length === 0) setFeedbacksLoading(true);
-    try {
-      const data = await api.feedbackGetList();
-      setFeedbacks(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      showToast(err.message || 'Không thể tải danh sách đánh giá', 'error');
-    } finally {
-      setFeedbacksLoading(false);
-    }
-  };
-
+  // Staff Reports and Staff Accounts API loaders
   const loadStaffReports = async () => {
-    if (staffReports.length === 0) setReportsLoading(true);
+    setReportsLoading(true);
     try {
       const data = await api.reportGetList();
       setStaffReports(Array.isArray(data) ? data : []);
@@ -544,7 +133,7 @@ export default function Dashboard() {
   };
 
   const loadAdminReports = async () => {
-    if (adminReports.length === 0) setReportsLoading(true);
+    setReportsLoading(true);
     try {
       const data = await api.reportGetList();
       setAdminReports(Array.isArray(data) ? data : []);
@@ -555,44 +144,8 @@ export default function Dashboard() {
     }
   };
 
-  const loadPaymentHistory = async () => {
-    if (payments.length === 0) setPaymentsLoading(true);
-    try {
-      const data = await api.adminGetPaymentHistory();
-      setPayments(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      showToast(err.message || 'Không thể tải lịch sử thanh toán', 'error');
-    } finally {
-      setPaymentsLoading(false);
-    }
-  };
-
-  const loadRevenueStats = async () => {
-    if (!revenueStats) setRevenueLoading(true);
-    try {
-      const data = await api.adminGetPaymentStats('month');
-      setRevenueStats(data);
-    } catch (err: any) {
-      showToast(err.message || 'Không thể tải biểu đồ doanh thu', 'error');
-    } finally {
-      setRevenueLoading(false);
-    }
-  };
-
-  const loadTrafficStats = async (groupBy: string = 'day') => {
-    if (!trafficStats) setTrafficLoading(true);
-    try {
-      const data = await api.adminGetTrafficStats(groupBy);
-      setTrafficStats(data);
-    } catch (err: any) {
-      showToast(err.message || 'Không thể tải thống kê lượng truy cập', 'error');
-    } finally {
-      setTrafficLoading(false);
-    }
-  };
-
   const loadStaffs = async () => {
-    if (staffs.length === 0) setStaffsLoading(true);
+    setStaffsLoading(true);
     try {
       const data = await api.adminGetStaffs();
       setStaffs(Array.isArray(data) ? data : []);
@@ -603,8 +156,6 @@ export default function Dashboard() {
     }
   };
 
-  // --- ACTIONS ---
-
   const handleLogout = () => {
     showConfirm("Bạn có chắc chắn muốn đăng xuất không?", () => {
       localStorage.clear();
@@ -612,52 +163,6 @@ export default function Dashboard() {
     }, "Đăng xuất");
   };
 
-  const handleSeedKpiData = async () => {
-    showConfirm(
-      "Bạn có chắc chắn muốn khởi tạo dữ liệu mẫu (25 giao dịch và 120 traffic log) phục vụ báo cáo KPI OC3 không? Dữ liệu ảo trước đó (nếu có) sẽ bị xóa.",
-      async () => {
-        try {
-          const res = await api.adminSeedKpiData();
-          showToast(res.message || 'Khởi tạo dữ liệu KPI OC3 thành công!', 'success');
-          // Reload dashboard stats
-          loadRevenueStats();
-          loadTrafficStats(trafficGroupBy);
-          loadPaymentHistory();
-        } catch (err: any) {
-          showToast(err.message || 'Lỗi khởi tạo dữ liệu KPI', 'error');
-        }
-      },
-      "Khởi tạo dữ liệu KPI OC3"
-    );
-  };
-
-  // Customers Management Actions
-  const handleToggleBlockCustomer = async (userId: string, isBlocked: boolean) => {
-    const action = isBlocked ? "mở khóa" : "khóa";
-    showConfirm(`Bạn có chắc chắn muốn ${action} tài khoản khách hàng này?`, async () => {
-      try {
-        await api.adminToggleBlockCustomer(userId);
-        showToast(`Đã ${isBlocked ? 'mở khóa' : 'khóa'} tài khoản thành công!`);
-        loadCustomers();
-      } catch (err: any) {
-        showToast(err.message || 'Thao tác thất bại', 'error');
-      }
-    }, isBlocked ? "Mở khóa khách hàng" : "Khóa khách hàng");
-  };
-
-  const handleDeleteCustomer = async (userId: string) => {
-    showConfirm("Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản khách hàng này?", async () => {
-      try {
-        await api.adminDeleteCustomer(userId);
-        showToast('Đã xóa tài khoản thành công!');
-        loadCustomers();
-      } catch (err: any) {
-        showToast(err.message || 'Không thể xóa tài khoản', 'error');
-      }
-    }, "Xóa khách hàng");
-  };
-
-  // Staff Management Actions
   const handleToggleBlockStaff = async (staffId: string, isBlocked: boolean) => {
     const action = isBlocked ? "mở khóa" : "khóa";
     showConfirm(`Bạn có chắc chắn muốn ${action} tài khoản nhân viên này?`, async () => {
@@ -709,85 +214,6 @@ export default function Dashboard() {
     }
   };
 
-  // Token Management actions
-  const handleOpenTokenModal = (user: CustomerProfile) => {
-    setEditingTokenUser(user);
-    setMangaDelta(0);
-    setVideoDelta(0);
-    setTokenPlan(user.planName || 'Free');
-  };
-
-  const handleTokenUpdateSubmit = async () => {
-    if (!editingTokenUser) return;
-    try {
-      await api.adminUpdateUserToken(editingTokenUser.id, mangaDelta, videoDelta, tokenPlan);
-      showToast('Cập nhật hạn mức và gói thành công!');
-      setEditingTokenUser(null);
-      loadTokens();
-    } catch (err: any) {
-      showToast(err.message || 'Lỗi cập nhật hạn mức/gói', 'error');
-    }
-  };
-
-  // Support actions
-  const handleReplySupportTicket = async (ticketId: string) => {
-    const reply = supportReplyText.trim();
-    if (!reply) {
-      alert("Vui lòng nhập nội dung phản hồi.");
-      return;
-    }
-    setReplyingSupportId(ticketId);
-    try {
-      await api.supportReply(ticketId, reply);
-      showToast('Phản hồi ticket hỗ trợ thành công!');
-      setActiveReplySupportId(null);
-      setSupportReplyText('');
-      loadSupportData();
-    } catch (err: any) {
-      showToast(err.message || 'Phản hồi thất bại', 'error');
-    } finally {
-      setReplyingSupportId(null);
-    }
-  };
-
-
-
-  const handleCancelCskhReply = () => {
-    setCskhEmail('');
-    setCskhSubject('');
-    setCskhContent('');
-    setSelectedCskhTicketId(null);
-    setIsComposeOpen(false);
-  };
-
-  const handleSendCskhEmail = async () => {
-    const email = cskhEmail.trim();
-    const subject = cskhSubject.trim();
-    const content = cskhContent.trim();
-    if (!email || !content) {
-      alert("Vui lòng nhập đầy đủ địa chỉ nhận và nội dung phản hồi!");
-      return;
-    }
-    setIsSendingCskhEmail(true);
-    try {
-      await api.cskhSendEmail({
-        customerEmail: email,
-        subject: subject,
-        content: content,
-        ticketId: selectedCskhTicketId ?? undefined
-      });
-      showToast('Đã gửi mail phản hồi thành công!');
-      setCskhContent('');
-      handleCancelCskhReply();
-      loadSupportData();
-    } catch (err: any) {
-      showToast(err.message || 'Gửi mail thất bại', 'error');
-    } finally {
-      setIsSendingCskhEmail(false);
-    }
-  };
-
-  // Staff Reports Actions
   const handleCreateReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const content = staffReportContent.trim();
@@ -805,7 +231,6 @@ export default function Dashboard() {
     }
   };
 
-  // Admin Reports Actions
   const handleReplyReport = async (reportId: string) => {
     const reply = (adminReplies[reportId] || '').trim();
     if (!reply) {
@@ -822,7 +247,49 @@ export default function Dashboard() {
     }
   };
 
-  // Helper formatting functions
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  const sortData = <T extends Record<string, any>>(data: T[]): T[] => {
+    if (!sortColumn) return data;
+    return [...data].sort((a, b) => {
+      let valA = a[sortColumn];
+      let valB = b[sortColumn];
+
+      if (sortColumn === 'createdAt') {
+        valA = a.createdAt ?? a.created_at;
+        valB = b.createdAt ?? b.created_at;
+      }
+
+      if (valA === undefined || valA === null) return 1;
+      if (valB === undefined || valB === null) return -1;
+
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return sortDirection === 'asc' ? valA - valB : valB - valA;
+      }
+
+      const strA = String(valA);
+      const strB = String(valB);
+
+      const dateA = Date.parse(strA);
+      const dateB = Date.parse(strB);
+      if (!isNaN(dateA) && !isNaN(dateB) && isNaN(Number(strA)) && isNaN(Number(strB))) {
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      }
+
+      return sortDirection === 'asc' 
+        ? strA.toLowerCase().localeCompare(strB.toLowerCase(), 'vi', { sensitivity: 'base' })
+        : strB.toLowerCase().localeCompare(strA.toLowerCase(), 'vi', { sensitivity: 'base' });
+    });
+  };
+
   const formatDate = (value?: string) => {
     if (!value) return '—';
     const d = new Date(value);
@@ -830,333 +297,121 @@ export default function Dashboard() {
     return d.toLocaleString('vi-VN');
   };
 
-  const formatVnd = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      maximumFractionDigits: 0
-    }).format(amount || 0);
-  };
-
-  const renderStars = (rating: number) => {
-    const count = Math.max(0, Math.min(5, rating || 0));
-    return "⭐".repeat(count) + "☆".repeat(5 - count);
-  };
-
-  // SVG Area/Line Chart Renderer for Revenue
-  const renderRevenueChart = () => {
-    if (!revenueStats || !revenueStats.amounts || revenueStats.amounts.length === 0) {
-      return (
-        <div className="flex h-64 items-center justify-center text-slate-400">
-          Chưa có dữ liệu biểu đồ doanh thu.
-        </div>
-      );
-    }
-
-    const { labels, amounts } = revenueStats;
-    const maxVal = Math.max(...amounts, 100000); // minimum scale peak
-    
-    // Graph sizing details
-    const width = 800;
-    const height = 300;
-    const paddingLeft = 90;
-    const paddingRight = 30;
-    const paddingTop = 30;
-    const paddingBottom = 40;
-
-    const plotWidth = width - paddingLeft - paddingRight;
-    const plotHeight = height - paddingTop - paddingBottom;
-
-    // Build data point coordinates
-    const points = amounts.map((val, i) => {
-      const x = paddingLeft + (i * plotWidth) / Math.max(1, labels.length - 1);
-      const y = paddingTop + plotHeight - (val / maxVal) * plotHeight;
-      return { x, y, value: val, label: labels[i] };
-    });
-
-    // Make paths
-    const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-    
-    const areaPath = points.length > 0 
-      ? `${linePath} L ${points[points.length - 1].x} ${paddingTop + plotHeight} L ${points[0].x} ${paddingTop + plotHeight} Z`
-      : '';
-
-    // Y axis divisions (5 ticks)
-    const yTicks = Array.from({ length: 5 }, (_, i) => {
-      const val = (maxVal * i) / 4;
-      const y = paddingTop + plotHeight - (val / maxVal) * plotHeight;
-      return { val, y };
-    });
-
+  const renderSortableHeader = (label: string, field: string) => {
+    const isCurrent = sortColumn === field;
     return (
-      <div className="relative overflow-x-auto">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto max-w-4xl mx-auto block">
-          <defs>
-            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
-            </linearGradient>
-          </defs>
+      <th onClick={() => handleSort(field)} style={{ cursor: 'pointer', userSelect: 'none' }} className="sortable-header">
+        <div className="flex items-center gap-1">
+          {label}
+          <span className={`sort-arrow ${isCurrent ? 'active' : ''}`} style={{ fontSize: '10px', opacity: isCurrent ? 1 : 0.4 }}>
+            {isCurrent ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : ' ↕'}
+          </span>
+        </div>
+      </th>
+    );
+  };
 
-          {/* Grid lines & Y Axis Labels */}
-          {yTicks.map((tick, idx) => (
-            <g key={idx}>
-              <line 
-                x1={paddingLeft} 
-                y1={tick.y} 
-                x2={width - paddingRight} 
-                y2={tick.y} 
-                stroke="#1e293b" 
-                strokeDasharray="4 4" 
-              />
-              <text 
-                x={paddingLeft - 15} 
-                y={tick.y + 4} 
-                fill="#94a3b8" 
-                fontSize="11" 
-                textAnchor="end"
-                className="font-medium"
-              >
-                {formatVnd(tick.val)}
-              </text>
-            </g>
-          ))}
-
-          {/* Fill Area Chart */}
-          {areaPath && (
-            <path d={areaPath} fill="url(#chartGradient)" />
-          )}
-
-          {/* Chart Line */}
-          {linePath && (
-            <path 
-              d={linePath} 
-              fill="none" 
-              stroke="#6366f1" 
-              strokeWidth="2.5" 
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          )}
-
-          {/* Data Nodes */}
-          {points.map((p, idx) => (
-            <g key={idx} className="group cursor-pointer">
-              <circle 
-                cx={p.x} 
-                cy={p.y} 
-                r="5" 
-                fill="#0f172a" 
-                stroke="#6366f1" 
-                strokeWidth="2" 
-                className="transition-all duration-200 hover:scale-125"
-              />
-              {/* Tooltip on Hover */}
-              <title>{`${p.label}: ${formatVnd(p.value)}`}</title>
-            </g>
-          ))}
-
-          {/* X Axis Labels */}
-          {points.map((p, idx) => (
-            <text 
-              key={idx}
-              x={p.x} 
-              y={height - 10} 
-              fill="#94a3b8" 
-              fontSize="11" 
-              textAnchor="middle"
-              className="font-medium"
-            >
-              {p.label}
-            </text>
-          ))}
-
-          {/* Bottom baseline */}
-          <line 
-            x1={paddingLeft} 
-            y1={paddingTop + plotHeight} 
-            x2={width - paddingRight} 
-            y2={paddingTop + plotHeight} 
-            stroke="#475569" 
-            strokeWidth="1.5"
+  const renderSearchFilterBar = (placeholder: string, filters?: { value: string; onChange: (val: string) => void; options: { value: string; label: string }[] }[]) => {
+    return (
+      <div className="search-filter-bar">
+        <div className="search-input-wrapper">
+          <svg className="search-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder={placeholder}
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="search-input"
           />
-        </svg>
+          {searchTerm && (
+            <button type="button" className="clear-search-btn" onClick={() => { setSearchTerm(''); setCurrentPage(1); }}>&times;</button>
+          )}
+        </div>
+        {filters && filters.length > 0 && (
+          <div className="filter-group">
+            {filters.map((filter, index) => (
+              <div className="filter-select-wrapper" key={index}>
+                <select
+                  value={filter.value}
+                  onChange={(e) => {
+                    filter.onChange(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="filter-select"
+                >
+                  {filter.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
 
-  const renderTrafficChart = () => {
-    if (!trafficStats || !trafficStats.pageViews || trafficStats.pageViews.length === 0) {
-      return (
-        <div className="flex h-64 items-center justify-center text-slate-400">
-          Chưa có dữ liệu biểu đồ truy cập.
-        </div>
-      );
-    }
+  const renderPagination = (totalItems: number) => {
+    const totalPages = Math.ceil(totalItems / 10);
+    if (totalPages <= 1) return null;
 
-    const { labels, pageViews, uniqueVisitors } = trafficStats;
-    const maxVal = Math.max(...pageViews, ...uniqueVisitors, 10);
-    
-    const width = 800;
-    const height = 300;
-    const paddingLeft = 60;
-    const paddingRight = 30;
-    const paddingTop = 30;
-    const paddingBottom = 40;
-
-    const plotWidth = width - paddingLeft - paddingRight;
-    const plotHeight = height - paddingTop - paddingBottom;
-
-    // Build data point coordinates
-    const pointsViews = pageViews.map((val: number, i: number) => {
-      const x = paddingLeft + (i * plotWidth) / Math.max(1, labels.length - 1);
-      const y = paddingTop + plotHeight - (val / maxVal) * plotHeight;
-      return { x, y, value: val, label: labels[i] };
-    });
-
-    const pointsVisitors = uniqueVisitors.map((val: number, i: number) => {
-      const x = paddingLeft + (i * plotWidth) / Math.max(1, labels.length - 1);
-      const y = paddingTop + plotHeight - (val / maxVal) * plotHeight;
-      return { x, y, value: val, label: labels[i] };
-    });
-
-    const pathViews = pointsViews.map((p: any, i: number) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-    const pathVisitors = pointsVisitors.map((p: any, i: number) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-
-    const areaViews = pointsViews.length > 0
-      ? `${pathViews} L ${pointsViews[pointsViews.length - 1].x} ${paddingTop + plotHeight} L ${pointsViews[0].x} ${paddingTop + plotHeight} Z`
-      : '';
-
-    const yTicks = Array.from({ length: 5 }, (_, i) => {
-      const val = Math.round((maxVal * i) / 4);
-      const y = paddingTop + plotHeight - (val / maxVal) * plotHeight;
-      return { val, y };
-    });
+    const pages: number[] = [];
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
 
     return (
-      <div className="relative overflow-x-auto">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto max-w-4xl mx-auto block">
-          <defs>
-            <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" />
-            </linearGradient>
-            <linearGradient id="visitorsGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-            </linearGradient>
-          </defs>
-
-          {/* Grid lines */}
-          {yTicks.map((tick, idx) => (
-            <g key={idx}>
-              <line 
-                x1={paddingLeft} 
-                y1={tick.y} 
-                x2={width - paddingRight} 
-                y2={tick.y} 
-                stroke="#1e293b" 
-                strokeDasharray="4 4" 
-              />
-              <text 
-                x={paddingLeft - 15} 
-                y={tick.y + 4} 
-                fill="#94a3b8" 
-                fontSize="11" 
-                textAnchor="end"
-                className="font-medium"
-              >
-                {tick.val}
-              </text>
-            </g>
-          ))}
-
-          {/* Area under Views */}
-          {areaViews && <path d={areaViews} fill="url(#viewsGradient)" />}
-
-          {/* Line Views */}
-          {pathViews && (
-            <path 
-              d={pathViews} 
-              fill="none" 
-              stroke="#f43f5e" 
-              strokeWidth="2.5" 
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          )}
-
-          {/* Line Visitors */}
-          {pathVisitors && (
-            <path 
-              d={pathVisitors} 
-              fill="none" 
-              stroke="#10b981" 
-              strokeWidth="2.5" 
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          )}
-
-          {/* Data Nodes for Views */}
-          {pointsViews.map((p: any, idx: number) => (
-            <g key={`v-${idx}`} className="group cursor-pointer">
-              <circle 
-                cx={p.x} 
-                cy={p.y} 
-                r="4" 
-                fill="#0b0f19" 
-                stroke="#f43f5e" 
-                strokeWidth="2" 
-                className="transition-all duration-200 hover:scale-125"
-              />
-              <title>{`${p.label} (Lượt xem): ${p.value}`}</title>
-            </g>
-          ))}
-
-          {/* Data Nodes for Visitors */}
-          {pointsVisitors.map((p: any, idx: number) => (
-            <g key={`u-${idx}`} className="group cursor-pointer">
-              <circle 
-                cx={p.x} 
-                cy={p.y} 
-                r="4" 
-                fill="#0b0f19" 
-                stroke="#10b981" 
-                strokeWidth="2" 
-                className="transition-all duration-200 hover:scale-125"
-              />
-              <title>{`${p.label} (Khách): ${p.value}`}</title>
-            </g>
-          ))}
-
-          {/* X Axis */}
-          {pointsViews.map((p: any, idx: number) => (
-            <text 
-              key={idx}
-              x={p.x} 
-              y={height - 10} 
-              fill="#94a3b8" 
-              fontSize="10" 
-              textAnchor="middle"
-              className="font-medium"
+      <div className="table-pagination-bar">
+        <div className="pagination-controls">
+          <button
+            type="button"
+            className="btn-pagination-nav"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          >
+            Trước
+          </button>
+          {pages.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className={`btn-pagination-page ${currentPage === p ? 'active' : ''}`}
+              onClick={() => setCurrentPage(p)}
             >
-              {p.label.length > 10 ? p.label.substring(5) : p.label}
-            </text>
+              {p}
+            </button>
           ))}
-
-          <line 
-            x1={paddingLeft} 
-            y1={paddingTop + plotHeight} 
-            x2={width - paddingRight} 
-            y2={paddingTop + plotHeight} 
-            stroke="#475569" 
-            strokeWidth="1.5"
-          />
-        </svg>
+          <button
+            type="button"
+            className="btn-pagination-nav"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          >
+            Sau
+          </button>
+        </div>
       </div>
     );
   };
+
+  const renderLoadingState = (message: string) => (
+    <div className="cyber-loading-state">
+      <div className="cyber-spinner"></div>
+      <p className="cyber-loading-text">{message}</p>
+    </div>
+  );
+
+  const renderEmptyState = (message: string) => (
+    <div className="cyber-empty-state">
+      <svg className="cyber-empty-icon" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.008 1.24l.885 1.77a2.25 2.25 0 002.007 1.24h1.98a2.25 2.25 0 002.007-1.24l.885-1.77a2.25 2.25 0 012.007-1.24h3.86m-18 0h18a2.25 2.25 0 012.25 2.25v4.5A2.25 2.25 0 0118 21H6a2.25 2.25 0 01-2.25-2.25v-4.5a2.25 2.25 0 012.25-2.25zM6 7.5l6-6 6 6m-6-6v12" />
+      </svg>
+      <p className="cyber-empty-text">{message}</p>
+    </div>
+  );
 
   if (!authChecked) {
     return (
@@ -1166,13 +421,7 @@ export default function Dashboard() {
     );
   }
 
-  // Calculate customer metrics
-  const blockedCustomers = customers.filter(c => c.accountStatus?.toLowerCase() === 'blocked').length;
-  const offlineCustomers = customers.length; // online count is 0 based on backend code
-
-  // Calculate staff metrics
   const blockedStaffs = staffs.filter(s => s.accountStatus?.toLowerCase() === 'blocked').length;
-  const offlineStaffs = staffs.length;
 
   return (
     <div className="dashboard-container">
@@ -1190,7 +439,7 @@ export default function Dashboard() {
         <div className="mobile-logo" onClick={() => window.location.reload()}>
           <span>Mini Series</span> <span className="brand-accent">Learning</span>
         </div>
-        <div style={{ width: 36 }} /> {/* layout balance */}
+        <div style={{ width: 36 }} />
       </div>
 
       {isSidebarOpen && (
@@ -1198,19 +447,20 @@ export default function Dashboard() {
       )}
 
       <aside className={`dashboard-sidebar ${isSidebarOpen ? 'open' : ''}`}>
-        <div>
-          <div className="sidebar-logo" onClick={() => window.location.reload()}>
+        <div className="sidebar-header" onClick={() => window.location.reload()}>
+          <div className="brand-logo">
             <span>Mini Series</span> <span className="brand-accent">Learning</span>
           </div>
-          <p className="text-xs text-slate-500 mb-6 font-medium px-2">Bảng điều khiển nội bộ</p>
+        </div>
 
-          <div className="nav-section-title">Chung</div>
+        <div className="sidebar-menu-wrapper">
+          <div className="nav-section-title">Quản lý chung</div>
           <nav className="sidebar-nav">
             <div 
               className={`sidebar-item ${activeTab === 'content' ? 'active' : ''}`}
               onClick={() => { setActiveTab('content'); setIsSidebarOpen(false); }}
             >
-              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.008 1.24l.885 1.77a2.25 2.25 0 002.007 1.24h1.98a2.25 2.25 0 002.007-1.24l.885-1.77a2.25 2.25 0 012.007-1.24h3.86m-18 0h18a2.25 2.25 0 012.25 2.25v4.5A2.25 2.25 0 0118 21H6a2.25 2.25 0 01-2.25-2.25v-4.5a2.25 2.25 0 012.25-2.25zM6 7.5l6-6 6 6m-6-6v12" /></svg>
               Quản lý nội dung
             </div>
             <div 
@@ -1224,7 +474,7 @@ export default function Dashboard() {
               className={`sidebar-item ${activeTab === 'tokens' ? 'active' : ''}`}
               onClick={() => { setActiveTab('tokens'); setIsSidebarOpen(false); }}
             >
-              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 5.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg>
+              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694 4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 5.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg>
               Quản lý Hạn ngạch
             </div>
             <div 
@@ -1330,652 +580,33 @@ export default function Dashboard() {
           </section>
         )}
 
-        {/* Customers Section */}
-        {activeTab === 'customers' && (
-          <section className="dashboard-fade-in space-y-6">
-            <div className="section-header">
-              <h2 className="section-title">Quản lý Khách hàng</h2>
-              <p className="section-subtitle">Danh sách Customer và trạng thái Online/Offline realtime theo dữ liệu API.</p>
-            </div>
-
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-title">Tổng số khách hàng</div>
-                <div className="stat-value">{customers.length}</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-title">Đang Online 🟢</div>
-                <div className="stat-value green">0</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-title">Offline ⚪</div>
-                <div className="stat-value">{Math.max(0, offlineCustomers - blockedCustomers)}</div>
-              </div>
-            </div>
-
-            {renderSearchFilterBar("Tìm kiếm khách hàng theo tên, email...", [
-              {
-                value: filterOption1,
-                onChange: setFilterOption1,
-                options: [
-                  { value: '', label: 'Tất cả trạng thái' },
-                  { value: 'active', label: 'Hoạt động (Active)' },
-                  { value: 'blocked', label: 'Bị khóa (Blocked)' }
-                ]
-              },
-              {
-                value: filterOption2,
-                onChange: setFilterOption2,
-                options: [
-                  { value: '', label: 'Tất cả gói cước' },
-                  { value: 'Free', label: 'Free' },
-                  { value: 'Basic', label: 'Basic' },
-                  { value: 'Premium', label: 'Premium' }
-                ]
-              }
-            ])}
-
-            <div className="data-table-container">
-              {customersLoading ? (
-                renderLoadingState("Đang tải danh sách khách hàng...")
-              ) : customers.length === 0 ? (
-                renderEmptyState("Chưa có khách hàng (Role = Customer) trên Supabase.")
-              ) : (() => {
-                const filtered = customers.filter(c => {
-                  const matchesSearch = !searchTerm || 
-                    c.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                    c.email?.toLowerCase().includes(searchTerm.toLowerCase());
-                  
-                  const isBlocked = c.accountStatus?.toLowerCase() === 'blocked';
-                  const matchesStatus = !filterOption1 || 
-                    (filterOption1 === 'active' && !isBlocked) || 
-                    (filterOption1 === 'blocked' && isBlocked);
-
-                  const plan = c.planName || 'Free';
-                  const matchesPlan = !filterOption2 || plan === filterOption2;
-
-                  return matchesSearch && matchesStatus && matchesPlan;
-                });
-
-                const sorted = sortData(filtered);
-                const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
-
-                if (filtered.length === 0) {
-                  return renderEmptyState("Không tìm thấy khách hàng phù hợp.");
-                }
-
-                return (
-                  <>
-                    <table className="cyber-table">
-                      <thead>
-                        <tr>
-                          {renderSortableHeader("ID", "id")}
-                          {renderSortableHeader("Tên khách hàng", "fullName")}
-                          {renderSortableHeader("Email", "email")}
-                          {renderSortableHeader("Gói cước", "planName")}
-                          {renderSortableHeader("Trạng thái", "accountStatus")}
-                          {renderSortableHeader("Ngày đăng ký", "createdAt")}
-                          <th>Thao tác</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paginated.map((c) => {
-                          const isBlocked = c.accountStatus?.toLowerCase() === 'blocked';
-                          return (
-                            <tr key={c.id}>
-                              <td className="monospace-id">{c.id}</td>
-                              <td className="font-semibold text-slate-200">{c.fullName}</td>
-                              <td>{c.email}</td>
-                              <td className="font-semibold text-zinc-300">{c.planName || 'Free'}</td>
-                              <td>
-                                {isBlocked ? (
-                                  <span className="status-badge badge-blocked">Blocked</span>
-                                ) : (
-                                  <span className="status-badge badge-offline">Offline</span>
-                                )}
-                              </td>
-                              <td className="text-zinc-500 text-xs">{formatDate(c.createdAt)}</td>
-                              <td>
-                                <div className="flex gap-2">
-                                  <button 
-                                    type="button"
-                                    className="btn-table-action btn-table-action-warning"
-                                    onClick={() => handleToggleBlockCustomer(c.id, isBlocked)}
-                                  >
-                                    {isBlocked ? "Mở khóa" : "Khóa"}
-                                  </button>
-                                  <button 
-                                    type="button"
-                                    className="btn-table-action btn-table-action-danger"
-                                    onClick={() => handleDeleteCustomer(c.id)}
-                                  >
-                                    Xóa
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                    {renderPagination(filtered.length)}
-                  </>
-                );
-              })()}
-            </div>
-          </section>
+        {/* Modularized Customer/Tokens Tab */}
+        {(activeTab === 'customers' || activeTab === 'tokens') && (
+          <CustomerTab
+            activeSubTab={activeTab === 'customers' ? 'customers' : 'tokens'}
+            showToast={showToast}
+            showConfirm={showConfirm}
+          />
         )}
 
-        {/* Tokens Section */}
-        {activeTab === 'tokens' && (
-          <section className="dashboard-fade-in space-y-6">
-            <div className="section-header">
-              <h2 className="section-title">Quản lý Hạn ngạch & Gói</h2>
-              <p className="section-subtitle">Theo dõi số lượt Manga, Video và gói nạp của khách hàng.</p>
-            </div>
-
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-title">Tổng khách hàng</div>
-                <div className="stat-value">{tokenUsers.length}</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-title">Gói Basic / Plus</div>
-                <div className="stat-value purple">{tokenSummary.plusPackageCount}</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-title">Gói Pro Max / Premium</div>
-                <div className="stat-value gold">
-                  {tokenSummary.proMaxPackageCount}
-                </div>
-              </div>
-            </div>
-
-            {renderSearchFilterBar("Tìm kiếm người dùng theo tên, email...", [
-              {
-                value: filterOption1,
-                onChange: setFilterOption1,
-                options: [
-                  { value: '', label: 'Tất cả gói cước' },
-                  { value: 'Free', label: 'Free' },
-                  { value: 'Basic', label: 'Basic' },
-                  { value: 'Premium', label: 'Premium' }
-                ]
-              }
-            ])}
-
-            <div className="data-table-container">
-              {tokensLoading ? (
-                renderLoadingState("Đang tải danh sách token...")
-              ) : tokenUsers.length === 0 ? (
-                renderEmptyState("Chưa có khách hàng nào.")
-              ) : (() => {
-                const filtered = tokenUsers.filter(u => {
-                  const matchesSearch = !searchTerm || 
-                    u.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                    u.email?.toLowerCase().includes(searchTerm.toLowerCase());
-                  
-                  const plan = u.planName || 'Free';
-                  const matchesPlan = !filterOption1 || plan === filterOption1;
-
-                  return matchesSearch && matchesPlan;
-                });
-
-                const sorted = sortData(filtered);
-                const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
-
-                if (filtered.length === 0) {
-                  return renderEmptyState("Không tìm thấy người dùng phù hợp.");
-                }
-
-                return (
-                  <>
-                    <table className="cyber-table">
-                      <thead>
-                        <tr>
-                          {renderSortableHeader("ID người dùng", "id")}
-                          {renderSortableHeader("Tên user", "fullName")}
-                          {renderSortableHeader("Email", "email")}
-                          {renderSortableHeader("Lượt Manga (Còn lại / Tổng)", "mangaLimit")}
-                          {renderSortableHeader("Lượt Video (Còn lại / Tổng)", "videoLimit")}
-                          {renderSortableHeader("Gói đang dùng", "planName")}
-                          <th>Thao tác</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paginated.map((u) => (
-                          <tr key={u.id}>
-                            <td className="monospace-id">{u.id}</td>
-                            <td className="font-semibold text-slate-200">{u.fullName}</td>
-                            <td>{u.email}</td>
-                            <td className="font-semibold text-zinc-300">
-                              {(u.mangaLimit ?? 3) - (u.usedManga ?? 0)} / {(u.mangaLimit ?? 3)}
-                            </td>
-                            <td className="font-semibold text-zinc-300">
-                              {(u.videoLimit ?? 1) - (u.usedVideo ?? 0)} / {(u.videoLimit ?? 1)}
-                            </td>
-                            <td className="font-semibold text-indigo-400">{u.planName || 'Free'}</td>
-                            <td>
-                              <button 
-                                type="button"
-                                className="btn-table-action btn-table-action-cyan"
-                                onClick={() => handleOpenTokenModal(u)}
-                              >
-                                Cập nhật
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {renderPagination(filtered.length)}
-                  </>
-                );
-              })()}
-            </div>
-          </section>
+        {/* Modularized Support/Feedback Tab */}
+        {(activeTab === 'support' || activeTab === 'feedback') && (
+          <SupportTab
+            activeSubTab={activeTab === 'support' ? 'support' : 'feedback'}
+            showToast={showToast}
+          />
         )}
 
-        {/* Support Section */}
-        {activeTab === 'support' && (
-          <section className="dashboard-fade-in space-y-6">
-            <div className="section-header">
-              <h2 className="section-title">Hỗ trợ khách hàng</h2>
-              <p className="section-subtitle">Xem các yêu cầu tư vấn từ khách hàng và gửi mail phản hồi trực tiếp.</p>
-            </div>
-
-            {/* Sub-tab selection */}
-            <div className="support-tab-header">
-              <button
-                type="button"
-                className={`support-tab-btn ${supportTab === 'support-tickets' ? 'active' : ''}`}
-                onClick={() => setSupportTab('support-tickets')}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                Yêu cầu tư vấn (Ticket)
-              </button>
-              <button
-                type="button"
-                className={`support-tab-btn ${supportTab === 'cskh-emails' ? 'active' : ''}`}
-                onClick={() => setSupportTab('cskh-emails')}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
-                Lịch sử CSKH (Email)
-              </button>
-            </div>
-
-            {supportTab === 'support-tickets' ? (
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Phiếu yêu cầu tư vấn
-                </h3>
-                {renderSearchFilterBar("Tìm kiếm ticket theo email, nội dung...", [
-                  {
-                    value: filterOption1,
-                    onChange: setFilterOption1,
-                    options: [
-                      { value: '', label: 'Tất cả trạng thái' },
-                      { value: 'pending', label: 'Chưa trả lời' },
-                      { value: 'done', label: 'Đã trả lời' }
-                    ]
-                  },
-                  {
-                    value: supportAssigneeFilter,
-                    onChange: (val) => setSupportAssigneeFilter(val as 'all' | 'mine'),
-                    options: [
-                      { value: 'all', label: 'Tất cả người xử lý' },
-                      { value: 'mine', label: 'Phân cho tôi' }
-                    ]
-                  }
-                ])}
-                <div className="data-table-container">
-                  {supportLoading ? (
-                    renderLoadingState("Đang tải dữ liệu yêu cầu...")
-                  ) : supportTickets.length === 0 ? (
-                    renderEmptyState("Chưa có yêu cầu tư vấn nào.")
-                  ) : (() => {
-                    const loggedInEmail = (localStorage.getItem("user_email") || "").toLowerCase();
-                    const filtered = supportTickets.filter(t => {
-                      const matchesSearch = !searchTerm || 
-                        t.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        t.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        (t.reply && t.reply.toLowerCase().includes(searchTerm.toLowerCase()));
-
-                      const isDone = t.status === 'Đã trả lời';
-                      const matchesStatus = !filterOption1 || 
-                        (filterOption1 === 'pending' && !isDone) || 
-                        (filterOption1 === 'done' && isDone);
-
-                      const matchesAssignee = supportAssigneeFilter === 'all' || 
-                        (t.assignedStaffEmail && t.assignedStaffEmail.toLowerCase() === loggedInEmail);
-
-                      return matchesSearch && matchesStatus && matchesAssignee;
-                    });
-
-                    const sorted = sortData(filtered);
-                    const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
-
-                    if (filtered.length === 0) {
-                      return renderEmptyState("Không tìm thấy ticket phù hợp.");
-                    }
-
-                    return (
-                      <>
-                        <table className="cyber-table">
-                          <thead>
-                            <tr>
-                              {renderSortableHeader("ID", "id")}
-                              {renderSortableHeader("Email khách", "customerEmail")}
-                              {renderSortableHeader("Nội dung", "content")}
-                              {renderSortableHeader("Nhân viên xử lý", "assignedStaffEmail")}
-                              {renderSortableHeader("Ngày gửi", "createdAt")}
-                              {renderSortableHeader("Trạng thái", "status")}
-                              <th>Thao tác</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {paginated.map((t) => {
-                              const isDone = t.status === 'Đã trả lời';
-                              const isReplying = activeReplySupportId === t.id;
-                              return (
-                                <Fragment key={t.id}>
-                                  <tr>
-                                    <td className="monospace-id">#{t.id}</td>
-                                    <td className="font-semibold text-slate-200">{t.customerEmail}</td>
-                                    <td style={{ maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={t.content}>
-                                      {t.content}
-                                    </td>
-                                    <td className="text-indigo-400 text-xs font-semibold">
-                                      {t.assignedStaffEmail || 'Chưa phân phối'}
-                                    </td>
-                                    <td className="text-zinc-500 text-xs">{formatDate(t.createdAt)}</td>
-                                    <td>
-                                      {isDone ? (
-                                        <span className="status-badge badge-done">Đã trả lời</span>
-                                      ) : (
-                                        <span className="status-badge badge-pending">Chưa trả lời</span>
-                                      )}
-                                    </td>
-                                    <td>
-                                      <button
-                                        type="button"
-                                        className="btn-table-action btn-table-action-primary"
-                                        onClick={() => {
-                                          if (isReplying) {
-                                            setActiveReplySupportId(null);
-                                          } else {
-                                            setActiveReplySupportId(t.id);
-                                            setSupportReplyText(t.reply || '');
-                                          }
-                                        }}
-                                      >
-                                        {isDone ? "Xem" : "Trả lời"}
-                                      </button>
-                                    </td>
-                                  </tr>
-                                  {isReplying && (
-                                    <tr key={`reply-${t.id}`}>
-                                      <td colSpan={7} className="table-expanded-row-cell">
-                                        <div className="reply-box">
-                                          <div className="reply-title">
-                                            Trả lời tới: <span>{t.customerEmail}</span>
-                                          </div>
-                                          <textarea
-                                            rows={4}
-                                            value={supportReplyText}
-                                            onChange={(e) => setSupportReplyText(e.target.value)}
-                                            className="reply-textarea"
-                                            placeholder="Nhập nội dung phản hồi..."
-                                            disabled={isDone || replyingSupportId === t.id}
-                                          />
-                                          {!isDone && (
-                                            <div className="reply-actions">
-                                              <button
-                                                type="button"
-                                                className="btn-cancel"
-                                                disabled={replyingSupportId === t.id}
-                                                onClick={() => setActiveReplySupportId(null)}
-                                              >
-                                                Hủy
-                                              </button>
-                                              <button
-                                                type="button"
-                                                className="btn-confirm"
-                                                disabled={replyingSupportId === t.id}
-                                                onClick={() => handleReplySupportTicket(t.id)}
-                                              >
-                                                {replyingSupportId === t.id ? "Đang gửi..." : "Xác nhận gửi"}
-                                              </button>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  )}
-                                </Fragment>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                        {renderPagination(filtered.length)}
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      Nhật ký gửi Email CSKH
-                    </h3>
-                  </div>
-                  {renderSearchFilterBar("Tìm kiếm email theo tiêu đề, nội dung, email...", [
-                    {
-                      value: filterOption1,
-                      onChange: setFilterOption1,
-                      options: [
-                        { value: '', label: 'Tất cả người gửi' },
-                        { value: 'Staff', label: 'Nhân viên (Staff)' },
-                        { value: 'Admin', label: 'Quản trị viên (Admin)' }
-                      ]
-                    }
-                  ])}
-                  <div className="data-table-container">
-                    {supportLoading ? (
-                      renderLoadingState("Đang tải dữ liệu yêu cầu...")
-                    ) : cskhHistory.length === 0 ? (
-                      renderEmptyState("Chưa có email CSKH nào được gửi.")
-                    ) : (() => {
-                      const filtered = cskhHistory.filter(h => {
-                        const email = h.customer_email || h.email_customer || h.customerEmail || "khachhang_an_danh@gmail.com";
-                        const subject = h.subject || h.Subject || '(Không có tiêu đề)';
-                        const sender = h.sender_role || h.senderRole || 'Staff';
-
-                        const matchesSearch = !searchTerm ||
-                          email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          h.content.toLowerCase().includes(searchTerm.toLowerCase());
-
-                        const matchesSender = !filterOption1 || sender === filterOption1;
-
-                        return matchesSearch && matchesSender;
-                      });
-
-                      const sorted = sortData(filtered);
-                      const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
-
-                      if (filtered.length === 0) {
-                        return renderEmptyState("Không tìm thấy email CSKH phù hợp.");
-                      }
-
-                      return (
-                        <>
-                          <table className="cyber-table">
-                            <thead>
-                              <tr>
-                                {renderSortableHeader("ID", "id")}
-                                {renderSortableHeader("Email khách", "customerEmail")}
-                                {renderSortableHeader("Tiêu đề", "subject")}
-                                {renderSortableHeader("Người gửi", "senderRole")}
-                                {renderSortableHeader("Ngày gửi", "createdAt")}
-                                <th>Thao tác</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {paginated.map((h) => {
-                                const email = h.customer_email || h.email_customer || h.customerEmail || "khachhang_an_danh@gmail.com";
-                                const created = h.createdAt || h.created_at || '';
-                                const subject = h.subject || h.Subject || '(Không có tiêu đề)';
-                                const sender = h.sender_role || h.senderRole || 'Staff';
-                                const isViewing = activeViewCskhId === h.id;
-
-                                return (
-                                  <Fragment key={h.id}>
-                                    <tr>
-                                      <td className="monospace-id">#{h.id}</td>
-                                      <td className="font-semibold text-slate-200">{email}</td>
-                                      <td className="max-w-[200px] truncate" title={subject}>{subject}</td>
-                                      <td className="font-semibold text-indigo-400">{sender}</td>
-                                      <td className="text-zinc-500 text-xs">{formatDate(created)}</td>
-                                      <td>
-                                        <button
-                                          type="button"
-                                          className="btn-table-action btn-table-action-cyan"
-                                          onClick={() => {
-                                            if (isViewing) {
-                                              setActiveViewCskhId(null);
-                                            } else {
-                                              setActiveViewCskhId(h.id);
-                                            }
-                                          }}
-                                        >
-                                          {isViewing ? "Đóng" : "Xem"}
-                                        </button>
-                                      </td>
-                                    </tr>
-                                    {isViewing && (
-                                      <tr key={`view-${h.id}`}>
-                                        <td colSpan={6} className="table-expanded-row-cell">
-                                          <div className="reply-box">
-                                            <div className="reply-title reply-title-subject">
-                                              Tiêu đề: <span>{subject}</span>
-                                            </div>
-                                            <div className="text-zinc-400 text-xs mb-2">
-                                              Người gửi: <span className="font-semibold text-zinc-200">{sender}</span> | Gửi tới: <span className="font-semibold text-zinc-200">{email}</span>
-                                            </div>
-                                            <div className="cskh-view-content">
-                                              {h.content}
-                                            </div>
-                                            <div className="mt-3 text-right">
-                                              <button
-                                                type="button"
-                                                className="btn-cancel px-3 py-1.5 text-xs"
-                                                onClick={() => setActiveViewCskhId(null)}
-                                              >
-                                                Đóng
-                                              </button>
-                                            </div>
-                                          </div>
-                                        </td>
-                                      </tr>
-                                    )}
-                                  </Fragment>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                          {renderPagination(filtered.length)}
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
+        {/* Modularized Revenue/Payments/Traffic Tab */}
+        {(activeTab === 'payments' || activeTab === 'revenue' || activeTab === 'traffic') && (
+          <RevenueTab
+            activeSubTab={activeTab === 'payments' ? 'payments' : activeTab === 'revenue' ? 'revenue' : 'traffic'}
+            showToast={showToast}
+            showConfirm={showConfirm}
+          />
         )}
 
-        {/* Feedback Section */}
-        {activeTab === 'feedback' && (
-          <section className="space-y-6">
-            <div className="section-header">
-              <h2 className="section-title">Quản lý Đánh giá</h2>
-              <p className="section-subtitle">Danh sách feedback khách hàng gửi cho ứng dụng.</p>
-            </div>
-
-            {renderSearchFilterBar("Tìm kiếm đánh giá theo email, bình luận...", [
-              {
-                value: filterOption1,
-                onChange: setFilterOption1,
-                options: [
-                  { value: '', label: 'Tất cả mức sao' },
-                  { value: '5', label: '⭐ 5 sao' },
-                  { value: '4', label: '⭐ 4 sao' },
-                  { value: '3', label: '⭐ 3 sao' },
-                  { value: '2', label: '⭐ 2 sao' },
-                  { value: '1', label: '⭐ 1 sao' }
-                ]
-              }
-            ])}
-
-            <div className="data-table-container">
-              {feedbacksLoading ? (
-                renderLoadingState("Đang tải dữ liệu đánh giá...")
-              ) : feedbacks.length === 0 ? (
-                renderEmptyState("Chưa có đánh giá nào.")
-              ) : (() => {
-                const filtered = feedbacks.filter(f => {
-                  const matchesSearch = !searchTerm ||
-                    f.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    f.comment?.toLowerCase().includes(searchTerm.toLowerCase());
-
-                  const matchesStars = !filterOption1 || f.rating === Number(filterOption1);
-
-                  return matchesSearch && matchesStars;
-                });
-
-                const sorted = sortData(filtered);
-                const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
-
-                if (filtered.length === 0) {
-                  return renderEmptyState("Không tìm thấy đánh giá phù hợp.");
-                }
-
-                return (
-                  <>
-                    <table className="cyber-table">
-                      <thead>
-                        <tr>
-                          {renderSortableHeader("ID", "id")}
-                          {renderSortableHeader("Email", "email")}
-                          {renderSortableHeader("Số sao", "rating")}
-                          {renderSortableHeader("Bình luận", "comment")}
-                          {renderSortableHeader("Ngày gửi", "createdAt")}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paginated.map((f) => (
-                          <tr key={f.id}>
-                            <td className="monospace-id">{f.id}</td>
-                            <td className="font-semibold text-slate-200">{f.email}</td>
-                            <td className="font-bold text-amber-400">{renderStars(f.rating)}</td>
-                            <td>{f.comment}</td>
-                            <td className="text-zinc-500 text-xs">{formatDate(f.createdAt)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {renderPagination(filtered.length)}
-                  </>
-                );
-              })()}
-            </div>
-          </section>
-        )}
-
-        {/* Staff Reports Section */}
+        {/* Staff Reports section */}
         {activeTab === 'reports-staff' && (
           <section className="dashboard-fade-in space-y-6">
             <div className="section-header">
@@ -1995,53 +626,27 @@ export default function Dashboard() {
                 />
               </div>
               <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="cyber-btn-primary"
-                >
-                  Gửi lên Admin
+                <button type="submit" className="cyber-btn-primary">
+                  Gửi báo cáo
                 </button>
               </div>
             </form>
 
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-slate-400 uppercase px-1">Lịch sử báo cáo đã gửi</h3>
-              {renderSearchFilterBar("Tìm kiếm báo cáo theo nội dung, phản hồi...", [
-                {
-                  value: filterOption1,
-                  onChange: setFilterOption1,
-                  options: [
-                    { value: '', label: 'Tất cả trạng thái' },
-                    { value: 'pending', label: 'Chờ duyệt' },
-                    { value: 'completed', label: 'Đã hoàn thành' }
-                  ]
-                }
-              ])}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Lịch sử báo cáo đã gửi</h3>
               <div className="data-table-container">
                 {reportsLoading ? (
-                  renderLoadingState("Đang tải lịch sử báo cáo...")
+                  renderLoadingState("Đang tải danh sách báo cáo...")
                 ) : staffReports.length === 0 ? (
-                  renderEmptyState("Chưa có báo cáo nào.")
+                  renderEmptyState("Bạn chưa gửi báo cáo nào.")
                 ) : (() => {
                   const filtered = staffReports.filter(r => {
-                    const matchesSearch = !searchTerm ||
-                      r.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      (r.adminReply && r.adminReply.toLowerCase().includes(searchTerm.toLowerCase()));
-
-                    const isCompleted = r.status === 'Đã hoàn thành' || Boolean(r.adminReply);
-                    const matchesStatus = !filterOption1 ||
-                      (filterOption1 === 'pending' && !isCompleted) ||
-                      (filterOption1 === 'completed' && isCompleted);
-
-                    return matchesSearch && matchesStatus;
+                    return !searchTerm || r.content?.toLowerCase().includes(searchTerm.toLowerCase());
                   });
-
                   const sorted = sortData(filtered);
                   const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
-                  if (filtered.length === 0) {
-                    return renderEmptyState("Không tìm thấy báo cáo phù hợp.");
-                  }
+                  if (filtered.length === 0) return renderEmptyState("Không tìm thấy báo cáo phù hợp.");
 
                   return (
                     <>
@@ -2129,9 +734,7 @@ export default function Dashboard() {
                 const sorted = sortData(filtered);
                 const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
-                if (filtered.length === 0) {
-                  return renderEmptyState("Không tìm thấy báo cáo phù hợp.");
-                }
+                if (filtered.length === 0) return renderEmptyState("Không tìm thấy báo cáo phù hợp.");
 
                 return (
                   <>
@@ -2196,190 +799,15 @@ export default function Dashboard() {
           </section>
         )}
 
-        {/* Payments Section */}
-        {activeTab === 'payments' && (
-          <section className="dashboard-fade-in space-y-6">
-            <div className="section-header">
-              <h2 className="section-title">Lịch sử thanh toán</h2>
-              <p className="section-subtitle">Toàn bộ các giao dịch nạp tiền qua cổng thanh toán.</p>
-            </div>
-
-            {renderSearchFilterBar("Tìm kiếm mã giao dịch, email...")}
-
-            <div className="data-table-container">
-              {paymentsLoading ? (
-                renderLoadingState("Đang tải lịch sử thanh toán...")
-              ) : payments.length === 0 ? (
-                renderEmptyState("Chưa có giao dịch nào.")
-              ) : (() => {
-                const filtered = payments.filter(p => {
-                  return !searchTerm ||
-                    p.transactionCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    p.userEmail?.toLowerCase().includes(searchTerm.toLowerCase());
-                });
-
-                const sorted = sortData(filtered);
-                const paginated = sorted.slice((currentPage - 1) * 20, currentPage * 20);
-
-                if (filtered.length === 0) {
-                  return renderEmptyState("Không tìm thấy giao dịch phù hợp.");
-                }
-
-                return (
-                  <>
-                    <table className="cyber-table">
-                      <thead>
-                        <tr>
-                          {renderSortableHeader("Mã GD", "transactionCode")}
-                          {renderSortableHeader("Email khách", "userEmail")}
-                          {renderSortableHeader("Số tiền", "amount")}
-                          <th>Trạng thái</th>
-                          {renderSortableHeader("Ngày nạp", "createdAt")}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paginated.map((p) => (
-                          <tr key={p.id}>
-                            <td className="monospace-id font-bold text-amber-400">
-                              {p.transactionCode}
-                            </td>
-                            <td className="font-semibold">{p.userEmail}</td>
-                            <td className="font-bold text-emerald-400">{formatVnd(p.amount)}</td>
-                            <td>
-                              <span className="status-badge badge-done">Hoàn tất</span>
-                            </td>
-                            <td className="text-zinc-500 text-xs">{formatDate(p.createdAt)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {renderPagination(filtered.length, 20)}
-                  </>
-                );
-              })()}
-            </div>
-          </section>
-        )}
-
-        {/* Revenue Stats Section */}
-        {activeTab === 'revenue' && (
-          <section className="dashboard-fade-in space-y-6">
-            <div className="section-header flex flex-wrap justify-between items-start gap-4">
-              <div>
-                <h2 className="section-title">Biểu đồ doanh thu</h2>
-                <p className="section-subtitle">Phân tích thống kê kết quả doanh thu nhận được.</p>
-              </div>
-              <button
-                type="button"
-                className="cyber-btn-primary px-4 py-2 rounded-xl font-bold text-white text-sm transition"
-                onClick={handleSeedKpiData}
-              >
-                ⚡ Khởi tạo dữ liệu KPI (OC3)
-              </button>
-            </div>
-
-            {revenueLoading ? (
-              <div className="stat-card p-12 text-center text-zinc-400">Đang tải biểu đồ...</div>
-            ) : (
-              <div className="stat-card space-y-6">
-                {revenueStats && (
-                  <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-4 gap-4">
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase font-semibold">Tổng doanh thu</p>
-                      <h3 className="text-xl font-bold text-emerald-400 mt-0.5 revenue-total-amount">
-                        {formatVnd(revenueStats.totalRevenue)}
-                      </h3>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-slate-500 uppercase font-semibold">Tổng số giao dịch</p>
-                      <h4 className="text-lg font-bold text-white mt-0.5">
-                        {revenueStats.transactionCount} giao dịch
-                      </h4>
-                    </div>
-                  </div>
-                )}
-                {renderRevenueChart()}
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Traffic Stats Section */}
-        {activeTab === 'traffic' && (
-          <section className="dashboard-fade-in space-y-6">
-            <div className="section-header flex flex-wrap justify-between items-start gap-4">
-              <div>
-                <h2 className="section-title">Lượt truy cập (Traffic)</h2>
-                <p className="section-subtitle">Xem thống kê lượt truy cập hệ thống và số lượng khách truy cập duy nhất.</p>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button
-                  type="button"
-                  className="cyber-btn-secondary px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 transition mr-2"
-                  onClick={handleSeedKpiData}
-                >
-                  ⚡ Seed KPI (OC3)
-                </button>
-                <button
-                  type="button"
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-slate-800 ${
-                    trafficGroupBy === 'day' ? 'bg-[#3b82f6] text-white' : 'bg-[#0f172a] text-slate-400'
-                  }`}
-                  onClick={() => setTrafficGroupBy('day')}
-                >
-                  Theo ngày
-                </button>
-                <button
-                  type="button"
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-slate-800 ${
-                    trafficGroupBy === 'month' ? 'bg-[#3b82f6] text-white' : 'bg-[#0f172a] text-slate-400'
-                  }`}
-                  onClick={() => setTrafficGroupBy('month')}
-                >
-                  Theo tháng
-                </button>
-              </div>
-            </div>
-
-            {trafficLoading ? (
-              <div className="stat-card p-12 text-center text-zinc-400">Đang tải biểu đồ...</div>
-            ) : (
-              <div className="space-y-6">
-                <div className="stats-grid">
-                  <div className="stat-card">
-                    <div className="stat-title text-zinc-400">Tổng số lượt xem trang (Page Views)</div>
-                    <div className="stat-value text-rose-500 font-bold">{trafficStats?.totalPageViews || 0}</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-title text-zinc-400">Khách truy cập duy nhất (Unique Visitors)</div>
-                    <div className="stat-value text-emerald-500 font-bold">{trafficStats?.totalUniqueVisitors || 0}</div>
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-xs text-slate-500 uppercase font-semibold">Tương tác lượt truy cập ({trafficGroupBy === 'day' ? 'Hàng ngày' : 'Hàng tháng'})</span>
-                    <div className="flex items-center gap-4 text-xs font-medium">
-                      <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-rose-500 rounded-full"></span> Lượt xem</span>
-                      <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span> Khách hàng</span>
-                    </div>
-                  </div>
-                  {renderTrafficChart()}
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Staff Management Section */}
+        {/* Staff accounts management Section */}
         {activeTab === 'staff' && (
           <section className="dashboard-fade-in space-y-6">
             <div className="section-header flex flex-wrap justify-between items-start gap-4">
               <div>
-                <h2 className="section-title">Quản lý Nhân viên (Staff)</h2>
-                <p className="section-subtitle">Xem danh sách nhân viên và quản lý tài khoản.</p>
+                <h2 className="section-title">Quản lý Nhân viên</h2>
+                <p className="section-subtitle">Tạo và phân quyền tài khoản cho nhân viên chăm sóc khách hàng.</p>
               </div>
-              <button
+              <button 
                 type="button"
                 className="cyber-btn-primary px-4 py-2 rounded-xl font-bold text-white text-sm transition"
                 onClick={() => setIsStaffModalOpen(true)}
@@ -2390,7 +818,7 @@ export default function Dashboard() {
 
             <div className="stats-grid">
               <div className="stat-card">
-                <div className="stat-title">Tổng số nhân viên</div>
+                <div className="stat-title">Tổng nhân viên</div>
                 <div className="stat-value">{staffs.length}</div>
               </div>
               <div className="stat-card">
@@ -2399,7 +827,7 @@ export default function Dashboard() {
               </div>
               <div className="stat-card">
                 <div className="stat-title">Offline ⚪</div>
-                <div className="stat-value">{Math.max(0, offlineStaffs - blockedStaffs)}</div>
+                <div className="stat-value">{Math.max(0, staffs.length - blockedStaffs)}</div>
               </div>
             </div>
 
@@ -2437,9 +865,7 @@ export default function Dashboard() {
                 const sorted = sortData(filtered);
                 const paginated = sorted.slice((currentPage - 1) * 10, currentPage * 10);
 
-                if (filtered.length === 0) {
-                  return renderEmptyState("Không tìm thấy nhân viên phù hợp.");
-                }
+                if (filtered.length === 0) return renderEmptyState("Không tìm thấy nhân viên phù hợp.");
 
                 return (
                   <>
@@ -2504,9 +930,7 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* --- MODALS & NOTIFICATIONS --- */}
-
-      {/* Global Toast Alerts */}
+      {/* Global Alerts & Modals */}
       {toast && (
         <div id="toast-container" className="fixed top-5 right-5 z-[9999]">
           <div className={`toast-item ${toast.type === 'error' ? 'error' : 'success'}`}>
@@ -2515,33 +939,19 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Confirmation Modal */}
       {confirmModal?.show && (
         <div className="modal-overlay">
           <div className="modal-panel animate-in fade-in zoom-in-95 duration-200">
             <div className="modal-title">{confirmModal.title}</div>
             <div className="modal-desc">{confirmModal.message}</div>
             <div className="flex justify-end gap-3 mt-5">
-              <button 
-                type="button" 
-                className="btn-secondary"
-                onClick={() => setConfirmModal(null)}
-              >
-                Hủy
-              </button>
-              <button 
-                type="button" 
-                className="btn-danger"
-                onClick={confirmModal.onConfirm}
-              >
-                Xác nhận
-              </button>
+              <button type="button" className="btn-secondary" onClick={() => setConfirmModal(null)}>Hủy</button>
+              <button type="button" className="btn-danger" onClick={confirmModal.onConfirm}>Xác nhận</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Create Staff Modal */}
       {isStaffModalOpen && (
         <div className="modal-overlay" onClick={() => setIsStaffModalOpen(false)}>
           <div className="modal-panel animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
@@ -2584,208 +994,13 @@ export default function Dashboard() {
                 />
               </div>
               <div className="flex justify-end gap-3 pt-2">
-                <button 
-                  type="button" 
-                  className="btn-secondary"
-                  onClick={() => setIsStaffModalOpen(false)}
-                >
-                  Hủy
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={creatingStaff}
-                  className="btn-primary"
-                >
+                <button type="button" className="btn-secondary" onClick={() => setIsStaffModalOpen(false)}>Hủy</button>
+                <button type="submit" disabled={creatingStaff} className="btn-primary">
                   {creatingStaff ? "Đang tạo..." : "Tạo Staff"}
                 </button>
               </div>
             </form>
           </div>
-        </div>
-      )}
-
-      {/* Edit Tokens & Plans Modal */}
-      {editingTokenUser && (
-        <div className="modal-overlay" onClick={() => setEditingTokenUser(null)}>
-          <div className="modal-panel animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">Cập nhật Hạn mức & Gói</div>
-            <div className="modal-desc">
-              Thay đổi số lượt tạo truyện/video và phân cấp gói dịch vụ cho <span className="text-cyan-400 font-bold">{editingTokenUser.fullName}</span>.
-            </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Cộng/trừ Manga</label>
-                  <input 
-                    type="number" 
-                    value={mangaDelta} 
-                    onChange={(e) => setMangaDelta(Number(e.target.value))} 
-                    className="modal-input" 
-                    placeholder="Ví dụ: 5 hoặc -2"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Cộng/trừ Video</label>
-                  <input 
-                    type="number" 
-                    value={videoDelta} 
-                    onChange={(e) => setVideoDelta(Number(e.target.value))} 
-                    className="modal-input" 
-                    placeholder="Ví dụ: 2 hoặc -1"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Gói dịch vụ</label>
-                <select 
-                  value={tokenPlan} 
-                  onChange={(e) => setTokenPlan(e.target.value)} 
-                  className="modal-input"
-                >
-                  <option value="Free">Free</option>
-                  <option value="Basic">Basic</option>
-                  <option value="Premium">Premium</option>
-                </select>
-              </div>
-              
-              <div className="flex justify-end gap-3 pt-2">
-                <button 
-                  type="button" 
-                  className="btn-secondary"
-                  onClick={() => setEditingTokenUser(null)}
-                >
-                  Hủy
-                </button>
-                <button 
-                  type="button" 
-                  className="btn-primary"
-                  onClick={handleTokenUpdateSubmit}
-                >
-                  Lưu thay đổi
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Gmail Compose Trigger Button (FAB) */}
-      {activeTab === 'support' && !isComposeOpen && (
-        <button 
-          type="button" 
-          className="gmail-compose-trigger"
-          title="Soạn thư mới"
-          onClick={() => {
-            handleCancelCskhReply();
-            setIsComposeOpen(true);
-            setIsComposeMinimized(false);
-          }}
-        >
-          <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-        </button>
-      )}
-
-      {/* Gmail-style Compose Box */}
-      {isComposeOpen && (
-        <div className={`gmail-compose-box ${isComposeMinimized ? 'minimized' : ''}`}>
-          <div 
-            className="gmail-compose-header"
-            onClick={() => setIsComposeMinimized(!isComposeMinimized)}
-          >
-            <span>
-              {selectedCskhTicketId ? `Trả lời Ticket #${selectedCskhTicketId}` : 'Thư mới'}
-            </span>
-            <div className="gmail-compose-header-actions" onClick={(e) => e.stopPropagation()}>
-              <button 
-                type="button" 
-                className="gmail-compose-header-btn" 
-                title={isComposeMinimized ? "Phóng to" : "Thu nhỏ"}
-                onClick={() => setIsComposeMinimized(!isComposeMinimized)}
-              >
-                {isComposeMinimized ? (
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
-                  </svg>
-                ) : (
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                  </svg>
-                )}
-              </button>
-              <button 
-                type="button" 
-                className="gmail-compose-header-btn" 
-                title="Đóng"
-                onClick={handleCancelCskhReply}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {!isComposeMinimized && (
-            <>
-              <div className="gmail-compose-body">
-                <div className="gmail-compose-field">
-                  <label htmlFor="compose-to">Tới:</label>
-                  <input
-                    id="compose-to"
-                    type="email"
-                    value={cskhEmail}
-                    onChange={(e) => setCskhEmail(e.target.value)}
-                    placeholder="khachhang@gmail.com"
-                    disabled={isSendingCskhEmail}
-                  />
-                </div>
-                <div className="gmail-compose-field">
-                  <label htmlFor="compose-subject">Tiêu đề:</label>
-                  <input
-                    id="compose-subject"
-                    type="text"
-                    value={cskhSubject}
-                    onChange={(e) => setCskhSubject(e.target.value)}
-                    placeholder="Tiêu đề phản hồi..."
-                    disabled={isSendingCskhEmail}
-                  />
-                </div>
-                <textarea
-                  id="cskh-content"
-                  className="gmail-compose-textarea"
-                  value={cskhContent}
-                  onChange={(e) => setCskhContent(e.target.value)}
-                  placeholder="Nhập nội dung thư hỗ trợ ở đây..."
-                  disabled={isSendingCskhEmail}
-                />
-              </div>
-
-              <div className="gmail-compose-footer">
-                <button
-                  type="button"
-                  className="gmail-compose-send-btn"
-                  disabled={isSendingCskhEmail}
-                  onClick={handleSendCskhEmail}
-                >
-                  {isSendingCskhEmail ? "Đang gửi..." : "Gửi"}
-                </button>
-                <button
-                  type="button"
-                  className="gmail-compose-discard-btn"
-                  title="Hủy bỏ"
-                  disabled={isSendingCskhEmail}
-                  onClick={handleCancelCskhReply}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                  </svg>
-                </button>
-              </div>
-            </>
-          )}
         </div>
       )}
     </div>

@@ -1,21 +1,59 @@
-/* ===== MiniSeries Profile Page Stylesheet — Sleek Responsive Sci-Fi ===== */
+/* ===== MiniSeries Profile Page Stylesheet — Premium Glassmorphic Theme ===== */
 
 .profile-section {
     padding: 110px 20px 60px;
     min-height: 80vh;
-    color: #fff;
+    color: #fafafa;
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at 50% 50%, rgba(20, 20, 25, 0.95) 0%, #09090b 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ambient background glow for profile page */
+.profile-section::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 400px;
+    height: 400px;
+    background: rgba(251, 146, 60, 0.04);
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.profile-section::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: rgba(56, 189, 248, 0.04);
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .profile-container {
     max-width: 1040px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .profile-title {
-    color: #06b6d4;
+    font-family: 'Cinzel', serif;
+    color: #fafafa;
     margin-bottom: 18px;
     font-size: 2rem;
-    font-weight: 800;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
 .profile-tabs {
@@ -26,22 +64,44 @@
 }
 
 .profile-tab-btn {
-    padding: 10px 16px;
+    padding: 8px 20px;
     border-radius: 999px;
-    font-weight: 800;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
     font-family: inherit;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(250, 250, 250, 0.65);
 }
 
+.profile-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fafafa;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.profile-tab-btn.active {
+    background: #fafafa;
+    color: #09090b;
+    border-color: #fafafa;
+}
+
+/* Cards & Layout */
 .profile-card {
-    background: rgba(15, 23, 42, 0.82);
-    border: 1px solid rgba(6, 182, 212, 0.28);
-    border-radius: 18px;
+    background: rgba(12, 12, 14, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
     padding: 28px;
     display: grid;
     grid-template-columns: 220px 1fr;
     gap: 24px;
+    box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.6);
 }
 
 .profile-avatar-col {
@@ -55,19 +115,19 @@
     width: 112px;
     height: 112px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(139, 92, 246, 0.8);
-    padding: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 6px;
     object-fit: cover;
 }
 
 .profile-plan {
     margin-top: 16px;
-    color: #a78bfa;
-    font-weight: 800;
-    font-size: 0.95rem;
+    color: var(--soft-orange);
+    font-weight: 700;
+    font-size: 0.8rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.12em;
 }
 
 .profile-info-col {
@@ -85,16 +145,21 @@
 }
 
 .profile-info-item p {
-    color: #94a3b8;
+    color: rgba(250, 250, 250, 0.45);
     margin: 0 0 4px 0;
-    font-size: 0.875rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
 }
 
 .profile-info-item strong {
-    color: #f8fafc;
+    color: #fafafa;
     font-size: 1.05rem;
+    font-weight: 600;
 }
 
+/* Quotas */
 .profile-quotas {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -103,62 +168,68 @@
 }
 
 .profile-quota-card {
-    padding: 16px;
-    border-radius: 14px;
+    padding: 18px;
+    border-radius: 16px;
     text-align: left;
-}
-
-.profile-quota-card.manga {
-    background: rgba(6, 182, 212, 0.12);
-    border: 1px solid rgba(6, 182, 212, 0.28);
-}
-
-.profile-quota-card.video {
-    background: rgba(168, 85, 247, 0.12);
-    border: 1px solid rgba(168, 85, 247, 0.28);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .profile-quota-card p {
     margin: 0 0 8px 0;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }
 
 .profile-quota-card.manga p {
-    color: #67e8f9;
+    color: var(--soft-orange);
+}
+
+.profile-quota-card.video {
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
 .profile-quota-card.video p {
-    color: #c084fc;
+    color: var(--sky-blue);
 }
 
 .profile-quota-card strong {
     font-size: 1.25rem;
-    color: #f8fafc;
+    color: #fafafa;
+    font-weight: 600;
 }
 
 .profile-period-text {
     margin-top: 20px;
-    color: #94a3b8;
-    font-size: 0.85rem;
+    color: rgba(250, 250, 250, 0.4);
+    font-size: 0.82rem;
     text-align: left;
 }
 
 /* Tab contents base cards */
 .profile-content-card {
-    background: rgba(15, 23, 42, 0.82);
-    border: 1px solid rgba(6, 182, 212, 0.28);
-    border-radius: 18px;
+    background: rgba(12, 12, 14, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
     padding: 24px;
+    box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.6);
 }
 
 .profile-content-card h2 {
     margin-top: 0;
     margin-bottom: 18px;
+    font-family: 'Cinzel', serif;
     font-size: 1.35rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
+/* Lessons Grid */
 .lessons-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -167,18 +238,19 @@
 
 .lesson-card {
     overflow: hidden;
-    border-radius: 14px;
-    border: 1px solid rgba(148, 163, 184, 0.22);
-    background: rgba(2, 6, 23, 0.62);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
     cursor: pointer;
     min-height: 280px;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .lesson-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(6, 182, 212, 0.5);
-    box-shadow: 0 8px 24px -6px rgba(6, 182, 212, 0.3);
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.4);
 }
 
 .lesson-thumbnail-container {
@@ -187,11 +259,11 @@
 }
 
 .lesson-thumbnail-container.manga-mode {
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.26), rgba(15, 23, 42, 0.92));
+    background: linear-gradient(135deg, rgba(242, 125, 38, 0.15), rgba(9, 9, 11, 0.8));
 }
 
 .lesson-thumbnail-container.video-mode {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(15, 23, 42, 0.92));
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(9, 9, 11, 0.8));
 }
 
 .lesson-thumbnail {
@@ -206,26 +278,31 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 900;
-    letter-spacing: 0.08em;
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
 }
 
-.lesson-mode-fallback.manga { color: #67e8f9; }
-.lesson-mode-fallback.video { color: #c084fc; }
+.lesson-mode-fallback.manga { color: var(--soft-orange); }
+.lesson-mode-fallback.video { color: var(--sky-blue); }
 
 .lesson-badge {
     position: absolute;
     top: 10px;
     left: 10px;
-    padding: 6px 10px;
+    padding: 4px 10px;
     border-radius: 999px;
-    color: #020617;
-    font-size: 0.75rem;
-    font-weight: 900;
+    color: #09090b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
-.lesson-badge.manga { background: rgba(6, 182, 212, 0.88); }
-.lesson-badge.video { background: rgba(168, 85, 247, 0.88); }
+.lesson-badge.manga { background: var(--soft-orange); }
+.lesson-badge.video { background: var(--sky-blue); }
 
 .lesson-body {
     padding: 14px;
@@ -235,10 +312,10 @@
 .lesson-title-text {
     min-height: 48px;
     margin: 0 0 10px 0;
-    color: #f8fafc;
-    font-size: 1rem;
-    line-height: 1.35;
-    font-weight: 700;
+    color: #fafafa;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    font-weight: 600;
 }
 
 .lesson-info-row {
@@ -246,14 +323,14 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    color: #94a3b8;
-    font-size: 0.88rem;
+    color: rgba(250, 250, 250, 0.45);
+    font-size: 0.82rem;
 }
 
 .lesson-status {
     margin-top: 10px;
-    color: #94a3b8;
-    font-size: 0.86rem;
+    color: rgba(250, 250, 250, 0.45);
+    font-size: 0.8rem;
 }
 
 /* Payments history styling */
@@ -271,18 +348,20 @@
 
 .payments-table th {
     padding: 12px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
-    color: #94a3b8;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(250, 250, 250, 0.45);
     text-align: left;
     font-weight: 700;
-    font-size: 0.875rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }
 
 .payments-table td {
     padding: 12px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-    font-size: 0.9rem;
-    color: #cbd5e1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 0.88rem;
+    color: #e4e4e7;
     text-align: left;
 }
 
@@ -300,6 +379,7 @@
         grid-template-columns: 1fr;
         gap: 20px;
         padding: 20px 16px;
+        border-radius: 20px;
     }
     
     .profile-avatar-col {
@@ -326,5 +406,6 @@
     
     .profile-content-card {
         padding: 16px 12px;
+        border-radius: 20px;
     }
 }

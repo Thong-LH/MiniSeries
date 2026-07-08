@@ -1,21 +1,531 @@
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
 @import "tailwindcss";
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-html { scroll-behavior: smooth; }
-
-body {
-    margin: 0;
-    padding: 0;
-    background-color: #030712; /* Default very dark background */
-    color: #ffffff;
-    font-family: 'Lexend', system-ui, -apple-system, sans-serif;
-    overflow-x: hidden;
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cinzel", Georgia, Cambria, serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #09090b; }
-::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; border: 1px solid #09090b; }
-::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+/* Custom space sci-fi animations */
+@keyframes portal-spin-cw {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes portal-spin-ccw {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes portal-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; filter: drop-shadow(0 0 35px var(--glow-color, rgba(249,115,22,0.5))); }
+  50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 70px var(--glow-color, rgba(249,115,22,0.9))); }
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1.5deg); }
+}
+
+/* 3D Flying Sheets Animation along a curved path from bottom-left Open Book to top-right Open Book */
+@keyframes fly-sheet-1 {
+  0% {
+    transform: translate3d(-4vw, 110vh, -200px) rotateX(55deg) rotateY(-45deg) rotateZ(15deg) scale(0.05);
+    opacity: 0;
+  }
+  12% {
+    transform: translate3d(7vw, 98.2vh, -200px) rotateX(46.6deg) rotateY(-35.4deg) rotateZ(11.8deg) scale(0.75);
+    opacity: 0.95;
+  }
+  50% {
+    transform: translate3d(42vw, 61vh, -200px) rotateX(-15deg) rotateY(15deg) rotateZ(-12deg) scale(0.75);
+  }
+  88% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(88vw, 12vh, -200px) rotateX(-50deg) rotateY(55deg) rotateZ(45deg) scale(0.75);
+    opacity: 0;
+  }
+}
+
+@keyframes fly-sheet-2 {
+  0% {
+    transform: translate3d(-3.5vw, 108vh, -240px) rotateX(45deg) rotateY(-35deg) rotateZ(5deg) scale(0.05);
+    opacity: 0;
+  }
+  15% {
+    transform: translate3d(10vw, 93.3vh, -240px) rotateX(35deg) rotateY(-25deg) rotateZ(2deg) scale(0.7);
+    opacity: 0.9;
+  }
+  55% {
+    transform: translate3d(45.7vw, 54.1vh, -240px) rotateX(-5deg) rotateY(5deg) rotateZ(-20deg) scale(0.7);
+  }
+  85% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(86vw, 10vh, -240px) rotateX(-45deg) rotateY(45deg) rotateZ(25deg) scale(0.7);
+    opacity: 0;
+  }
+}
+
+@keyframes fly-sheet-3 {
+  0% {
+    transform: translate3d(-4.5vw, 112vh, -180px) rotateX(60deg) rotateY(-50deg) rotateZ(25deg) scale(0.05);
+    opacity: 0;
+  }
+  18% {
+    transform: translate3d(12.5vw, 94.4vh, -180px) rotateX(50deg) rotateY(-40deg) rotateZ(20deg) scale(0.8);
+    opacity: 0.95;
+  }
+  48% {
+    transform: translate3d(40.9vw, 65vh, -180px) rotateX(-25deg) rotateY(25deg) rotateZ(-5deg) scale(0.8);
+  }
+  82% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(90vw, 14vh, -180px) rotateX(-55deg) rotateY(60deg) rotateZ(55deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes fly-sheet-4 {
+  0% {
+    transform: translate3d(-5vw, 109vh, -220px) rotateX(50deg) rotateY(-40deg) rotateZ(10deg) scale(0.05);
+    opacity: 0;
+  }
+  10% {
+    transform: translate3d(3.7vw, 99.6vh, -220px) rotateX(40deg) rotateY(-30deg) rotateZ(8deg) scale(0.72);
+    opacity: 0.95;
+  }
+  52% {
+    transform: translate3d(40.2vw, 60.1vh, -220px) rotateX(-10deg) rotateY(10deg) rotateZ(-15deg) scale(0.72);
+  }
+  90% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(82vw, 15vh, -220px) rotateX(-48deg) rotateY(50deg) rotateZ(35deg) scale(0.72);
+    opacity: 0;
+  }
+}
+
+@keyframes fly-sheet-5 {
+  0% {
+    transform: translate3d(-3vw, 113vh, -250px) rotateX(58deg) rotateY(-48deg) rotateZ(20deg) scale(0.05);
+    opacity: 0;
+  }
+  14% {
+    transform: translate3d(10.3vw, 98.3vh, -250px) rotateX(48deg) rotateY(-38deg) rotateZ(15deg) scale(0.78);
+    opacity: 0.9;
+  }
+  48% {
+    transform: translate3d(42.6vw, 62.6vh, -250px) rotateX(-20deg) rotateY(20deg) rotateZ(-8deg) scale(0.78);
+  }
+  86% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(92vw, 8vh, -250px) rotateX(-52deg) rotateY(58deg) rotateZ(48deg) scale(0.78);
+    opacity: 0;
+  }
+}
+
+/* Custom styling utilities */
+.animate-spin-cw {
+  animation: portal-spin-cw 20s linear infinite;
+}
+
+.animate-spin-ccw {
+  animation: portal-spin-ccw 14s linear infinite;
+}
+
+.animate-portal-pulse-orange {
+  --glow-color: rgba(249,115,22,0.85);
+  animation: portal-pulse 8s ease-in-out infinite;
+}
+
+.animate-portal-pulse-blue {
+  --glow-color: rgba(59,130,246,0.85);
+  animation: portal-pulse 7s ease-in-out infinite;
+}
+
+.animate-float-gentle {
+  animation: float-gentle 6s ease-in-out infinite;
+}
+
+/* Base styling overrides */
+body {
+  background-color: #09090b;
+  color: #fafafa;
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+}
+
+/* Ambient scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(9, 9, 11, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Perspective Container for 3D sheets */
+.scene-3d {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+  filter: saturate(0.82) contrast(0.96);
+}
+
+.sheet-3d-1 {
+  animation: fly-sheet-1 12s linear infinite;
+}
+
+.sheet-3d-2 {
+  animation: fly-sheet-2 15s linear infinite;
+}
+
+.sheet-3d-3 {
+  animation: fly-sheet-3 10s linear infinite;
+}
+
+.sheet-3d-4 {
+  animation: fly-sheet-4 14s linear infinite;
+}
+
+.sheet-3d-5 {
+  animation: fly-sheet-5 16s linear infinite;
+}
+
+/* Floating magic sparks for background depth */
+@keyframes spark-drift {
+  0% {
+    transform: translateY(105vh) translateX(0) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: var(--spark-opacity, 0.4);
+  }
+  85% {
+    opacity: var(--spark-opacity, 0.4);
+  }
+  100% {
+    transform: translateY(-5vh) translateX(var(--spark-drift-x, 25px)) scale(1.1);
+    opacity: 0;
+  }
+}
+
+.floating-spark {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: spark-drift infinite linear;
+  box-shadow: 0 0 10px var(--spark-glow, rgba(255,255,255,0.4));
+}
+
+/* Custom radial background glows */
+.bg-obsidian-glow {
+  background: 
+    radial-gradient(circle at 10% 90%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 90% 10%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    #09090b;
+}
+
+/* 3D CSS Book Styles for Portals */
+.portal-book-container {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+  width: 140px;
+  height: 100px;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .portal-book-container {
+    width: 180px;
+    height: 130px;
+  }
+}
+
+.portal-book {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  position: relative;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Sách Cam ở góc dưới bên trái: Hơi xoay nghiêng hướng lên trên bên phải với animation tự động */
+.portal-book-orange .portal-book {
+  animation: auto-tilt-orange 8s ease-in-out infinite;
+}
+
+.portal-book-orange .portal-book:hover {
+  animation-play-state: paused;
+  transform: rotateX(48deg) rotateY(28deg) rotateZ(-6deg) scale(0.9) translateY(-6px);
+}
+
+/* Sách Xanh ở góc trên bên phải: Hơi xoay nghiêng hướng xuống dưới bên trái với animation tự động */
+.portal-book-blue .portal-book {
+  animation: auto-tilt-blue 8s ease-in-out infinite;
+}
+
+.portal-book-blue .portal-book:hover {
+  animation-play-state: paused;
+  transform: rotateX(-40deg) rotateY(-28deg) rotateZ(2deg) scale(0.9) translateY(-6px);
+}
+
+@keyframes auto-tilt-orange {
+  0%, 100% {
+    transform: rotateX(42deg) rotateY(22deg) rotateZ(-10deg) scale(0.8) translateY(0);
+  }
+  50% {
+    transform: rotateX(48deg) rotateY(28deg) rotateZ(-6deg) scale(0.8) translateY(-8px);
+  }
+}
+
+@keyframes auto-tilt-blue {
+  0%, 100% {
+    transform: rotateX(-34deg) rotateY(-22deg) rotateZ(6deg) scale(0.8) translateY(0);
+  }
+  50% {
+    transform: rotateX(-40deg) rotateY(-28deg) rotateZ(2deg) scale(0.8) translateY(-8px);
+  }
+}
+
+/* Spine / Gáy sách dầy dặn */
+.portal-book-spine {
+  position: absolute;
+  left: calc(50% - 3px);
+  width: 6px;
+  height: 96%;
+  top: 2%;
+  background: #111113;
+  transform: translateZ(24px);
+  box-shadow: 0 0 10px rgba(0,0,0,0.7);
+  z-index: 20;
+}
+
+/* Cover / Bìa dưới */
+.portal-book-bottom {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  z-index: 1;
+}
+
+.portal-book-cover {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  border-radius: 5px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), inset 0 0 8px rgba(255, 255, 255, 0.1);
+  transform-style: preserve-3d;
+}
+
+.portal-book-cover.left {
+  left: 0;
+  transform-origin: right center;
+  transform: rotateY(18deg);
+  border-right: none;
+}
+
+.portal-book-cover.right {
+  right: 0;
+  transform-origin: left center;
+  transform: rotateY(-18deg);
+  border-left: none;
+}
+
+.portal-book-edge {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.portal-book-edge-block {
+  position: absolute;
+  width: 47%;
+  height: 94%;
+  top: 3%;
+  background: repeating-linear-gradient(90deg, #f4f4f5, #f4f4f5 1px, #e4e4e7 1px, #e4e4e7 2px, #d4d4d8 2px, #d4d4d8 4px);
+  transform-style: preserve-3d;
+}
+
+.portal-book-edge-block.left {
+  left: 2%;
+  transform-origin: right center;
+  transform: translateZ(11px) rotateY(18deg);
+  border-radius: 3px 0 0 3px;
+  box-shadow: -3px 6px 12px rgba(0,0,0,0.25);
+}
+
+.portal-book-edge-block.right {
+  right: 2%;
+  transform-origin: left center;
+  transform: translateZ(11px) rotateY(-18deg);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 3px 6px 12px rgba(0,0,0,0.25);
+}
+
+.portal-book-top {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  z-index: 10;
+}
+
+.portal-book-left-page, 
+.portal-book-right-page {
+  position: absolute;
+  width: 47%;
+  height: 94%;
+  top: 3%;
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.12), 0 4px 6px rgba(0,0,0,0.1);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transform-style: preserve-3d;
+}
+
+.portal-book-left-page {
+  left: 2%;
+  transform-origin: right center;
+  transform: translateZ(20px) rotateY(18deg);
+  border-radius: 4px 1px 1px 4px;
+}
+
+.portal-book-right-page {
+  right: 2%;
+  transform-origin: left center;
+  transform: translateZ(20px) rotateY(-18deg);
+  border-radius: 1px 4px 4px 1px;
+}
+
+/* Theme overrides for Book Orange */
+.portal-book-orange .portal-book-cover {
+  background: linear-gradient(135deg, #7c2d12, #451a03);
+  border: 1.5px solid rgba(249, 115, 22, 0.4);
+}
+
+.portal-book-orange .portal-book-left-page,
+.portal-book-orange .portal-book-right-page {
+  background: linear-gradient(to right, #fffdfa, #ffedd5);
+  border: 0.5px solid rgba(249, 115, 22, 0.15);
+}
+
+/* Theme overrides for Book Blue */
+.portal-book-blue .portal-book-cover {
+  background: linear-gradient(135deg, #1e3a8a, #172554);
+  border: 1.5px solid rgba(59, 130, 246, 0.4);
+}
+
+.portal-book-blue .portal-book-left-page,
+.portal-book-blue .portal-book-right-page {
+  background: linear-gradient(to right, #f8fafc, #e0f2fe);
+  border: 0.5px solid rgba(59, 130, 246, 0.15);
+}
+
+/* Inside Page Content styling */
+.portal-book-page-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+}
+
+.portal-book-page-line {
+  height: 2px;
+  border-radius: 1px;
+}
+
+.portal-book-orange .portal-book-page-line {
+  background: rgba(124, 45, 18, 0.15);
+}
+
+.portal-book-orange .portal-book-page-line-accent {
+  background: rgba(249, 115, 22, 0.45);
+}
+
+.portal-book-blue .portal-book-page-line {
+  background: rgba(30, 58, 138, 0.15);
+}
+
+.portal-book-blue .portal-book-page-line-accent {
+  background: rgba(59, 130, 246, 0.45);
+}
+
+/* Little glowing particle floating above the book crease */
+.portal-book-magic-glow {
+  position: absolute;
+  left: 50%;
+  top: 35%;
+  transform: translate(-50%, -50%) translateZ(26px);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  filter: blur(1px);
+  z-index: 30;
+}
+
+.portal-book-orange .portal-book-magic-glow {
+  background: #f97316;
+  box-shadow: 0 0 10px 3px rgba(249, 115, 22, 0.8);
+}
+
+.portal-book-blue .portal-book-magic-glow {
+  background: #3b82f6;
+  box-shadow: 0 0 10px 3px rgba(59, 130, 246, 0.8);
+}
+
+/* Orbit Line Animations and utilities */
+@keyframes orbit-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.animate-orbit-dash-slow {
+  animation: orbit-flow 45s linear infinite;
+}
+
+.animate-orbit-dash-fast {
+  animation: orbit-flow 30s linear infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin-reverse-slow {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 140s linear infinite;
+}
+
+.animate-spin-reverse-slow {
+  animation: spin-reverse-slow 180s linear infinite;
+}

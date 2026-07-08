@@ -8,6 +8,8 @@ export default function Studio() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [generateVideo, setGenerateVideo] = useState(false);
+    const [vibe, setVibe] = useState('manga');
+    const [showGuide, setShowGuide] = useState(false);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
@@ -69,7 +71,21 @@ export default function Studio() {
                 setDraftScript(lesson.overallScript || '');
                 setGenerateVideo(lesson.outputMode === 'Video' || lesson.outputMode === 1);
                 setCurrentChapterIndex(0);
-                setQuizSelections({});
+
+                try {
+                    const attempts = await api.getMyQuizAttempts();
+                    const selectionMap: Record<number, string> = {};
+                    chapters.forEach((ch: any, idx: number) => {
+                        const matched = attempts.find((a: any) => a.chapterId === ch.id);
+                        if (matched) {
+                            selectionMap[idx] = matched.selectedOption;
+                        }
+                    });
+                    setQuizSelections(selectionMap);
+                } catch (qErr) {
+                    console.error("Lỗi tải kết quả quiz cũ:", qErr);
+                    setQuizSelections({});
+                }
 
                 if (isRunning) {
                     setStep('generating_media');
@@ -319,7 +335,7 @@ export default function Studio() {
                 rawContent: content.trim(),
                 generateVideo,
                 creativeMode: 0,
-                creativeBrief: null
+                creativeBrief: `Vibe style: ${vibe}`
             });
 
             setLessonId(result.id);
@@ -362,6 +378,13 @@ export default function Studio() {
             ...prev,
             [currentChapterIndex]: optionKey
         }));
+
+        if (currentChapter?.id && currentChapter?.quiz) {
+            const correct = (currentChapter.quiz.correctOption || '').trim().toUpperCase().charAt(0);
+            const isCorrect = optionKey === correct;
+            api.logQuizAttempt(currentChapter.id, optionKey, isCorrect)
+                .catch(err => console.error("Lỗi lưu kết quả quiz:", err));
+        }
     };
 
     const renderQuiz = (chapter: any) => {
@@ -423,6 +446,15 @@ export default function Studio() {
     };
 
     const chapters = lessonData?.chapters ? [...lessonData.chapters].sort((a, b) => a.order - b.order) : [];
+
+    useEffect(() => {
+        if (step === 'finished' && lessonData?.id && chapters?.length > 0) {
+            const currentChapterOrder = currentChapterIndex + 1;
+            api.updateProgress(lessonData.id, currentChapterOrder, chapters.length)
+                .catch(err => console.error("Lỗi cập nhật tiến trình:", err));
+        }
+    }, [currentChapterIndex, step, lessonData?.id, chapters?.length]);
+
     const currentChapter = chapters[currentChapterIndex];
     const isVideoMode = lessonData?.outputMode === 'Video' || lessonData?.outputMode === 1;
 
@@ -442,20 +474,7 @@ export default function Studio() {
         <div className="studio-page-wrapper">
             <Toast message={error} type="error" onClose={() => setError(null)} />
 
-            {/* Cosmic space background effects */}
-            <div className="cyber-space-bg">
-                <div className="stars-layer-1"></div>
-                <div className="stars-layer-2"></div>
-                <div className="nebula-glow"></div>
-                <div className="scifi-objects">
-                    <div className="spaceship-1">🛸</div>
-                    <div className="spaceship-2">🚀</div>
-                    <div className="satellite">🛰️</div>
-                    <div className="planet-cyan"></div>
-                    <div className="planet-purple"></div>
-                </div>
-            </div>
-            <div className="background-blobs"></div>
+
 
             <main>
                 {step === 'opening_lesson' && (
@@ -493,8 +512,65 @@ export default function Studio() {
                 {/* STEP 1: INPUT PANEL */}
                 {(step === 'input' || step === 'drafting') && (
                     <section id="generationInputPanel" className="input-container">
-                        <div className="input-group">
-                            <label htmlFor="title">Tiêu đề bài học</label>
+                        <div className="input-group title-group-with-suggestions">
+                            <div className="label-row">
+                                <label htmlFor="title" className="label-with-info">
+                                    <span>Tiêu đề bài học</span>
+                                    <button
+                                        type="button"
+                                        className="info-trigger-btn"
+                                        onClick={() => setShowGuide(true)}
+                                        title="Xem quy trình sáng tạo"
+                                        disabled={step === 'drafting'}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="info-icon-svg">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                        </svg>
+                                    </button>
+                                </label>
+                                
+                                <div className="inline-suggestions">
+                                    <span className="suggestion-label">💡 Gợi ý nhanh:</span>
+                                    <div className="suggestion-pills">
+                                        {[
+                                            { 
+                                                name: 'Tương đối 🌌', 
+                                                title: 'Thuyết tương đối & Giãn nở thời gian', 
+                                                content: 'Theo thuyết tương đối của Einstein, thời gian trôi chậm hơn đối với vật thể di chuyển ở tốc độ cận ánh sáng. Hãy kể câu chuyện về phi hành gia Nam bay vào vũ trụ và khi trở về Trái Đất, anh vẫn trẻ trong khi người bạn Minh đã già đi.',
+                                                vibe: 'scifi' 
+                                            },
+                                            { 
+                                                name: 'Bảo toàn 🧪', 
+                                                title: 'Nguyên lý bảo toàn khối lượng', 
+                                                content: 'Trong hóa học, tổng khối lượng của các chất tham gia phản ứng luôn bằng tổng khối lượng của các sản phẩm tạo thành. Hãy biến định luật này thành một công thức pha chế tiên dược của một giả kim thuật sư cổ xưa.',
+                                                vibe: 'medieval' 
+                                            },
+                                            { 
+                                                name: 'Nam châm 🎨', 
+                                                title: 'Nguyên lý hoạt động của nam châm', 
+                                                content: 'Nam châm có hai cực: cực Bắc và cực Nam. Các cực cùng tên thì đẩy nhau, các cực khác tên thì hút nhau. Hãy minh họa định luật này thông qua cuộc chạm trán kịch tính giữa hai chiến binh mang năng lượng đối nghịch.',
+                                                vibe: 'manga' 
+                                            }
+                                        ].map((s, idx) => (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                className="suggestion-pill"
+                                                onClick={() => {
+                                                    setTitle(s.title);
+                                                    setContent(s.content);
+                                                    setVibe(s.vibe);
+                                                }}
+                                                disabled={step === 'drafting'}
+                                            >
+                                                {s.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                             <input
                                 type="text"
                                 id="title"
@@ -517,6 +593,32 @@ export default function Studio() {
                                 disabled={step === 'drafting'}
                                 required
                             ></textarea>
+                        </div>
+
+                        <div className="input-group">
+                            <label>Phong cách truyền tải (Vibe Style)</label>
+                            <div className="vibe-selectors">
+                                {[
+                                    { id: 'manga', name: 'Manga', icon: '🎨', color: '#f27d26', desc: 'Nhật Bản cổ điển' },
+                                    { id: 'scifi', name: 'Cosmic', icon: '🌌', color: '#3b82f6', desc: 'Vũ trụ huyền ảo' },
+                                    { id: 'retro', name: 'Retro', icon: '🕹️', color: '#ec4899', desc: 'Neon 8-bit hoài niệm' },
+                                    { id: 'medieval', name: 'Alchemy', icon: '🧪', color: '#10b981', desc: 'Giả kim cổ xưa' }
+                                ].map(v => (
+                                    <button
+                                        key={v.id}
+                                        type="button"
+                                        className={`vibe-card ${vibe === v.id ? 'active' : ''} vibe-${v.id}`}
+                                        onClick={() => setVibe(v.id)}
+                                        disabled={step === 'drafting'}
+                                    >
+                                        <span className="vibe-icon">{v.icon}</span>
+                                        <div className="vibe-info">
+                                            <span className="vibe-name" style={{ color: vibe === v.id ? v.color : '' }}>{v.name}</span>
+                                            <span className="vibe-desc">{v.desc}</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         <div className="options">
@@ -555,6 +657,38 @@ export default function Studio() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Glassmorphic Popover/Modal for Guide Steps */}
+                        {showGuide && (
+                            <div className="guide-modal-overlay" onClick={() => setShowGuide(false)}>
+                                <div className="guide-modal-content" onClick={e => e.stopPropagation()}>
+                                    <button 
+                                        type="button" 
+                                        className="guide-modal-close"
+                                        onClick={() => setShowGuide(false)}
+                                    >
+                                        ✕
+                                    </button>
+                                    <h2 className="guide-modal-title">Quy trình sáng tạo bài học</h2>
+                                    <div className="guide-steps-vertical">
+                                        {[
+                                            { step: '01', title: 'Ý tưởng', desc: 'Nhập tiêu đề & nội dung kiến thức muốn chuyển thể.' },
+                                            { step: '02', title: 'Chọn Vibe', desc: 'Chọn phong cách thể hiện Manga/Cosmic/Retro/Alchemy.' },
+                                            { step: '03', title: 'Kịch bản', desc: 'Duyệt phân cảnh do AI phác thảo trước khi vẽ.' },
+                                            { step: '04', title: 'Học tập', desc: 'Thưởng thức bài giảng sinh động kèm Quiz tương tác.' }
+                                        ].map(s => (
+                                            <div key={s.step} className="guide-modal-step">
+                                                <span className="guide-step-num">{s.step}</span>
+                                                <div className="guide-step-text">
+                                                    <h3 className="guide-step-title">{s.title}</h3>
+                                                    <p className="guide-step-desc">{s.desc}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </section>
                 )}
 
@@ -657,7 +791,7 @@ export default function Studio() {
                                             className="btn-success"
                                             onClick={handleApproveDraft}
                                         >
-                                            Phê duyệt & Tạo Media
+                                            {lessonData?.chapters?.length > 0 ? "Thử lại các chương lỗi" : "Phê duyệt & Tạo Media"}
                                         </button>
                                     </div>
                                 )}

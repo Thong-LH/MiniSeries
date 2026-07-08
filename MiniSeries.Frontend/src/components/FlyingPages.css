@@ -338,3 +338,104 @@
     border-radius: 46% 54% 48% 52% / 50% 50% 50% 50%;
     font-size: 5.5px;
 }
+
+/* ---------------------------------
+   Chemistry Doodle Page
+   --------------------------------- */
+.mini-page-chemistry {
+    padding: 6px;
+    background-color: #faf8f2;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 1px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.mini-chem-title {
+    font-family: 'Caveat', cursive;
+    font-size: 6.5px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+    line-height: 1;
+    text-align: left;
+}
+
+.mini-chem-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    color: #475569;
+}
+
+.mini-chem-formula {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 6.5px;
+    font-weight: bold;
+    color: #0f172a;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.mini-chem-doodle {
+    width: 24px;
+    height: 24px;
+    color: #10b981;
+    opacity: 0.8;
+}
+
+/* ---------------------------------
+   Geography / Astronomy Page
+   --------------------------------- */
+.mini-page-geo {
+    padding: 6px;
+    background-color: #faf8f2;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 1px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.mini-geo-title {
+    font-family: 'Caveat', cursive;
+    font-size: 6.5px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+    line-height: 1;
+    text-align: left;
+}
+
+.mini-geo-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    color: #475569;
+}
+
+.mini-geo-doodle {
+    width: 24px;
+    height: 24px;
+    color: #fb923c;
+    opacity: 0.8;
+}
