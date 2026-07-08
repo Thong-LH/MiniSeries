@@ -102,3 +102,50 @@ ALTER TABLE "TrafficLogs" ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "anon_all_trafficlogs" ON "TrafficLogs";
 CREATE POLICY "anon_all_trafficlogs" ON "TrafficLogs" FOR ALL TO anon USING (true) WITH CHECK (true);
 
+-- StudentProgresses (Theo dõi tiến trình học tập - LMS)
+CREATE TABLE IF NOT EXISTS "StudentProgresses" (
+    "Id" uuid PRIMARY KEY,
+    "UserId" uuid NOT NULL,
+    "LessonId" uuid NOT NULL,
+    "LastReadChapterOrder" integer NOT NULL,
+    "ProgressPercentage" integer NOT NULL,
+    "UpdatedAt" timestamp with time zone NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "IX_StudentProgresses_User_Lesson" ON "StudentProgresses" ("UserId", "LessonId");
+
+ALTER TABLE "StudentProgresses" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "anon_all_studentprogresses" ON "StudentProgresses";
+CREATE POLICY "anon_all_studentprogresses" ON "StudentProgresses" FOR ALL TO anon USING (true) WITH CHECK (true);
+
+-- QuizAttempts (Theo dõi đáp án quiz đã chọn)
+CREATE TABLE IF NOT EXISTS "QuizAttempts" (
+    "Id" uuid PRIMARY KEY,
+    "UserId" uuid NOT NULL,
+    "ChapterId" uuid NOT NULL,
+    "SelectedOption" character varying(10) NOT NULL,
+    "IsCorrect" boolean NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "IX_QuizAttempts_User_Chapter" ON "QuizAttempts" ("UserId", "ChapterId");
+
+ALTER TABLE "QuizAttempts" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "anon_all_quizattempts" ON "QuizAttempts";
+CREATE POLICY "anon_all_quizattempts" ON "QuizAttempts" FOR ALL TO anon USING (true) WITH CHECK (true);
+
+-- UserAchievements (Hệ thống danh hiệu / huy hiệu trang giấy)
+CREATE TABLE IF NOT EXISTS "UserAchievements" (
+    "Id" uuid PRIMARY KEY,
+    "UserId" uuid NOT NULL,
+    "AchievementKey" character varying(100) NOT NULL,
+    "UnlockedAt" timestamp with time zone NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "IX_UserAchievements_User_Key" ON "UserAchievements" ("UserId", "AchievementKey");
+
+ALTER TABLE "UserAchievements" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "anon_all_userachievements" ON "UserAchievements";
+CREATE POLICY "anon_all_userachievements" ON "UserAchievements" FOR ALL TO anon USING (true) WITH CHECK (true);
+
+

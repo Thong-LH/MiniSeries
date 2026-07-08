@@ -61,7 +61,11 @@ public sealed class LessonsController(
             scriptStatus,
             outputMode,
             search));
-        return Ok(result);
+
+        Response.Headers.Append("X-Total-Count", result.TotalCount.ToString());
+        Response.Headers.Append("Access-Control-Expose-Headers", "X-Total-Count");
+
+        return Ok(result.Items);
     }
 
     [Authorize(Policy = "CustomerOnly")]

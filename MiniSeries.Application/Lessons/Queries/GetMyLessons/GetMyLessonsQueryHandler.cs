@@ -6,9 +6,9 @@ using MiniSeries.Application.Lessons.Dtos;
 namespace MiniSeries.Application.Lessons.Queries.GetMyLessons;
 
 public sealed class GetMyLessonsQueryHandler(ILessonRepository lessonRepository)
-    : IRequestHandler<GetMyLessonsQuery, IReadOnlyList<LessonSummaryDto>>
+    : IRequestHandler<GetMyLessonsQuery, GetMyLessonsResponse>
 {
-    public async Task<IReadOnlyList<LessonSummaryDto>> Handle(
+    public async Task<GetMyLessonsResponse> Handle(
         GetMyLessonsQuery request,
         CancellationToken cancellationToken)
     {
@@ -24,8 +24,17 @@ public sealed class GetMyLessonsQueryHandler(ILessonRepository lessonRepository)
             request.ScriptStatus,
             request.OutputMode,
             request.Search);
-        return lessons
+
+        var count = await lessonRepository.CountByUserIdAsync(
+            request.UserId,
+            request.ScriptStatus,
+            request.OutputMode,
+            request.Search);
+
+        var items = lessons
             .Select(LessonSummaryDto.FromEntity)
             .ToList();
+
+        return new GetMyLessonsResponse(items, count);
     }
 }

@@ -19,6 +19,9 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
     public DbSet<StaffReport> StaffReports => Set<StaffReport>();
     public DbSet<CskhMessage> CskhMessages => Set<CskhMessage>();
     public DbSet<TrafficLog> TrafficLogs => Set<TrafficLog>();
+    public DbSet<StudentProgress> StudentProgresses => Set<StudentProgress>();
+    public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
+    public DbSet<UserAchievement> UserAchievements => Set<UserAchievement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -211,6 +214,31 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.IpAddress).HasMaxLength(100);
             entity.Property(x => x.DeviceType).HasMaxLength(50);
             entity.HasIndex(x => x.CreatedAt);
+        });
+
+        modelBuilder.Entity<StudentProgress>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.LessonId).IsRequired();
+            entity.HasIndex(x => new { x.UserId, x.LessonId }).IsUnique();
+        });
+
+        modelBuilder.Entity<QuizAttempt>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.ChapterId).IsRequired();
+            entity.Property(x => x.SelectedOption).HasMaxLength(10).IsRequired();
+            entity.HasIndex(x => new { x.UserId, x.ChapterId }).IsUnique();
+        });
+
+        modelBuilder.Entity<UserAchievement>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.AchievementKey).HasMaxLength(100).IsRequired();
+            entity.HasIndex(x => new { x.UserId, x.AchievementKey }).IsUnique();
         });
     }
 }

@@ -188,7 +188,7 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
                 mockChapters.Add(new Chapter { Order = i + 1, MangaUrl = (i == 0 ? x.FirstMangaUrl : null) });
             }
 
-            return new Lesson
+             return new Lesson
             {
                 Id = x.Id,
                 UserId = x.UserId,
@@ -203,5 +203,33 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
                 Chapters = mockChapters
             };
         }).ToList();
+    }
+
+    public async Task<int> CountByUserIdAsync(
+        Guid userId,
+        ScriptStatus? scriptStatus = null,
+        OutputMode? outputMode = null,
+        string? search = null)
+    {
+        var query = dbContext.Lessons
+            .AsNoTracking()
+            .Where(x => x.UserId == userId);
+
+        if (scriptStatus.HasValue)
+        {
+            query = query.Where(x => x.ScriptStatus == scriptStatus.Value);
+        }
+
+        if (outputMode.HasValue)
+        {
+            query = query.Where(x => x.OutputMode == outputMode.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(x => x.Title.ToLower().Contains(search.ToLower()));
+        }
+
+        return await query.CountAsync();
     }
 }

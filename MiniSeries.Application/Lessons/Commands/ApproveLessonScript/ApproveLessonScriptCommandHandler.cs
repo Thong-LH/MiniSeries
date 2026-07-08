@@ -46,10 +46,10 @@ public sealed class ApproveLessonScriptCommandHandler(
             return LessonDto.FromEntity(lesson);
         }
 
-        // Idempotency guard: skip if chapters already have generated media
-        if (lesson.Chapters.Any(c =>
-            !string.IsNullOrWhiteSpace(c.MangaUrl) ||
-            !string.IsNullOrWhiteSpace(c.VideoUrl)))
+        // Idempotency guard: skip if ALL chapters already have generated media
+        if (lesson.Chapters.Any() && lesson.Chapters.All(c =>
+            (lesson.OutputMode == OutputMode.Video && !string.IsNullOrWhiteSpace(c.VideoUrl)) ||
+            (lesson.OutputMode == OutputMode.Manga && !string.IsNullOrWhiteSpace(c.MangaUrl))))
         {
             return LessonDto.FromEntity(lesson);
         }
@@ -130,15 +130,22 @@ public sealed class ApproveLessonScriptCommandHandler(
                 await backgroundLessonRepository.SaveAsync(lesson);
             }
 
-            // Step 2: Generate anchor image
-            job.CurrentStep = "GenerateAnchorImage";
-            AddLog(job, "GenerateAnchorImage", "Started generating anchor image.");
-            await backgroundLessonRepository.SaveAsync(lesson);
+            // Step 2: Generate anchor image (only if missing)
+            if (string.IsNullOrWhiteSpace(lesson.AnchorImageUrl))
+            {
+                job.CurrentStep = "GenerateAnchorImage";
+                AddLog(job, "GenerateAnchorImage", "Started generating anchor image.");
+                await backgroundLessonRepository.SaveAsync(lesson);
 
-            var anchorLocalUrl = await imageGenerationService.GenerateAnchorImageAsync(lesson.CharacterProfile);
-            var subFolder = $"users/{lesson.UserId}/lessons/{lesson.Id}";
-            lesson.AnchorImageUrl = await storageService.UploadAsync(anchorLocalUrl, "anchor", subFolder);
-            await backgroundLessonRepository.SaveAsync(lesson);
+                var anchorLocalUrl = await imageGenerationService.GenerateAnchorImageAsync(lesson.CharacterProfile);
+                var subFolder = $"users/{lesson.UserId}/lessons/{lesson.Id}";
+                lesson.AnchorImageUrl = await storageService.UploadAsync(anchorLocalUrl, "anchor", subFolder);
+                await backgroundLessonRepository.SaveAsync(lesson);
+            }
+            else
+            {
+                AddLog(job, "GenerateAnchorImage", "Using existing anchor image: " + lesson.AnchorImageUrl);
+            }
 
             // Step 3 & 4: Generate + upload all chapters in parallel (max 3 at a time)
             job.CurrentStep = "GenerateChapters";
@@ -147,8 +154,10 @@ public sealed class ApproveLessonScriptCommandHandler(
 
             using var semaphore = new SemaphoreSlim(3);
 
-            // Snapshot chapter data before parallel execution (avoid sharing mutable entity objects)
+            // Snapshot chapter data before parallel execution (only select chapters missing media)
             var chapterSnapshots = lesson.Chapters
+                .Where(c => (lesson.OutputMode == OutputMode.Video && string.IsNullOrWhiteSpace(c.VideoUrl)) ||
+                            (lesson.OutputMode == OutputMode.Manga && string.IsNullOrWhiteSpace(c.MangaUrl)))
                 .Select(c => (c.Id, c.Order, c.FullPrompt))
                 .ToList();
 

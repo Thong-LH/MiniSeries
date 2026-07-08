@@ -401,17 +401,14 @@ public sealed class AdminController(
 
         try
         {
-            // Clear old seeded data using clean, hidden identifiers
-            var oldSeedPayments = await dbContext.PaymentHistories
+            // Clear old seeded data directly in the database using ExecuteDeleteAsync
+            await dbContext.PaymentHistories
                 .Where(p => baseEmails.Contains(p.UserEmail))
-                .ToListAsync();
-            dbContext.PaymentHistories.RemoveRange(oldSeedPayments);
+                .ExecuteDeleteAsync();
 
-            var oldSeedTraffic = await dbContext.TrafficLogs
+            await dbContext.TrafficLogs
                 .Where(t => t.IpAddress.StartsWith("171.244.", StringComparison.Ordinal))
-                .ToListAsync();
-            dbContext.TrafficLogs.RemoveRange(oldSeedTraffic);
-            await dbContext.SaveChangesAsync();
+                .ExecuteDeleteAsync();
 
             var random = new Random();
             var now = DateTime.UtcNow;

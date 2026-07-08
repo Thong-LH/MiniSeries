@@ -71,4 +71,30 @@ public sealed class InMemoryLessonRepository : ILessonRepository
         IReadOnlyList<Lesson> lessons = query.ToList();
         return Task.FromResult(lessons);
     }
+
+    public Task<int> CountByUserIdAsync(
+        Guid userId,
+        ScriptStatus? scriptStatus = null,
+        OutputMode? outputMode = null,
+        string? search = null)
+    {
+        var query = _lessons.Values.Where(x => x.UserId == userId);
+
+        if (scriptStatus.HasValue)
+        {
+            query = query.Where(x => x.ScriptStatus == scriptStatus.Value);
+        }
+
+        if (outputMode.HasValue)
+        {
+            query = query.Where(x => x.OutputMode == outputMode.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(x => x.Title.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return Task.FromResult(query.Count());
+    }
 }

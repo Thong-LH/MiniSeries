@@ -52,7 +52,10 @@ public sealed class AnalyticsController(MiniSeriesDbContext dbContext) : Control
     {
         try
         {
-            var logs = await dbContext.TrafficLogs.AsNoTracking().ToListAsync();
+            var logs = await dbContext.TrafficLogs
+                .AsNoTracking()
+                .Select(t => new { t.CreatedAt, t.IpAddress })
+                .ToListAsync();
 
             var grouped = logs
                 .GroupBy(r =>

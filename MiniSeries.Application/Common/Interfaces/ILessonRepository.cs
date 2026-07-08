@@ -14,5 +14,10 @@ public interface ILessonRepository
         ScriptStatus? scriptStatus = null,
         OutputMode? outputMode = null,
         string? search = null);
+    Task<int> CountByUserIdAsync(
+        Guid userId,
+        ScriptStatus? scriptStatus = null,
+        OutputMode? outputMode = null,
+        string? search = null);
     Task UpdateChapterMediaAsync(Guid chapterId, string? mangaUrl, string? videoUrl);
 }
