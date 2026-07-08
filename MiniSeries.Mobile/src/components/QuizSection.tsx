@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { mockQuiz } from '../data';
+import { useTheme } from '../hooks/use-theme';
 
 interface QuizQuestion {
   question: string;
@@ -21,19 +22,20 @@ export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onComplete }) =>
   const [checked, setChecked] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean | null>(null);
 
-  const isDark = themeId === 'bold-typography-dark';
+  const theme = useTheme();
+  const isDark = theme.isDark;
 
   // Brutalist Design Styles
   const colors = {
-    bg: isDark ? '#121212' : '#FAF9F6',
-    text: isDark ? '#FAF9F6' : '#1A1A1A',
-    textMuted: isDark ? '#CFCFCF' : '#4A4A4A',
-    border: isDark ? '#FFFFFF' : '#000000',
-    primaryAccent: '#FF3E00',
-    correct: '#10B981',
-    incorrect: '#EF4444',
-    selectedBg: isDark ? '#FFFFFF' : '#000000',
-    selectedText: isDark ? '#000000' : '#FAF9F6',
+    bg: theme.background,
+    text: theme.text,
+    textMuted: theme.textMuted,
+    border: theme.border,
+    primaryAccent: theme.primaryAccent,
+    correct: theme.correct,
+    incorrect: theme.incorrect,
+    selectedBg: isDark ? 'rgba(124, 58, 237, 0.15)' : 'rgba(99, 102, 241, 0.1)',
+    selectedText: theme.primaryAccent,
   };
 
   const activeQuiz = quiz || mockQuiz;
@@ -45,7 +47,6 @@ export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onComplete }) =>
 
   const handleSubmit = () => {
     if (checked) {
-      // Reset quiz
       setSelectedAnswer(null);
       setChecked(false);
       setSuccess(null);
@@ -71,7 +72,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onComplete }) =>
   };
 
   return (
-    <View style={[styles.container, { borderColor: colors.border }]}>
+    <View style={[styles.container, { borderColor: colors.border, backgroundColor: colors.bg }]}>
       <Text style={[styles.header, { color: colors.text, borderBottomColor: colors.border }]}>
         📝 LUYỆN TẬP CỦNG CỐ
       </Text>
@@ -93,19 +94,20 @@ export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onComplete }) =>
             if (isSelected) {
               optionBg = colors.selectedBg;
               optionTextColor = colors.selectedText;
+              optionBorderColor = colors.primaryAccent;
             }
 
             if (checked) {
               if (isCorrectAnswer) {
                 optionBorderColor = colors.correct;
                 if (isSelected) {
-                  optionBg = colors.correct;
-                  optionTextColor = '#FFFFFF';
+                  optionBg = 'rgba(16, 185, 129, 0.15)';
+                  optionTextColor = colors.correct;
                 }
               } else if (isSelected) {
                 optionBorderColor = colors.incorrect;
-                optionBg = colors.incorrect;
-                optionTextColor = '#FFFFFF';
+                optionBg = 'rgba(239, 68, 68, 0.15)';
+                optionTextColor = colors.incorrect;
               }
             }
 
@@ -130,7 +132,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onComplete }) =>
                   }
                 ]}>
                   {isSelected && (
-                    <Text style={[styles.optionIndicatorText, { color: optionBg }]}>✓</Text>
+                    <Text style={[styles.optionIndicatorText, { color: optionBg === 'transparent' ? '#ffffff' : optionBg }]}>✓</Text>
                   )}
                 </View>
                 <Text style={[styles.optionText, { color: optionTextColor }]}>
@@ -146,7 +148,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onComplete }) =>
             styles.explanationBox,
             {
               borderColor: colors.border,
-              backgroundColor: success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'
+              backgroundColor: success ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)'
             }
           ]}>
             <Text style={[
@@ -169,8 +171,7 @@ export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onComplete }) =>
           styles.submitButton,
           {
             backgroundColor: checked ? 'transparent' : colors.primaryAccent,
-            borderColor: colors.border,
-            shadowColor: colors.border,
+            borderColor: checked ? colors.border : colors.primaryAccent,
           }
         ]}
       >
@@ -187,18 +188,19 @@ export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onComplete }) =>
 
 const styles = StyleSheet.create({
   container: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
   },
   header: {
     fontFamily: 'System',
-    fontWeight: '900',
-    fontSize: 14,
+    fontWeight: '800',
+    fontSize: 13,
     padding: 12,
-    borderBottomWidth: 2,
-    letterSpacing: 1,
+    borderBottomWidth: 1,
+    letterSpacing: 0.5,
   },
   scrollContent: {
     padding: 16,
@@ -214,7 +216,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   optionButton: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 12,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -222,7 +225,8 @@ const styles = StyleSheet.create({
   optionIndicator: {
     width: 20,
     height: 20,
-    borderWidth: 2,
+    borderRadius: 10,
+    borderWidth: 1.5,
     marginRight: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -237,7 +241,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   explanationBox: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 12,
     padding: 14,
     marginTop: 8,
   },
@@ -253,19 +258,19 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   submitButton: {
-    borderWidth: 2,
+    borderRadius: 10,
     margin: 16,
-    padding: 16,
+    padding: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 2,
   },
   submitButtonText: {
     fontSize: 13,
-    fontWeight: '900',
-    letterSpacing: 1,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
 });

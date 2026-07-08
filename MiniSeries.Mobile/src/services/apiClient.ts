@@ -2,9 +2,27 @@ import axios from 'axios';
 import { Platform, Alert } from 'react-native';
 import { router } from 'expo-router';
 
-const BASE_URL = Platform.OS === 'android'
-  ? 'http://10.0.2.2:5088/api'
-  : 'http://localhost:5088/api'; 
+import Constants from 'expo-constants';
+
+const getBaseUrl = () => {
+  // Tự động lấy IP của máy tính chạy dev server để điện thoại thật kết nối được
+  const hostUri = Constants.expoConfig?.hostUri; 
+  if (hostUri) {
+    const ip = hostUri.split(':')[0];
+    // Nếu không phải là link tunnel của ngrok, lấy IP nội bộ
+    if (ip && !ip.includes('ngrok')) {
+      return `http://${ip}:5088/api`;
+    }
+  }
+  
+  // Fallbacks mặc định cho giả lập hoặc web
+  return Platform.OS === 'android'
+    ? 'http://10.0.2.2:5088/api'
+    : 'http://localhost:5088/api';
+};
+
+const BASE_URL = getBaseUrl();
+console.log('Mobile API Base URL:', BASE_URL);
 
 let authToken: string | null = null;
 

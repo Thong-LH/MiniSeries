@@ -4,6 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../services/apiClient';
+import { useTheme } from '../../hooks/use-theme';
 
 interface SupportTicket {
   id: string;
@@ -16,7 +17,7 @@ interface SupportTicket {
 }
 
 export default function SupportScreen() {
-  const { themeId, userEmail, triggerToast } = useApp();
+  const { themeId, userEmail, triggerToast, isAuthenticated } = useApp();
   const router = useRouter();
   const { mode } = useLocalSearchParams<{ mode: string }>();
 
@@ -25,20 +26,13 @@ export default function SupportScreen() {
   const [loading, setLoading] = useState<boolean>(false);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
 
-  const isDark = themeId === 'bold-typography-dark';
-  const colors = {
-    bg: isDark ? '#121212' : '#FAF9F6',
-    text: isDark ? '#FAF9F6' : '#1A1A1A',
-    textMuted: isDark ? '#CFCFCF' : '#4A4A4A',
-    border: isDark ? '#FFFFFF' : '#000000',
-    primaryAccent: '#FF3E00',
-    cardBg: isDark ? '#1a1a1a' : '#ffffff',
-    inputBg: isDark ? '#1e1e1e' : '#ffffff',
-  };
+  const colors = useTheme();
+  const isDark = colors.isDark;
 
   const isIssueMode = mode === 'issue';
 
   const fetchTickets = async () => {
+    if (!isAuthenticated) return;
     setLoading(true);
     try {
       const res = await apiClient.get('/support/my');
@@ -54,9 +48,10 @@ export default function SupportScreen() {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchTickets();
     apiClient.post('/analytics/track', { path: '/support', deviceType: 'Mobile' }).catch(() => {});
-  }, []);
+  }, [isAuthenticated]);
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -101,7 +96,7 @@ export default function SupportScreen() {
       style={[styles.container, { backgroundColor: colors.bg }]}
     >
       {/* Header Bar */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.bg }]}>
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => router.back()}
@@ -116,7 +111,7 @@ export default function SupportScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Form Card */}
-        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: colors.border }]}>
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' }]}>
           <Text style={[styles.cardHeader, { color: colors.text, borderBottomColor: colors.border }]}>
             {isIssueMode ? 'GỬI BÁO LỖI HỆ THỐNG / KỊCH BẢN' : 'GỬI YÊU CẦU MỚI'}
           </Text>
@@ -129,7 +124,7 @@ export default function SupportScreen() {
               multiline
               numberOfLines={5}
               placeholder={isIssueMode ? "Nhập chi tiết sự cố hoặc phản hồi của bạn..." : "Nhập câu hỏi hoặc nội dung cần tư vấn..."}
-              placeholderTextColor={isDark ? '#666' : '#999'}
+              placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
               value={content}
               onChangeText={setContent}
               style={[styles.input, styles.textArea, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
@@ -139,7 +134,7 @@ export default function SupportScreen() {
               activeOpacity={0.9}
               onPress={handleSubmit}
               disabled={submitting}
-              style={[styles.submitBtn, { backgroundColor: colors.primaryAccent, borderColor: colors.border }]}
+              style={[styles.submitBtn, { backgroundColor: colors.primaryAccent }]}
             >
               {submitting ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
@@ -161,7 +156,7 @@ export default function SupportScreen() {
           {loading ? (
             <ActivityIndicator size="small" color={colors.primaryAccent} style={{ marginVertical: 20 }} />
           ) : tickets.length === 0 ? (
-            <View style={[styles.emptyContainer, { borderColor: colors.border }]}>
+            <View style={[styles.emptyContainer, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
               <Text style={{ color: colors.textMuted, fontSize: 13, fontWeight: '700' }}>CHƯA CÓ YÊU CẦU NÀO.</Text>
             </View>
           ) : (
@@ -178,11 +173,11 @@ export default function SupportScreen() {
                       <View style={[
                         styles.statusBadge,
                         {
-                          borderColor: colors.border,
-                          backgroundColor: isResolved ? '#10B981' : '#EAB308'
+                          backgroundColor: isResolved ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                          borderColor: 'transparent'
                         }
                       ]}>
-                        <Text style={[styles.statusBadgeText, { color: colors.bg }]}>
+                        <Text style={[styles.statusBadgeText, { color: isResolved ? '#10b981' : '#f59e0b' }]}>
                           {ticket.status.toUpperCase()}
                         </Text>
                       </View>
@@ -197,7 +192,7 @@ export default function SupportScreen() {
 
                     {ticket.reply ? (
                       <View style={[styles.replyBox, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
-                        <Text style={[styles.ticketLabel, { color: '#10B981' }]}>Trả lời:</Text>
+                        <Text style={[styles.ticketLabel, { color: '#10b981' }]}>Trả lời:</Text>
                         <Text style={[styles.replyContentText, { color: colors.text }]}>{ticket.reply}</Text>
                       </View>
                     ) : (
@@ -226,55 +221,58 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   backBtn: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 8,
     padding: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   brand: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '900',
-    letterSpacing: 0.5,
+    letterSpacing: 1.5,
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
   },
   card: {
-    borderWidth: 2,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
+    borderWidth: 1,
+    borderRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     elevation: 4,
   },
   cardHeader: {
-    fontSize: 11,
-    fontWeight: '900',
+    fontSize: 13,
+    fontWeight: '800',
     padding: 14,
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     letterSpacing: 0.5,
   },
   formBody: {
     padding: 16,
   },
   label: {
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 1,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     marginBottom: 8,
   },
   input: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   textArea: {
     height: 120,
@@ -282,16 +280,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   submitBtn: {
-    borderWidth: 2,
+    borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 2,
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '900',
+    fontSize: 13,
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
   historySection: {
@@ -307,7 +309,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   ticketCard: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     padding: 16,
   },
   ticketHeader: {
@@ -322,6 +325,7 @@ const styles = StyleSheet.create({
   },
   statusBadge: {
     borderWidth: 1,
+    borderRadius: 6,
     paddingVertical: 2,
     paddingHorizontal: 6,
   },
@@ -350,7 +354,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   replyBox: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 12,
     padding: 12,
     marginTop: 4,
   },
@@ -363,7 +368,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 30,
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     borderStyle: 'dashed',
   },
 });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Image } from 'react-native';
 import { useApp } from '../context/AppContext';
+import { useTheme } from '../hooks/use-theme';
 
 interface InvoiceModalProps {
   visible: boolean;
@@ -13,14 +14,15 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
   const { themeId, triggerToast, setActivePlan, setMangaTokens, setVideoTokens } = useApp();
   const [secondsLeft, setSecondsLeft] = useState<number>(900); // 15 minutes
 
-  const isDark = themeId === 'bold-typography-dark';
+  const theme = useTheme();
+  const isDark = theme.isDark;
   const colors = {
-    bg: isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(250, 249, 246, 0.95)',
-    text: isDark ? '#FAF9F6' : '#1A1A1A',
-    textMuted: isDark ? '#CFCFCF' : '#4A4A4A',
-    border: isDark ? '#FFFFFF' : '#000000',
-    primaryAccent: '#FF3E00',
-    cardBg: isDark ? '#1a1a1a' : '#FAF9F6',
+    bg: isDark ? 'rgba(3, 7, 18, 0.85)' : 'rgba(248, 250, 252, 0.85)',
+    text: theme.text,
+    textMuted: theme.textMuted,
+    border: theme.border,
+    primaryAccent: theme.primaryAccent,
+    cardBg: theme.cardBg,
     qrBg: '#FFFFFF',
   };
 
@@ -76,23 +78,23 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
 
             {/* Billing Details */}
             <View style={styles.detailsContainer}>
-              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}>
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NGÂN HÀNG</Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>MB BANK</Text>
+              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NGÂN HÀNG THỤ HƯỞNG</Text>
+                <Text style={[styles.detailValue, { color: colors.text }]}>MB Bank (Ngân hàng Quân Đội)</Text>
               </View>
-              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}>
+              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
                 <Text style={[styles.detailLabel, { color: colors.textMuted }]}>SỐ TÀI KHOẢN</Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>0355428935</Text>
+                <Text style={[styles.detailValue, { color: colors.text }]}>0909090909</Text>
               </View>
-              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}>
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>CHỦ TÀI KHOẢN</Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>LE HONG THONG</Text>
+              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>TÊN THỤ HƯỞNG</Text>
+                <Text style={[styles.detailValue, { color: colors.text }]}>MINISERIES STUDIO</Text>
               </View>
-              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}>
+              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
                 <Text style={[styles.detailLabel, { color: colors.textMuted }]}>SỐ TIỀN</Text>
-                <Text style={[styles.detailValue, { color: colors.primaryAccent }]}>{amount}</Text>
+                <Text style={[styles.detailValue, { color: colors.primaryAccent }]}>{amount}đ</Text>
               </View>
-              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}>
+              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
                 <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NỘI DUNG CHUYỂN KHOẢN</Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>MINISERIES VIP {planName.toUpperCase()}</Text>
               </View>
@@ -101,9 +103,8 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
             {/* QR Mock Image */}
             <View style={styles.qrContainer}>
               <View style={[styles.qrBorder, { borderColor: colors.border, backgroundColor: colors.qrBg }]}>
-                {/* Dynamically build VietQR API link for MB Bank transfer */}
                 <Image
-                  source={{ uri: `https://api.vietqr.io/image/970422-0355428935-4OitQ0s.jpg?accountName=LE%20HONG%20THONG&amount=${planName === 'Basic' ? '10000' : '50000'}&addInfo=MINISERIES%20VIP%20${planName.toUpperCase()}` }}
+                  source={{ uri: `https://api.vietqr.io/image/970422-0909090909-4OitQ0s.jpg?accountName=MINISERIES%20STUDIO&amount=${planName === 'Basic' ? '10000' : '30000'}&addInfo=MINISERIES%20VIP%20${planName.toUpperCase()}` }}
                   style={styles.qrImage}
                   resizeMode="contain"
                 />
@@ -115,11 +116,11 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
           </ScrollView>
 
           {/* Action Buttons */}
-          <View style={styles.actionsContainer}>
+          <View style={[styles.actionsContainer, { borderTopColor: colors.border }]}>
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={handleConfirm}
-              style={[styles.actionBtn, { backgroundColor: colors.primaryAccent, borderColor: colors.border }]}
+              style={[styles.actionBtn, { backgroundColor: colors.primaryAccent, borderColor: colors.primaryAccent }]}
             >
               <Text style={styles.actionBtnText}>XÁC NHẬN ĐÃ CHUYỂN KHOẢN</Text>
             </TouchableOpacity>
@@ -148,7 +149,8 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxHeight: '90%',
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     display: 'flex',
     flexDirection: 'column',
   },
@@ -156,7 +158,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '900',
     padding: 14,
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     textAlign: 'center',
     letterSpacing: 0.5,
   },
@@ -164,7 +166,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   timerBox: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 12,
     padding: 12,
     alignItems: 'center',
     marginBottom: 16,
@@ -204,7 +207,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   qrBorder: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 12,
     padding: 8,
     width: 220,
     height: 220,
@@ -225,12 +229,12 @@ const styles = StyleSheet.create({
   },
   actionsContainer: {
     padding: 16,
-    borderTopWidth: 2,
-    borderColor: '#000000',
+    borderTopWidth: 1,
     gap: 12,
   },
   actionBtn: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 10,
     padding: 14,
     alignItems: 'center',
     justifyContent: 'center',

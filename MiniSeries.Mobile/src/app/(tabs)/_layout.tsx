@@ -1,11 +1,23 @@
-import React from 'react';
-import { Tabs } from 'expo-router';
+import React, { useEffect } from 'react';
+import { Tabs, useRouter } from 'expo-router';
 import { useTheme } from '../../hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { useApp } from '../../context/AppContext';
 
 export default function TabsLayout() {
   const theme = useTheme();
+  const { isAuthenticated } = useApp();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const timer = setTimeout(() => {
+        router.replace('/(auth)/login');
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]);
 
   return (
     <Tabs
@@ -15,7 +27,7 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: theme.textMuted,
         tabBarStyle: {
           backgroundColor: theme.background,
-          borderTopWidth: 2,
+          borderTopWidth: 1,
           borderTopColor: theme.border,
           height: 60,
           paddingBottom: 8,
@@ -24,7 +36,7 @@ export default function TabsLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 10,
-          fontWeight: '900',
+          fontWeight: '800',
           letterSpacing: 0.5,
         },
       }}
@@ -41,23 +53,25 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="create"
         options={{
-          tabBarButton: (props: any) => (
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={props.onPress}
-              style={[props.style, styles.customCreateButtonContainer]}
-            >
-              <View style={[
-                styles.customCreateButton,
-                {
-                  backgroundColor: '#FF3E00',
-                  borderColor: theme.border,
-                  shadowColor: theme.border,
-                }
-              ]}>
-                <Ionicons name="add" size={28} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
+          title: 'TẠO MỚI',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[
+              styles.flatCreateButton,
+              {
+                backgroundColor: theme.primaryAccent,
+              }
+            ]}>
+              <Ionicons name="add" size={20} color="#FFFFFF" />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="stats"
+        options={{
+          title: 'TIẾN ĐỘ',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'stats-chart' : 'stats-chart-outline'} size={20} color={color} />
           ),
         }}
       />
@@ -75,22 +89,15 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  customCreateButtonContainer: {
-    top: -15, // Lift it up above the tab bar line
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 999,
-  },
-  customCreateButton: {
-    width: 52,
-    height: 52,
-    borderWidth: 2,
+  flatCreateButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 0, 
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });

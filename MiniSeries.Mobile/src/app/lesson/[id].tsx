@@ -5,10 +5,11 @@ import { useApp } from '../../context/AppContext';
 import { QuizSection } from '../../components/QuizSection';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../services/apiClient';
+import { useTheme } from '../../hooks/use-theme';
 
 export default function LessonViewerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { themeId, triggerToast } = useApp();
+  const { themeId, triggerToast, isAuthenticated } = useApp();
   const router = useRouter();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -17,18 +18,11 @@ export default function LessonViewerScreen() {
   const [fullscreenVisible, setFullscreenVisible] = useState<boolean>(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const isDark = themeId === 'bold-typography-dark';
-  const colors = {
-    bg: isDark ? '#121212' : '#FAF9F6',
-    text: isDark ? '#FAF9F6' : '#1A1A1A',
-    textMuted: isDark ? '#CFCFCF' : '#4A4A4A',
-    border: isDark ? '#FFFFFF' : '#000000',
-    primaryAccent: '#FF3E00',
-    cardBg: isDark ? '#1a1a1a' : '#ffffff',
-    inputBg: isDark ? '#1e1e1e' : '#ffffff',
-  };
+  const colors = useTheme();
+  const isDark = colors.isDark;
 
   const fetchLessonDetails = async () => {
+    if (!isAuthenticated) return;
     if (!id) return;
     setLoading(true);
     try {
@@ -45,11 +39,12 @@ export default function LessonViewerScreen() {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchLessonDetails();
     if (id) {
       apiClient.post('/analytics/track', { path: `/lesson/${id}`, deviceType: 'Mobile' }).catch(() => {});
     }
-  }, [id]);
+  }, [id, isAuthenticated]);
 
   useEffect(() => {
     fadeAnim.setValue(0.3);
@@ -84,12 +79,10 @@ export default function LessonViewerScreen() {
     );
   }
 
-  // OutputMode: Manga = 0, Video = 1 in C# backend
   const isVideoMode = lessonData.outputMode === 1 || lessonData.outputMode === 'Video';
   const chapters = lessonData.chapters ? [...lessonData.chapters].sort((a: any, b: any) => a.order - b.order) : [];
   const currentChapter = chapters[currentChapterIndex];
 
-  // Parse quiz for current chapter
   const q = currentChapter?.quiz;
   let parsedQuiz = undefined;
   if (q) {
@@ -106,7 +99,7 @@ export default function LessonViewerScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Header Bar */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.bg }]}>
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => router.replace('/(tabs)/home')}
@@ -128,7 +121,7 @@ export default function LessonViewerScreen() {
             onPress={() => {
               setCurrentChapterIndex(prev => prev - 1);
             }}
-            style={[styles.topNavArrowBtn, { borderRightWidth: 2, borderRightColor: colors.border, opacity: currentChapterIndex === 0 ? 0.3 : 1 }]}
+            style={[styles.topNavArrowBtn, { borderRightWidth: 1, borderRightColor: colors.border, opacity: currentChapterIndex === 0 ? 0.3 : 1 }]}
           >
             <Ionicons name="chevron-back" size={18} color={colors.text} />
           </TouchableOpacity>
@@ -143,7 +136,7 @@ export default function LessonViewerScreen() {
             onPress={() => {
               setCurrentChapterIndex(prev => prev + 1);
             }}
-            style={[styles.topNavArrowBtn, { borderLeftWidth: 2, borderLeftColor: colors.border, opacity: currentChapterIndex === chapters.length - 1 ? 0.3 : 1 }]}
+            style={[styles.topNavArrowBtn, { borderLeftWidth: 1, borderLeftColor: colors.border, opacity: currentChapterIndex === chapters.length - 1 ? 0.3 : 1 }]}
           >
             <Ionicons name="chevron-forward" size={18} color={colors.text} />
           </TouchableOpacity>
@@ -153,53 +146,46 @@ export default function LessonViewerScreen() {
         <Animated.View style={{ opacity: fadeAnim }}>
           {/* Clickable Media Frame to view details */}
           <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => setFullscreenVisible(true)}
-            style={[styles.mediaFrame, { borderColor: colors.border, backgroundColor: '#000000' }]}
+            activeOpacity={0.95}
+            onPress={() => {
+              if (!isVideoMode && currentChapter?.imageUrl) {
+                setFullscreenVisible(true);
+              }
+            }}
+            style={[styles.mediaFrame, { borderColor: colors.border, backgroundColor: isDark ? '#000000' : '#e2e8f0' }]}
           >
             {isVideoMode ? (
-              Platform.OS === 'web' && currentChapter?.videoUrl ? (
-                <View style={{ pointerEvents: 'none', width: '100%', height: '100%' }}>
-                  <video
-                    key={currentChapter.id}
-                    src={currentChapter.videoUrl}
-                    poster={lessonData.anchorImageUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600'}
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                  <View style={styles.playOverlay}>
-                    <Ionicons name="expand" size={32} color="#FFFFFF" />
-                    <Text style={styles.playOverlayText}>Bấm để xem phóng to</Text>
-                  </View>
-                </View>
-              ) : currentChapter?.videoUrl ? (
+              currentChapter?.videoUrl ? (
                 <View style={styles.videoPlaceholderActive}>
-                  <Ionicons name="play-circle" size={48} color="#FFFFFF" />
-                  <Text style={{ color: '#FFFFFF', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
-                    Bấm để xem video chi tiết
+                  <Ionicons name="film" size={48} color={colors.primaryAccent} />
+                  <Text style={{ color: '#FFFFFF', marginTop: 12, fontWeight: '700', fontSize: 13, textAlign: 'center' }}>
+                    Video: Phân cảnh {currentChapterIndex + 1}
+                  </Text>
+                  <Text style={{ color: '#94a3b8', marginTop: 6, fontSize: 11, textAlign: 'center' }}>
+                    {currentChapter.videoUrl.split('/').pop()}
                   </Text>
                 </View>
               ) : (
                 <View style={styles.videoPlaceholderActive}>
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                  <Text style={{ color: '#FFFFFF', marginTop: 12, fontWeight: '700', fontSize: 11 }}>ĐANG TẢI PHÂN CẢNH...</Text>
+                  <Ionicons name="film-outline" size={48} color="#94a3b8" />
+                  <Text style={{ color: '#94a3b8', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
+                    Chưa tạo video cho chương {currentChapterIndex + 1}
+                  </Text>
                 </View>
               )
             ) : (
-              currentChapter?.mangaUrl ? (
-                <View style={{ width: '100%', height: '100%' }}>
-                  <Image 
-                    source={{ uri: currentChapter.mangaUrl }} 
-                    style={styles.mangaImage} 
-                  />
+              currentChapter?.imageUrl ? (
+                <View style={{ flex: 1 }}>
+                  <Image source={{ uri: currentChapter.imageUrl }} style={styles.mangaImage} />
                   <View style={styles.playOverlay}>
                     <Ionicons name="expand" size={32} color="#FFFFFF" />
-                    <Text style={styles.playOverlayText}>Bấm để xem phóng to</Text>
+                    <Text style={styles.playOverlayText}>BẤM ĐỂ PHÓNG TO</Text>
                   </View>
                 </View>
               ) : (
                 <View style={styles.videoPlaceholderActive}>
-                  <Ionicons name="image-outline" size={48} color="#FFFFFF" />
-                  <Text style={{ color: '#FFFFFF', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
+                  <Ionicons name="image-outline" size={48} color="#94a3b8" />
+                  <Text style={{ color: '#94a3b8', marginTop: 10, fontWeight: '700', fontSize: 12 }}>
                     Chưa có tranh manga cho chương {currentChapterIndex + 1}
                   </Text>
                 </View>
@@ -209,7 +195,7 @@ export default function LessonViewerScreen() {
 
           {/* Chapter metadata / narration / summary */}
           {currentChapter && (
-            <View style={[styles.chapterInfoCard, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+            <View style={[styles.chapterInfoCard, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' }]}>
               <Text style={[styles.chapterKicker, { color: colors.primaryAccent }]}>
                 CHƯƠNG {currentChapter.order || currentChapterIndex + 1}
               </Text>
@@ -236,7 +222,7 @@ export default function LessonViewerScreen() {
           </View>
         ) : (
           <View style={[styles.emptyQuizBox, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
-            <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: '900', fontStyle: 'italic', textAlign: 'center' }}>
+            <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: '800', fontStyle: 'italic', textAlign: 'center' }}>
               CHƯƠNG NÀY CHƯA CÓ CÂU HỎI TRẮC NGHIỆM.
             </Text>
           </View>
@@ -254,12 +240,12 @@ export default function LessonViewerScreen() {
               styles.bottomNavBtn,
               {
                 borderColor: colors.border,
-                backgroundColor: currentChapterIndex === 0 ? 'transparent' : colors.text,
+                backgroundColor: 'transparent',
                 opacity: currentChapterIndex === 0 ? 0.3 : 1,
               }
             ]}
           >
-            <Text style={[styles.bottomNavBtnText, { color: currentChapterIndex === 0 ? colors.text : colors.bg }]}>
+            <Text style={[styles.bottomNavBtnText, { color: colors.text }]}>
               TRƯỚC
             </Text>
           </TouchableOpacity>
@@ -277,13 +263,13 @@ export default function LessonViewerScreen() {
             style={[
               styles.bottomNavBtn,
               {
-                borderColor: colors.border,
-                backgroundColor: currentChapterIndex === chapters.length - 1 ? 'transparent' : colors.text,
+                borderColor: currentChapterIndex === chapters.length - 1 ? colors.border : colors.primaryAccent,
+                backgroundColor: currentChapterIndex === chapters.length - 1 ? 'transparent' : colors.primaryAccent,
                 opacity: currentChapterIndex === chapters.length - 1 ? 0.3 : 1,
               }
             ]}
           >
-            <Text style={[styles.bottomNavBtnText, { color: currentChapterIndex === chapters.length - 1 ? colors.text : colors.bg }]}>
+            <Text style={[styles.bottomNavBtnText, { color: currentChapterIndex === chapters.length - 1 ? colors.text : '#ffffff' }]}>
               TIẾP THEO
             </Text>
           </TouchableOpacity>
@@ -298,50 +284,23 @@ export default function LessonViewerScreen() {
         onRequestClose={() => setFullscreenVisible(false)}
       >
         <View style={styles.fullscreenOverlay}>
-          {/* Close Button Floating */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setFullscreenVisible(false)}
-            style={styles.fullscreenCloseBtnFloating}
+            style={[styles.fullscreenCloseBtnFloating, { borderColor: colors.border }]}
           >
-            <Ionicons name="close" size={28} color="#FFFFFF" />
+            <Ionicons name="close" size={24} color="#FFFFFF" />
           </TouchableOpacity>
 
-          {/* Zoomable Content Area */}
           <ScrollView
             contentContainerStyle={styles.zoomScrollContent}
-            maximumZoomScale={4}
+            maximumZoomScale={3}
             minimumZoomScale={1}
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
           >
-            {isVideoMode ? (
-              Platform.OS === 'web' && currentChapter?.videoUrl ? (
-                <video
-                  src={currentChapter.videoUrl}
-                  controls
-                  autoPlay
-                  style={{ width: '100vw', height: '100vh', objectFit: 'contain' }}
-                />
-              ) : currentChapter?.videoUrl ? (
-                <View style={styles.videoPlaceholderActive}>
-                  <Ionicons name="videocam" size={64} color="#FFFFFF" />
-                  <Text style={{ color: '#FFFFFF', marginTop: 16, fontWeight: '700' }}>
-                    Video URL: {currentChapter.videoUrl}
-                  </Text>
-                </View>
-              ) : (
-                <ActivityIndicator size="large" color="#FFFFFF" />
-              )
-            ) : (
-              currentChapter?.mangaUrl ? (
-                <Image
-                  source={{ uri: currentChapter.mangaUrl }}
-                  style={styles.fullscreenMangaImage}
-                />
-              ) : (
-                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Không có ảnh</Text>
-              )
+            {currentChapter?.imageUrl && (
+              <Image source={{ uri: currentChapter.imageUrl }} style={styles.fullscreenMangaImage} />
             )}
           </ScrollView>
         </View>
@@ -358,13 +317,14 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   backBtn: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 8,
     padding: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -383,7 +343,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 12,
     marginBottom: 16,
     height: 44,
   },
@@ -400,7 +361,8 @@ const styles = StyleSheet.create({
   },
   mediaFrame: {
     height: 260,
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     marginBottom: 16,
     overflow: 'hidden',
     position: 'relative',
@@ -419,7 +381,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0, // hidden until hovered on Web, click feedback on mobile
+    opacity: 0,
   },
   playOverlayText: {
     color: '#FFFFFF',
@@ -437,9 +399,14 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   chapterInfoCard: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 20,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   chapterKicker: {
     fontSize: 9,
@@ -461,7 +428,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   emptyQuizBox: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     padding: 20,
     marginBottom: 24,
     borderStyle: 'dashed',
@@ -474,7 +442,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   bottomNavBtn: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 20,
     minWidth: 100,
@@ -485,7 +454,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 0.5,
   },
-  // Fullscreen Modal Styles
   fullscreenOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.98)',
@@ -498,7 +466,8 @@ const styles = StyleSheet.create({
     zIndex: 9999,
     backgroundColor: 'rgba(0,0,0,0.6)',
     padding: 10,
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 8,
     borderColor: '#FFFFFF',
   },
   zoomScrollContent: {

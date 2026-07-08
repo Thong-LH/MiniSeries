@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, Activi
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { apiClient } from '../../services/apiClient';
+import { useTheme } from '../../hooks/use-theme';
 
 interface Scene {
   number: number;
@@ -19,6 +20,7 @@ export default function ReviewScreen() {
     setMangaTokens,
     setVideoTokens,
     triggerToast,
+    isAuthenticated,
   } = useApp();
   const router = useRouter();
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
@@ -33,18 +35,11 @@ export default function ReviewScreen() {
   const [selectedFormat, setSelectedFormat] = useState<'manga' | 'video'>('video');
   const [scenes, setScenes] = useState<Scene[]>([]);
 
-  const isDark = themeId === 'bold-typography-dark';
-  const colors = {
-    bg: isDark ? '#121212' : '#FAF9F6',
-    text: isDark ? '#FAF9F6' : '#1A1A1A',
-    textMuted: isDark ? '#CFCFCF' : '#4A4A4A',
-    border: isDark ? '#FFFFFF' : '#000000',
-    primaryAccent: '#FF3E00',
-    cardBg: isDark ? '#1a1a1a' : '#ffffff',
-    inputBg: isDark ? '#1e1e1e' : '#ffffff',
-  };
+  const colors = useTheme();
+  const isDark = colors.isDark;
 
   const fetchDraftDetails = async () => {
+    if (!isAuthenticated) return;
     if (!lessonId) return;
     setLoading(true);
     try {
@@ -80,11 +75,12 @@ export default function ReviewScreen() {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchDraftDetails();
     if (lessonId) {
       apiClient.post('/analytics/track', { path: `/review/${lessonId}`, deviceType: 'Mobile' }).catch(() => {});
     }
-  }, [lessonId]);
+  }, [lessonId, isAuthenticated]);
 
   const handleCancel = () => {
     triggerToast('Đã đóng trình duyệt kịch bản.');
@@ -121,7 +117,7 @@ export default function ReviewScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Header Bar */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.bg }]}>
         <Text style={[styles.brand, { color: colors.text }]}>DUYỆT KỊCH BẢN</Text>
       </View>
 
@@ -138,7 +134,7 @@ export default function ReviewScreen() {
               {lessonTitle || 'Bài giảng không có tiêu đề'}
             </Text>
             <View style={styles.badgeRow}>
-              <View style={[styles.badge, { borderColor: colors.border, backgroundColor: colors.text }]}>
+              <View style={[styles.badge, { borderColor: 'transparent', backgroundColor: colors.text }]}>
                 <Text style={[styles.badgeText, { color: colors.bg }]}>
                   {selectedFormat === 'manga' ? 'MANGA WEBTOON' : 'VIDEO NGẮN'}
                 </Text>
@@ -154,12 +150,12 @@ export default function ReviewScreen() {
               style={[
                 styles.tab,
                 {
-                  backgroundColor: activeTab === 'summary' ? colors.text : 'transparent',
-                  borderColor: colors.border,
+                  backgroundColor: activeTab === 'summary' ? colors.primaryAccent : colors.cardBg,
+                  borderColor: activeTab === 'summary' ? colors.primaryAccent : colors.border,
                 }
               ]}
             >
-              <Text style={[styles.tabText, { color: activeTab === 'summary' ? colors.bg : colors.text }]}>
+              <Text style={[styles.tabText, { color: activeTab === 'summary' ? '#ffffff' : colors.text }]}>
                 TÓM TẮT KỊCH BẢN
               </Text>
             </TouchableOpacity>
@@ -170,12 +166,12 @@ export default function ReviewScreen() {
               style={[
                 styles.tab,
                 {
-                  backgroundColor: activeTab === 'scenes' ? colors.text : 'transparent',
-                  borderColor: colors.border,
+                  backgroundColor: activeTab === 'scenes' ? colors.primaryAccent : colors.cardBg,
+                  borderColor: activeTab === 'scenes' ? colors.primaryAccent : colors.border,
                 }
               ]}
             >
-              <Text style={[styles.tabText, { color: activeTab === 'scenes' ? colors.bg : colors.text }]}>
+              <Text style={[styles.tabText, { color: activeTab === 'scenes' ? '#ffffff' : colors.text }]}>
                 KỊCH BẢN CHI TIẾT
               </Text>
             </TouchableOpacity>
@@ -183,7 +179,7 @@ export default function ReviewScreen() {
 
           {/* Outline Summary view */}
           {activeTab === 'summary' ? (
-            <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: colors.border }]}>
+            <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' }]}>
               <Text style={[styles.cardTitle, { color: colors.text }]}>MỤC TIÊU BÀI GIẢNG</Text>
               <Text style={[styles.cardBody, { color: colors.textMuted }]}>
                 {creativeBrief || 'Không có mục tiêu nào được mô tả.'}
@@ -201,13 +197,13 @@ export default function ReviewScreen() {
                   value={overallScript}
                   onChangeText={setOverallScript}
                   placeholder="Kịch bản đang được soạn thảo..."
-                  placeholderTextColor={isDark ? '#666' : '#999'}
+                  placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                   style={[styles.input, styles.textArea, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
                 />
               </View>
 
               {scenes.length === 0 ? (
-                <View style={styles.emptyContainer}>
+                <View style={[styles.emptyContainer, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
                   <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: '700' }}>CHƯA PHÂN CHIA PHÂN CẢNH.</Text>
                 </View>
               ) : (
@@ -220,7 +216,7 @@ export default function ReviewScreen() {
                       PHÂN CẢNH {scene.number} ({scene.duration.toUpperCase()})
                     </Text>
 
-                    <View style={scene.number ? styles.sceneContent : styles.sceneContent}>
+                    <View style={styles.sceneContent}>
                       <View style={styles.sceneSection}>
                         <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>HÌNH ẢNH</Text>
                         <Text style={[styles.sectionVal, { color: colors.text }]}>{scene.visual}</Text>
@@ -251,7 +247,7 @@ export default function ReviewScreen() {
             activeOpacity={0.9}
             onPress={handleApprove}
             disabled={submitting}
-            style={[styles.actionBtn, { backgroundColor: colors.primaryAccent, borderColor: colors.border }]}
+            style={[styles.actionBtn, { backgroundColor: colors.primaryAccent }]}
           >
             {submitting ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
@@ -282,7 +278,7 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
   },
   brand: {
     fontSize: 20,
@@ -299,7 +295,8 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   infoCard: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 20,
   },
@@ -313,6 +310,7 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderWidth: 1,
+    borderRadius: 6,
     paddingVertical: 2,
     paddingHorizontal: 6,
   },
@@ -327,7 +325,8 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 20,
     paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -338,12 +337,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   card: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     padding: 16,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardTitle: {
     fontSize: 11,
@@ -360,7 +360,9 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   sceneCard: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   sceneNum: {
     fontSize: 10,
@@ -386,7 +388,8 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   editorCard: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     padding: 14,
   },
   editorLabel: {
@@ -396,7 +399,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 10,
     padding: 12,
     fontSize: 12,
     fontWeight: '700',
@@ -407,7 +411,8 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     padding: 24,
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
@@ -417,14 +422,14 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    borderTopWidth: 2,
+    borderTopWidth: 1,
     padding: 16,
     flexDirection: 'row',
     gap: 12,
   },
   actionBtn: {
     flex: 1,
-    borderWidth: 2,
+    borderRadius: 10,
     padding: 14,
     alignItems: 'center',
     justifyContent: 'center',

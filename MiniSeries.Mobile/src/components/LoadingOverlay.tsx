@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, ActivityIndicator } from 'react-native';
 import { useApp } from '../context/AppContext';
+import { useTheme } from '../hooks/use-theme';
 
 export const LoadingOverlay: React.FC = () => {
   const { isGenerating, generationStep, themeId } = useApp();
   const [progress, setProgress] = useState<number>(0);
 
-  const isDark = themeId === 'bold-typography-dark';
+  const theme = useTheme();
+  const isDark = theme.isDark;
   const colors = {
-    bg: isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(250, 249, 246, 0.95)',
-    text: isDark ? '#FAF9F6' : '#1A1A1A',
-    border: isDark ? '#FFFFFF' : '#000000',
-    primaryAccent: '#FF3E00',
-    cardBg: isDark ? '#1a1a1a' : '#ffffff',
+    bg: isDark ? 'rgba(3, 7, 18, 0.95)' : 'rgba(248, 250, 252, 0.95)',
+    text: theme.text,
+    border: theme.border,
+    primaryAccent: theme.primaryAccent,
+    cardBg: theme.cardBg,
   };
 
   useEffect(() => {

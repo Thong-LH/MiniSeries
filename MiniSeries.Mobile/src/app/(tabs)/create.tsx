@@ -5,6 +5,9 @@ import { useApp } from '../../context/AppContext';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { apiClient } from '../../services/apiClient';
 import { Ionicons } from '@expo/vector-icons';
+import { SpaceBackground } from '../../components/SpaceBackground';
+import { useTheme } from '../../hooks/use-theme';
+import { LevelAvatar } from '../../components/LevelAvatar';
 
 export default function CreateScreen() {
   const {
@@ -22,28 +25,71 @@ export default function CreateScreen() {
     videoTokens,
     triggerToast,
     refreshProfile,
+    updateStatsFromData,
+    globalStreak,
   } = useApp();
   const router = useRouter();
   const navigation = useNavigation();
+  const [vibe, setVibe] = useState<string>('manga');
 
-  const isDark = themeId === 'bold-typography-dark';
-  const colors = {
-    bg: isDark ? '#121212' : '#FAF9F6',
-    text: isDark ? '#FAF9F6' : '#1A1A1A',
-    textMuted: isDark ? '#CFCFCF' : '#4A4A4A',
-    border: isDark ? '#FFFFFF' : '#000000',
-    primaryAccent: '#FF3E00',
-    cardBg: isDark ? '#1a1a1a' : '#ffffff',
-    inputBg: isDark ? '#1e1e1e' : '#ffffff',
-  };
+  const colors = useTheme();
+  const isDark = colors.isDark;
 
   const toggleTheme = () => {
     setThemeId(isDark ? 'bold-typography' : 'bold-typography-dark');
   };
 
+  const fetchDashboardStats = async () => {
+    try {
+      const res = await apiClient.get('/progress/dashboard');
+      if (res.data) {
+        updateStatsFromData(res.data);
+      }
+    } catch (e) {
+      console.log('Error fetching dashboard stats in create:', e);
+    }
+  };
+
+  const renderStreakFlame = (streakCount: number, size: number = 14) => {
+    if (streakCount === 0) {
+      return <Text style={{ fontSize: size, opacity: 0.35 }}>❄️</Text>;
+    }
+    if (streakCount < 3) {
+      return <Text style={{ fontSize: size }}>🔥</Text>;
+    }
+    if (streakCount < 7) {
+      return (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={{ fontSize: size }}>🔥</Text>
+          <Text style={{ fontSize: size - 2, color: '#eab308', marginLeft: -2 }}>⚡</Text>
+        </View>
+      );
+    }
+    if (streakCount < 30) {
+      return (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={{ fontSize: size }}>🔥</Text>
+          <Text style={{ fontSize: size - 4, color: '#38bdf8', marginHorizontal: -2 }}>✨</Text>
+          <Text style={{ fontSize: size }}>🔥</Text>
+        </View>
+      );
+    }
+    return (
+      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontSize: size - 6, marginBottom: -3 }}>👑</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={{ fontSize: size - 4, color: '#a855f7' }}>✨</Text>
+          <Text style={{ fontSize: size + 2 }}>🔥</Text>
+          <Text style={{ fontSize: size - 4, color: '#a855f7' }}>✨</Text>
+        </View>
+      </View>
+    );
+  };
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       refreshProfile();
+      fetchDashboardStats();
       apiClient.post('/analytics/track', { path: '/create', deviceType: 'Mobile' }).catch(() => {});
     });
     return unsubscribe;
@@ -64,14 +110,14 @@ export default function CreateScreen() {
         rawContent: lessonContent.trim() || `Tạo bài giảng về chủ đề: ${lessonTitle.trim()}`,
         generateVideo: selectedFormat === 'video',
         creativeMode: 0, 
-        creativeBrief: '',
+        creativeBrief: 'Vibe style: ' + vibe,
       });
 
       const data = res.data;
       if (data && data.id) {
         setLessonTitle('');
         setLessonContent('');
-        triggerToast('Đã khởi tạo kịch bản nháp thành công!');
+        triggerToast('Đã kịch bản nháp thành công!');
         setIsGenerating(false);
         router.push('/(tabs)/home');
       } else {
@@ -88,36 +134,47 @@ export default function CreateScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Unified Header Bar */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <SpaceBackground plain={true} />
+       {/* Unified Header Bar */}
+      <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.cardBg }]}>
         <Text style={[styles.brand, { color: colors.text }]}>MINISERIES</Text>
         
-        {/* Token Badge */}
-        <View style={[styles.headerTokenBadge, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
-          <Ionicons name="book-outline" size={13} color={colors.text} style={{ marginRight: 2 }} />
-          <Text style={[styles.headerTokenText, { color: colors.text }]}>
-            {mangaTokens > 1000 ? '∞' : mangaTokens}
-          </Text>
-          <Text style={{ color: colors.textMuted, marginHorizontal: 6, fontSize: 10 }}>|</Text>
-          <Ionicons name="film-outline" size={13} color={colors.text} style={{ marginRight: 2 }} />
-          <Text style={[styles.headerTokenText, { color: colors.text }]}>
-            {videoTokens}
-          </Text>
-        </View>
+        <View style={styles.headerRightBadges}>
+          {/* Streak Flame Badge */}
+          <View style={[styles.streakBadge, { borderColor: colors.border, backgroundColor: colors.bg, paddingLeft: 6, paddingRight: 8 }]}>
+            {renderStreakFlame(globalStreak, 13)}
+            <Text style={[styles.streakText, { color: colors.text, marginLeft: 3 }]}>{globalStreak}</Text>
+          </View>
 
-        <View style={styles.headerButtons}>
+          {/* Token Badge */}
+          <View style={[styles.headerTokenBadge, { borderColor: colors.border, backgroundColor: colors.bg }]}>
+            <Ionicons name="book-outline" size={12} color={colors.text} style={{ marginRight: 2 }} />
+            <Text style={[styles.headerTokenText, { color: colors.text }]}>
+              {mangaTokens > 1000 ? '∞' : mangaTokens}
+            </Text>
+            <Text style={{ color: colors.textMuted, marginHorizontal: 4, fontSize: 10 }}>|</Text>
+            <Ionicons name="film-outline" size={12} color={colors.text} style={{ marginRight: 2 }} />
+            <Text style={[styles.headerTokenText, { color: colors.text }]}>
+              {videoTokens}
+            </Text>
+          </View>
+
+          {/* Unified Theme Toggle Button */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={toggleTheme}
-            style={[styles.headerButton, { borderColor: colors.border }]}
+            style={[styles.headerThemeBtn, { borderColor: colors.border, backgroundColor: colors.bg }]}
           >
-            <Ionicons name={isDark ? 'sunny' : 'moon'} size={16} color={colors.text} />
+            <Ionicons name={isDark ? 'sunny' : 'moon'} size={14} color={colors.text} />
           </TouchableOpacity>
+
+          {/* Gamified Level Avatar with Circular Progress */}
+          <LevelAvatar />
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: colors.border }]}>
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' }]}>
           <Text style={[styles.cardHeader, { color: colors.text, borderBottomColor: colors.border }]}>
             TẠO BÀI HỌC MỚI
           </Text>
@@ -128,7 +185,7 @@ export default function CreateScreen() {
               <Text style={[styles.label, { color: colors.textMuted }]}>TIÊU ĐỀ BÀI HỌC</Text>
               <TextInput
                 placeholder="Ví dụ: Lập trình hướng đối tượng là gì..."
-                placeholderTextColor={isDark ? '#666' : '#999'}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={lessonTitle}
                 onChangeText={setLessonTitle}
                 style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
@@ -142,7 +199,7 @@ export default function CreateScreen() {
                 multiline
                 numberOfLines={6}
                 placeholder="Dán nội dung bài học hoặc các lưu ý của bạn tại đây..."
-                placeholderTextColor={isDark ? '#666' : '#999'}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={lessonContent}
                 onChangeText={setLessonContent}
                 style={[
@@ -151,6 +208,45 @@ export default function CreateScreen() {
                   { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }
                 ]}
               />
+            </View>
+
+            {/* Vibe Selection */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, { color: colors.textMuted }]}>PHONG CÁCH TRUYỀN TẢI (VIBE STYLE)</Text>
+              <View style={styles.vibeGrid}>
+                {[
+                  { id: 'manga', name: 'Manga', icon: '🎨', color: '#f27d26', desc: 'Nhật Bản cổ điển' },
+                  { id: 'scifi', name: 'Cosmic', icon: '🌌', color: '#3b82f6', desc: 'Vũ trụ huyền ảo' },
+                  { id: 'retro', name: 'Retro', icon: '🕹️', color: '#ec4899', desc: 'Neon 8-bit hoài niệm' },
+                  { id: 'medieval', name: 'Alchemy', icon: '🧪', color: '#10b981', desc: 'Giả kim cổ xưa' }
+                ].map((v) => {
+                  const isSelected = vibe === v.id;
+                  return (
+                    <TouchableOpacity
+                      key={v.id}
+                      activeOpacity={0.8}
+                      onPress={() => setVibe(v.id)}
+                      style={[
+                        styles.vibeCard,
+                        {
+                          borderColor: isSelected ? v.color : colors.border,
+                          backgroundColor: isSelected ? `${v.color}15` : colors.inputBg,
+                        }
+                      ]}
+                    >
+                      <Text style={styles.vibeIcon}>{v.icon}</Text>
+                      <View style={styles.vibeInfo}>
+                        <Text style={[styles.vibeName, { color: isSelected ? v.color : colors.text }]}>
+                          {v.name.toUpperCase()}
+                        </Text>
+                        <Text style={[styles.vibeDesc, { color: colors.textMuted }]} numberOfLines={1}>
+                          {v.desc}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
 
             {/* Format Selection */}
@@ -163,14 +259,14 @@ export default function CreateScreen() {
                   style={[
                     styles.formatButton,
                     {
-                      backgroundColor: selectedFormat === 'video' ? colors.text : 'transparent',
-                      borderColor: colors.border,
+                      backgroundColor: selectedFormat === 'video' ? 'rgba(6, 182, 212, 0.15)' : 'transparent',
+                      borderColor: selectedFormat === 'video' ? '#06b6d4' : colors.border,
                     }
                   ]}
                 >
                   <Text style={[
                     styles.formatButtonText,
-                    { color: selectedFormat === 'video' ? colors.bg : colors.text }
+                    { color: selectedFormat === 'video' ? '#06b6d4' : colors.text }
                   ]}>
                     VIDEO NGẮN
                   </Text>
@@ -182,14 +278,14 @@ export default function CreateScreen() {
                   style={[
                     styles.formatButton,
                     {
-                      backgroundColor: selectedFormat === 'manga' ? colors.text : 'transparent',
-                      borderColor: colors.border,
+                      backgroundColor: selectedFormat === 'manga' ? 'rgba(242, 125, 38, 0.15)' : 'transparent',
+                      borderColor: selectedFormat === 'manga' ? '#f27d26' : colors.border,
                     }
                   ]}
                 >
                   <Text style={[
                     styles.formatButtonText,
-                    { color: selectedFormat === 'manga' ? colors.bg : colors.text }
+                    { color: selectedFormat === 'manga' ? '#f27d26' : colors.text }
                   ]}>
                     MANGA WEBTOON
                   </Text>
@@ -197,13 +293,12 @@ export default function CreateScreen() {
               </View>
             </View>
 
-            {/* Submit Button */}
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={handleStartGeneration}
-              style={[styles.submitBtn, { backgroundColor: colors.primaryAccent, borderColor: colors.border }]}
+              style={[styles.submitBtn, { backgroundColor: colors.primaryAccent }]}
             >
-              <Text style={styles.submitBtnText}>TẠO KỊCH BẢN NHÁP</Text>
+              <Text style={[styles.submitBtnText, { color: colors.buttonTextActive }]}>TẠO KỊCH BẢN NHÁP</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -212,10 +307,10 @@ export default function CreateScreen() {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => router.push('/support?mode=issue')}
-          style={[styles.issueBtn, { borderColor: colors.border, backgroundColor: colors.cardBg }]}
+          style={[styles.issueBtn, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' }]}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-            <Ionicons name="alert-circle-outline" size={16} color={colors.primaryAccent} />
+            <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
             <Text style={[styles.issueBtnText, { color: colors.text }]}>BÁO CÁO SỰ CỐ / LỖI HỆ THỐNG</Text>
           </View>
         </TouchableOpacity>
@@ -235,7 +330,7 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -245,9 +340,33 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1.5,
   },
+  headerRightBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  streakBadge: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginHorizontal: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  streakEmoji: {
+    fontSize: 12,
+    marginRight: 2,
+  },
+  streakText: {
+    fontSize: 11,
+    fontWeight: '900',
+  },
   headerTokenBadge: {
-    borderWidth: 2,
-    paddingVertical: 6,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 4,
     paddingHorizontal: 8,
     marginHorizontal: 4,
     flexDirection: 'row',
@@ -258,33 +377,33 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '900',
   },
-  headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerButton: {
-    borderWidth: 2,
-    padding: 8,
+  headerThemeBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 4,
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
   },
   card: {
-    borderWidth: 2,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
+    borderWidth: 1,
+    borderRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     elevation: 4,
   },
   cardHeader: {
-    fontSize: 12,
-    fontWeight: '900',
+    fontSize: 13,
+    fontWeight: '800',
     padding: 14,
-    borderBottomWidth: 2,
-    letterSpacing: 1,
+    borderBottomWidth: 1,
+    letterSpacing: 0.5,
   },
   form: {
     padding: 16,
@@ -293,20 +412,52 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 1,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     marginBottom: 6,
   },
   input: {
-    borderWidth: 2,
-    padding: 14,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   textArea: {
     height: 120,
     textAlignVertical: 'top',
+  },
+  vibeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'space-between',
+  },
+  vibeCard: {
+    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 10,
+    gap: 8,
+  },
+  vibeIcon: {
+    fontSize: 18,
+  },
+  vibeInfo: {
+    flex: 1,
+  },
+  vibeName: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  vibeDesc: {
+    fontSize: 8,
+    fontWeight: '600',
+    marginTop: 2,
   },
   formatButtons: {
     flexDirection: 'row',
@@ -314,41 +465,47 @@ const styles = StyleSheet.create({
   },
   formatButton: {
     flex: 1,
-    borderWidth: 2,
-    padding: 14,
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   formatButtonText: {
-    fontSize: 10,
-    fontWeight: '900',
+    fontSize: 11,
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
   submitBtn: {
-    borderWidth: 2,
-    padding: 16,
+    borderRadius: 10,
+    padding: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 2,
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 1,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   issueBtn: {
-    borderWidth: 2,
-    padding: 16,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
     marginTop: 20,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
   },
   issueBtnText: {
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
 });

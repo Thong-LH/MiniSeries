@@ -4,13 +4,15 @@ import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet } from 'react-native';
 import { AppProvider, useApp } from '../context/AppContext';
+import { useTheme } from '../hooks/use-theme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
   const { toastMessage, themeId } = useApp();
-  const isDark = themeId === 'bold-typography-dark';
+  const theme = useTheme();
+  const isDark = theme.isDark;
 
   useEffect(() => {
     // Hide splash screen immediately when mounted
@@ -33,12 +35,13 @@ function RootLayoutNav() {
         <View style={[
           styles.toastContainer,
           {
-            borderColor: isDark ? '#FFFFFF' : '#000000',
-            backgroundColor: isDark ? '#1a1a1a' : '#FAF9F6',
+            borderColor: theme.border,
+            backgroundColor: theme.cardBg,
+            shadowColor: isDark ? '#000000' : '#0f172a',
           }
         ]}>
           <View style={styles.toastPulse} />
-          <Text style={[styles.toastText, { color: isDark ? '#FAF9F6' : '#1A1A1A' }]}>
+          <Text style={[styles.toastText, { color: theme.text }]}>
             {toastMessage}
           </Text>
         </View>
@@ -66,16 +69,16 @@ const styles = StyleSheet.create({
     top: 60,
     right: 16,
     left: 16,
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
-    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
     zIndex: 9999,
   },
   toastPulse: {

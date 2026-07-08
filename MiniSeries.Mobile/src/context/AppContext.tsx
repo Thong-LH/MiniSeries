@@ -40,9 +40,26 @@ interface AppContextType {
   viewerPage: number;
   setViewerPage: (page: number) => void;
   
+  
   // Toast notifications
   toastMessage: string | null;
   triggerToast: (msg: string) => void;
+  
+  // Weekly Target
+  weeklyTarget: number;
+  setWeeklyTarget: (target: number) => void;
+
+  // EXP / Level state
+  globalLevel: number;
+  globalExp: number;
+  globalNextLevelExp: number;
+  globalPrevLevelExp: number;
+  globalLevelLabel: string;
+  expNotification: number | null;
+  refreshStats: () => Promise<void>;
+  updateStatsFromData: (data: any) => void;
+  awardExpMock: (amount: number) => void;
+  globalStreak: number;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -121,6 +138,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const refreshProfile = async () => {
+    if (!isAuthenticated) return;
     try {
       const res = await apiClient.get('/profile/me');
       if (res.data) {
@@ -132,6 +150,71 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (err) {
       console.log('Lỗi cập nhật profile từ server:', err);
     }
+  };
+
+  // Weekly Target state
+  const [weeklyTarget, setWeeklyTargetState] = useState<number>(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      return Number(localStorage.getItem('weeklyTarget')) || 4;
+    }
+    return 4;
+  });
+
+  const setWeeklyTarget = (target: number) => {
+    setWeeklyTargetState(target);
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      localStorage.setItem('weeklyTarget', String(target));
+    }
+  };
+
+  // EXP / Level state
+  const [globalLevel, setGlobalLevel] = useState<number>(1);
+  const [globalExp, setGlobalExp] = useState<number>(0);
+  const [globalNextLevelExp, setGlobalNextLevelExp] = useState<number>(100);
+  const [globalPrevLevelExp, setGlobalPrevLevelExp] = useState<number>(0);
+  const [globalLevelLabel, setGlobalLevelLabel] = useState<string>('Tập sự');
+  const [expNotification, setExpNotification] = useState<number | null>(null);
+  const [globalStreak, setGlobalStreak] = useState<number>(7);
+
+  const updateStatsFromData = (data: any) => {
+    const oldExp = globalExp;
+    const newExp = data.totalExp ?? 0;
+    
+    setGlobalLevel(data.currentLevel ?? 1);
+    setGlobalExp(newExp);
+    setGlobalNextLevelExp(data.nextLevelExp ?? 100);
+    setGlobalPrevLevelExp(data.prevLevelExp ?? 0);
+    setGlobalLevelLabel(data.levelLabel ?? 'Tập sự');
+    if (data.currentStreak !== undefined) {
+      setGlobalStreak(data.currentStreak);
+    }
+    
+    if (oldExp > 0 && newExp > oldExp) {
+      setExpNotification(newExp - oldExp);
+      setTimeout(() => {
+        setExpNotification(null);
+      }, 2600);
+    }
+  };
+
+  const refreshStats = async () => {
+    if (!isAuthenticated) return;
+    try {
+      const res = await apiClient.get('/progress/dashboard');
+      if (res.data) {
+        updateStatsFromData(res.data);
+      }
+    } catch (e) {
+      console.log('Error refreshing stats:', e);
+    }
+  };
+
+  const awardExpMock = (amount: number) => {
+    setExpNotification(amount);
+    setGlobalExp((prev) => prev + amount);
+    setTimeout(() => {
+      setExpNotification(null);
+    }, 2600);
   };
 
   return (
@@ -169,6 +252,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         userEmail,
         setUserEmail,
         refreshProfile,
+        weeklyTarget,
+        setWeeklyTarget,
+        globalLevel,
+        globalExp,
+        globalNextLevelExp,
+        globalPrevLevelExp,
+        globalLevelLabel,
+        expNotification,
+        refreshStats,
+        updateStatsFromData,
+        awardExpMock,
+        globalStreak,
       }}
     >
       {children}

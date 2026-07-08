@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingVi
 import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { apiClient, setAuthToken } from '../../services/apiClient';
+import { SpaceBackground } from '../../components/SpaceBackground';
+import { useTheme } from '../../hooks/use-theme';
 
 export default function LoginScreen() {
   const { 
@@ -26,15 +28,8 @@ export default function LoginScreen() {
   const [otpCode, setOtpCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  const isDark = themeId === 'bold-typography-dark';
-  const colors = {
-    bg: isDark ? '#121212' : '#FAF9F6',
-    text: isDark ? '#FAF9F6' : '#1A1A1A',
-    textMuted: isDark ? '#CFCFCF' : '#4A4A4A',
-    border: isDark ? '#FFFFFF' : '#000000',
-    primaryAccent: '#FF3E00',
-    inputBg: isDark ? '#1e1e1e' : '#FFFFFF',
-  };
+  const colors = useTheme();
+  const isDark = colors.isDark;
 
   const handleEmailLogin = async () => {
     const cleanEmail = email.trim().toLowerCase();
@@ -155,9 +150,17 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: colors.bg }]}
     >
+      <SpaceBackground />
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-        <View style={[styles.card, { borderColor: colors.border, backgroundColor: isDark ? '#1a1a1a' : '#ffffff', shadowColor: colors.border }]}>
-          <Text style={[styles.brand, { color: colors.primaryAccent }]}>
+        <View style={[
+          styles.card, 
+          { 
+            borderColor: colors.border, 
+            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.8)', 
+            shadowColor: isDark ? '#000000' : '#0f172a' 
+          }
+        ]}>
+          <Text style={[styles.brand, { color: '#6366f1' }]}>
             MINISERIES
           </Text>
           <Text style={[styles.title, { color: colors.text }]}>
@@ -165,7 +168,7 @@ export default function LoginScreen() {
           </Text>
 
           {loading && (
-            <ActivityIndicator size="small" color={colors.primaryAccent} style={{ marginBottom: 16 }} />
+            <ActivityIndicator size="small" color="#6366f1" style={{ marginBottom: 16 }} />
           )}
 
           {viewMode === 'login' && (
@@ -175,7 +178,7 @@ export default function LoginScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholder="Nhập địa chỉ email..."
-                placeholderTextColor={isDark ? '#666' : '#999'}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={email}
                 onChangeText={setEmail}
                 style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
@@ -185,7 +188,7 @@ export default function LoginScreen() {
               <TextInput
                 secureTextEntry
                 placeholder="Nhập mật khẩu..."
-                placeholderTextColor={isDark ? '#666' : '#999'}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={password}
                 onChangeText={setPassword}
                 style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
@@ -194,7 +197,7 @@ export default function LoginScreen() {
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={handleEmailLogin}
-                style={[styles.button, { backgroundColor: colors.primaryAccent, borderColor: colors.border }]}
+                style={[styles.button, { backgroundColor: colors.primaryAccent }]}
               >
                 <Text style={styles.buttonText}>ĐĂNG NHẬP</Text>
               </TouchableOpacity>
@@ -204,7 +207,7 @@ export default function LoginScreen() {
                 onPress={() => setViewMode('register')}
                 style={[styles.linkButton]}
               >
-                <Text style={[styles.linkButtonText, { color: colors.text }]}>CHƯA CÓ TÀI KHOẢN? ĐĂNG KÝ NGAY</Text>
+                <Text style={[styles.linkButtonText, { color: isDark ? '#a855f7' : '#7c3aed' }]}>CHƯA CÓ TÀI KHOẢN? ĐĂNG KÝ NGAY</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -214,7 +217,7 @@ export default function LoginScreen() {
               <Text style={[styles.label, { color: colors.textMuted }]}>HỌ VÀ TÊN</Text>
               <TextInput
                 placeholder="Nhập họ và tên..."
-                placeholderTextColor={isDark ? '#666' : '#999'}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={fullName}
                 onChangeText={setFullName}
                 style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
@@ -225,7 +228,7 @@ export default function LoginScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholder="Nhập địa chỉ email..."
-                placeholderTextColor={isDark ? '#666' : '#999'}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={email}
                 onChangeText={setEmail}
                 style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
@@ -235,7 +238,7 @@ export default function LoginScreen() {
               <TextInput
                 secureTextEntry
                 placeholder="Nhập mật khẩu..."
-                placeholderTextColor={isDark ? '#666' : '#999'}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={password}
                 onChangeText={setPassword}
                 style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
@@ -245,7 +248,7 @@ export default function LoginScreen() {
               <TextInput
                 secureTextEntry
                 placeholder="Nhập lại mật khẩu..."
-                placeholderTextColor={isDark ? '#666' : '#999'}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
@@ -254,7 +257,7 @@ export default function LoginScreen() {
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={handleRegister}
-                style={[styles.button, { backgroundColor: colors.primaryAccent, borderColor: colors.border }]}
+                style={[styles.button, { backgroundColor: colors.primaryAccent }]}
               >
                 <Text style={styles.buttonText}>ĐĂNG KÝ</Text>
               </TouchableOpacity>
@@ -264,7 +267,7 @@ export default function LoginScreen() {
                 onPress={() => setViewMode('login')}
                 style={[styles.linkButton]}
               >
-                <Text style={[styles.linkButtonText, { color: colors.text }]}>ĐÃ CÓ TÀI KHOẢN? ĐĂNG NHẬP</Text>
+                <Text style={[styles.linkButtonText, { color: isDark ? '#a855f7' : '#7c3aed' }]}>ĐÃ CÓ TÀI KHOẢN? ĐĂNG NHẬP</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -276,7 +279,7 @@ export default function LoginScreen() {
                 keyboardType="number-pad"
                 maxLength={6}
                 placeholder="Nhập 6 chữ số OTP từ email..."
-                placeholderTextColor={isDark ? '#666' : '#999'}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={otpCode}
                 onChangeText={setOtpCode}
                 style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
@@ -285,7 +288,7 @@ export default function LoginScreen() {
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={handleVerifyOtp}
-                style={[styles.button, { backgroundColor: colors.primaryAccent, borderColor: colors.border }]}
+                style={[styles.button, { backgroundColor: colors.primaryAccent }]}
               >
                 <Text style={styles.buttonText}>XÁC MINH OTP</Text>
               </TouchableOpacity>
@@ -318,67 +321,74 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 340,
-    borderWidth: 2,
+    borderWidth: 1,
+    borderRadius: 16,
     padding: 24,
-    shadowOffset: { width: 6, height: 6 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
   },
   brand: {
     fontSize: 24,
     fontWeight: '900',
     textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: 2,
+    marginBottom: 4,
+    letterSpacing: 1,
   },
   title: {
-    fontSize: 14,
-    fontWeight: '900',
+    fontSize: 13,
+    fontWeight: '800',
     textAlign: 'center',
     marginBottom: 24,
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   form: {
     width: '100%',
   },
   label: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 1,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     marginBottom: 6,
   },
   input: {
-    borderWidth: 2,
-    padding: 14,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 16,
   },
   button: {
-    borderWidth: 2,
-    padding: 16,
+    borderRadius: 10,
+    padding: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 2,
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 1,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   backButton: {
-    borderWidth: 2,
-    padding: 14,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
   },
   backButtonText: {
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 1,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   linkButton: {
     paddingVertical: 12,
@@ -386,8 +396,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   linkButtonText: {
-    fontSize: 10,
-    fontWeight: '900',
+    fontSize: 11,
+    fontWeight: '700',
     letterSpacing: 0.5,
     textDecorationLine: 'underline',
   },
