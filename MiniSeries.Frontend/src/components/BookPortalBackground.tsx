@@ -71,52 +71,55 @@ export default function BookPortalBackground() {
       {renderFloatingSparks()}
 
       {/* Dynamic Faint Orbit Lines connecting Portals */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-80 z-0" viewBox="0 0 1920 1080" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-80 z-0" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
         {/* Orbit line 1 (Orange flow) */}
         <path 
-          d="M 150 900 C 600 800, 300 300, 960 540 C 1620 780, 1320 200, 1770 180" 
+          d="M 8 80 C 25 75, 35 45, 50 50 C 65 55, 75 25, 86 12" 
           fill="none" 
           stroke="rgba(242, 125, 38, 0.85)" 
-          strokeWidth="1.6" 
-          strokeDasharray="6,12" 
+          strokeWidth="0.15" 
+          strokeDasharray="0.6,1.2" 
           className="animate-orbit-dash-slow" 
         />
         {/* Orbit line 2 (Blue flow) */}
         <path 
-          d="M 120 930 C 500 850, 450 250, 960 540 C 1470 830, 1420 230, 1800 150" 
+          d="M 8 80 C 22 72, 38 48, 50 50 C 62 52, 78 28, 86 12" 
           fill="none" 
           stroke="rgba(59, 130, 246, 0.8)" 
-          strokeWidth="1.4" 
-          strokeDasharray="4,8" 
+          strokeWidth="0.12" 
+          strokeDasharray="0.4,0.8" 
           className="animate-orbit-dash-fast" 
         />
         {/* Additional faint orbital rings around center card */}
         <ellipse 
-          cx="960" 
-          cy="540" 
-          rx="600" 
-          ry="320" 
+          cx="50" 
+          cy="50" 
+          rx="30" 
+          ry="16" 
           fill="none" 
           stroke="rgba(255, 255, 255, 0.16)" 
-          strokeWidth="0.8" 
-          strokeDasharray="2,6" 
-          transform="rotate(-15 960 540)"
+          strokeWidth="0.08" 
+          strokeDasharray="0.2,0.6" 
+          transform="rotate(-15 50 50)"
         />
         <ellipse 
-          cx="960" 
-          cy="540" 
-          rx="750" 
-          ry="400" 
+          cx="50" 
+          cy="50" 
+          rx="38" 
+          ry="20" 
           fill="none" 
           stroke="rgba(255, 255, 255, 0.12)" 
-          strokeWidth="0.8" 
-          strokeDasharray="5,15" 
-          transform="rotate(10 960 540)"
+          strokeWidth="0.06" 
+          strokeDasharray="0.5,1.5" 
+          transform="rotate(10 50 50)"
         />
       </svg>
 
       {/* Left Wing Decorative Constellation / Orbit Circle */}
-      <div className="absolute left-[4vw] md:left-[6vw] top-[30vh] md:top-[38vh] w-[180px] h-[180px] pointer-events-none opacity-[0.4] md:opacity-[0.55] z-0 select-none">
+      <div 
+        className="absolute w-[180px] h-[180px] pointer-events-none opacity-[0.4] md:opacity-[0.55] z-0 select-none"
+        style={{ left: '8vw', top: '80vh', transform: 'translate(-50%, -50%)' }}
+      >
         <svg viewBox="0 0 100 100" className="w-full h-full text-orange-400 animate-spin-slow">
           <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="3,4" />
           <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="0.4" />
@@ -130,7 +133,10 @@ export default function BookPortalBackground() {
       </div>
 
       {/* Right Wing Decorative Constellation Map */}
-      <div className="absolute right-[4vw] md:right-[6vw] top-[25vh] md:top-[32vh] w-[200px] h-[200px] pointer-events-none opacity-[0.38] md:opacity-[0.52] z-0 select-none">
+      <div 
+        className="absolute w-[200px] h-[200px] pointer-events-none opacity-[0.38] md:opacity-[0.52] z-0 select-none"
+        style={{ left: '86vw', top: '12vh', transform: 'translate(-50%, -50%)' }}
+      >
         <svg viewBox="0 0 100 100" className="w-full h-full text-blue-400 animate-spin-reverse-slow">
           <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4,6" />
           <path d="M 22 22 L 50 50 L 78 28 M 50 50 L 38 78 L 78 78" fill="none" stroke="currentColor" strokeWidth="0.4" strokeDasharray="2,3" />
@@ -143,97 +149,113 @@ export default function BookPortalBackground() {
       </div>
 
       {/* GLOWING OPEN BOOK (Bottom-Left - Orange Theme) */}
-      <div className="absolute bottom-[-35px] md:bottom-[30px] left-[-120px] w-[450px] h-[450px] rounded-full bg-[#f27d26]/20 blur-[120px] animate-portal-pulse-orange pointer-events-none" />
-      <div className="absolute bottom-[140px] left-6 md:bottom-[200px] md:left-12 z-10 select-none animate-float-gentle pointer-events-auto opacity-90 hover:opacity-100 transition-opacity duration-300">
-        <div className="portal-book-container portal-book-orange">
-          <div className="portal-book">
-            {/* Spine */}
-            <div className="portal-book-spine" />
-            
-            {/* Cover / Bìa dưới */}
-            <div className="portal-book-bottom">
-              <div className="portal-book-cover left" />
-              <div className="portal-book-cover right" />
-            </div>
-            
-            {/* Thickness / Mép giấy dày */}
-            <div className="portal-book-edge">
-              <div className="portal-book-edge-block left" />
-              <div className="portal-book-edge-block right" />
-            </div>
-            
-            {/* Pages / Trang giấy trên cùng */}
-            <div className="portal-book-top">
-              <div className="portal-book-left-page">
-                <div className="portal-book-page-lines">
-                  <div className="portal-book-page-line w-5/6" />
-                  <div className="portal-book-page-line w-full" />
-                  <div className="portal-book-page-line w-4/5" />
-                  <div className="portal-book-page-line-accent w-2/3" />
-                </div>
-                <span className="text-[6px] font-mono text-orange-800/40 select-none">P. 12</span>
+      <div 
+        className="absolute rounded-full bg-[#f27d26]/20 blur-[120px] animate-portal-pulse-orange pointer-events-none" 
+        style={{ left: '8vw', top: '80vh', width: '450px', height: '450px', transform: 'translate(-50%, -50%)', zIndex: 0 }}
+      />
+      <div 
+        style={{ position: 'absolute', left: '8vw', top: '80vh', transform: 'translate(-50%, -50%)', zIndex: 10 }}
+        className="select-none pointer-events-auto opacity-90 hover:opacity-100 transition-opacity duration-300"
+      >
+        <div className="animate-float-gentle">
+          <div className="portal-book-container portal-book-orange">
+            <div className="portal-book">
+              {/* Spine */}
+              <div className="portal-book-spine" />
+              
+              {/* Cover / Bìa dưới */}
+              <div className="portal-book-bottom">
+                <div className="portal-book-cover left" />
+                <div className="portal-book-cover right" />
               </div>
-              <div className="portal-book-right-page">
-                <div className="portal-book-page-lines">
-                  <div className="portal-book-page-line-accent w-11/12" />
-                  <div className="portal-book-page-line w-4/5" />
-                  <div className="portal-book-page-line w-full" />
-                  <div className="portal-book-page-line w-3/4" />
-                </div>
-                <span className="text-[6px] font-mono text-orange-800/40 text-right select-none block">P. 13</span>
+              
+              {/* Thickness / Mép giấy dày */}
+              <div className="portal-book-edge">
+                <div className="portal-book-edge-block left" />
+                <div className="portal-book-edge-block right" />
               </div>
+              
+              {/* Pages / Trang giấy trên cùng */}
+              <div className="portal-book-top">
+                <div className="portal-book-left-page">
+                  <div className="portal-book-page-lines">
+                    <div className="portal-book-page-line w-5/6" />
+                    <div className="portal-book-page-line w-full" />
+                    <div className="portal-book-page-line w-4/5" />
+                    <div className="portal-book-page-line-accent w-2/3" />
+                  </div>
+                  <span className="text-[6px] font-mono text-orange-800/40 select-none">P. 12</span>
+                </div>
+                <div className="portal-book-right-page">
+                  <div className="portal-book-page-lines">
+                    <div className="portal-book-page-line-accent w-11/12" />
+                    <div className="portal-book-page-line w-4/5" />
+                    <div className="portal-book-page-line w-full" />
+                    <div className="portal-book-page-line w-3/4" />
+                  </div>
+                  <span className="text-[6px] font-mono text-orange-800/40 text-right select-none block">P. 13</span>
+                </div>
+              </div>
+              
+              {/* Magical glowing particle */}
+              <div className="portal-book-magic-glow animate-pulse" />
             </div>
-            
-            {/* Magical glowing particle */}
-            <div className="portal-book-magic-glow animate-pulse" />
           </div>
         </div>
       </div>
 
       {/* GLOWING OPEN BOOK (Top-Right - Blue Theme) */}
-      <div className="absolute top-[-120px] right-[-120px] w-[450px] h-[450px] rounded-full bg-[#3b82f6]/20 blur-[120px] animate-portal-pulse-blue pointer-events-none" />
-      <div className="absolute top-6 right-6 md:top-12 md:right-12 z-10 select-none animate-float-gentle pointer-events-auto opacity-90 hover:opacity-100 transition-opacity duration-300">
-        <div className="portal-book-container portal-book-blue">
-          <div className="portal-book">
-            {/* Spine */}
-            <div className="portal-book-spine" />
-            
-            {/* Cover / Bìa dưới */}
-            <div className="portal-book-bottom">
-              <div className="portal-book-cover left" />
-              <div className="portal-book-cover right" />
-            </div>
-            
-            {/* Thickness / Mép giấy dày */}
-            <div className="portal-book-edge">
-              <div className="portal-book-edge-block left" />
-              <div className="portal-book-edge-block right" />
-            </div>
-            
-            {/* Pages / Trang giấy trên cùng */}
-            <div className="portal-book-top">
-              <div className="portal-book-left-page">
-                <div className="portal-book-page-lines">
-                  <div className="portal-book-page-line w-5/6" />
-                  <div className="portal-book-page-line w-full" />
-                  <div className="portal-book-page-line w-4/5" />
-                  <div className="portal-book-page-line-accent w-2/3" />
-                </div>
-                <span className="text-[6px] font-mono text-blue-800/40 select-none">P. 98</span>
+      <div 
+        className="absolute rounded-full bg-[#3b82f6]/20 blur-[120px] animate-portal-pulse-blue pointer-events-none" 
+        style={{ left: '86vw', top: '12vh', width: '450px', height: '450px', transform: 'translate(-50%, -50%)', zIndex: 0 }}
+      />
+      <div 
+        style={{ position: 'absolute', left: '86vw', top: '12vh', transform: 'translate(-50%, -50%)', zIndex: 10 }}
+        className="select-none pointer-events-auto opacity-90 hover:opacity-100 transition-opacity duration-300"
+      >
+        <div className="animate-float-gentle">
+          <div className="portal-book-container portal-book-blue">
+            <div className="portal-book">
+              {/* Spine */}
+              <div className="portal-book-spine" />
+              
+              {/* Cover / Bìa dưới */}
+              <div className="portal-book-bottom">
+                <div className="portal-book-cover left" />
+                <div className="portal-book-cover right" />
               </div>
-              <div className="portal-book-right-page">
-                <div className="portal-book-page-lines">
-                  <div className="portal-book-page-line-accent w-11/12" />
-                  <div className="portal-book-page-line w-4/5" />
-                  <div className="portal-book-page-line w-full" />
-                  <div className="portal-book-page-line w-3/4" />
-                </div>
-                <span className="text-[6px] font-mono text-blue-800/40 text-right select-none block">P. 99</span>
+              
+              {/* Thickness / Mép giấy dày */}
+              <div className="portal-book-edge">
+                <div className="portal-book-edge-block left" />
+                <div className="portal-book-edge-block right" />
               </div>
+              
+              {/* Pages / Trang giấy trên cùng */}
+              <div className="portal-book-top">
+                <div className="portal-book-left-page">
+                  <div className="portal-book-page-lines">
+                    <div className="portal-book-page-line w-5/6" />
+                    <div className="portal-book-page-line w-full" />
+                    <div className="portal-book-page-line w-4/5" />
+                    <div className="portal-book-page-line-accent w-2/3" />
+                  </div>
+                  <span className="text-[6px] font-mono text-blue-800/40 select-none">P. 98</span>
+                </div>
+                <div className="portal-book-right-page">
+                  <div className="portal-book-page-lines">
+                    <div className="portal-book-page-line-accent w-11/12" />
+                    <div className="portal-book-page-line w-4/5" />
+                    <div className="portal-book-page-line w-full" />
+                    <div className="portal-book-page-line w-3/4" />
+                  </div>
+                  <span className="text-[6px] font-mono text-blue-800/40 text-right select-none block">P. 99</span>
+                </div>
+              </div>
+              
+              {/* Magical glowing particle */}
+              <div className="portal-book-magic-glow animate-pulse" />
             </div>
-            
-            {/* Magical glowing particle */}
-            <div className="portal-book-magic-glow animate-pulse" />
           </div>
         </div>
       </div>
