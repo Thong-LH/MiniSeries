@@ -61,7 +61,7 @@ export default function BookPortalBackground() {
   };
 
   return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none scene-3d">
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none scene-3d" style={{ width: '100vw', height: '100vh', left: 0, top: 0 }}>
       {/* Background Nebulas */}
       <div className="absolute top-[25%] left-[20%] w-[600px] h-[600px] rounded-full bg-indigo-950/15 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[20%] right-[10%] w-[550px] h-[550px] rounded-full bg-purple-950/10 blur-[160px] pointer-events-none" />
@@ -116,10 +116,7 @@ export default function BookPortalBackground() {
       </svg>
 
       {/* Left Wing Decorative Constellation / Orbit Circle */}
-      <div 
-        className="absolute w-[180px] h-[180px] pointer-events-none opacity-[0.4] md:opacity-[0.55] z-0 select-none"
-        style={{ left: '8vw', top: '80vh', transform: 'translate(-50%, -50%)' }}
-      >
+      <div className="absolute left-[4vw] md:left-[6vw] top-[30vh] md:top-[38vh] w-[180px] h-[180px] pointer-events-none opacity-[0.4] md:opacity-[0.55] z-0 select-none">
         <svg viewBox="0 0 100 100" className="w-full h-full text-orange-400 animate-spin-slow">
           <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="3,4" />
           <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="0.4" />
@@ -133,10 +130,7 @@ export default function BookPortalBackground() {
       </div>
 
       {/* Right Wing Decorative Constellation Map */}
-      <div 
-        className="absolute w-[200px] h-[200px] pointer-events-none opacity-[0.38] md:opacity-[0.52] z-0 select-none"
-        style={{ left: '86vw', top: '12vh', transform: 'translate(-50%, -50%)' }}
-      >
+      <div className="absolute right-[4vw] md:right-[6vw] top-[25vh] md:top-[32vh] w-[200px] h-[200px] pointer-events-none opacity-[0.38] md:opacity-[0.52] z-0 select-none">
         <svg viewBox="0 0 100 100" className="w-full h-full text-blue-400 animate-spin-reverse-slow">
           <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4,6" />
           <path d="M 22 22 L 50 50 L 78 28 M 50 50 L 38 78 L 78 78" fill="none" stroke="currentColor" strokeWidth="0.4" strokeDasharray="2,3" />
@@ -149,10 +143,12 @@ export default function BookPortalBackground() {
       </div>
 
       {/* GLOWING OPEN BOOK (Bottom-Left - Orange Theme) */}
-      <div 
-        className="absolute rounded-full bg-[#f27d26]/20 blur-[120px] animate-portal-pulse-orange pointer-events-none" 
-        style={{ left: '8vw', top: '80vh', width: '450px', height: '450px', transform: 'translate(-50%, -50%)', zIndex: 0 }}
-      />
+      <div style={{ position: 'absolute', left: '8vw', top: '80vh', zIndex: 0 }}>
+        <div 
+          className="absolute w-[450px] h-[450px] rounded-full bg-[#f27d26]/20 blur-[120px] animate-portal-pulse-orange pointer-events-none" 
+          style={{ left: '-225px', top: '-225px' }}
+        />
+      </div>
       <div 
         style={{ position: 'absolute', left: '8vw', top: '80vh', transform: 'translate(-50%, -50%)', zIndex: 10 }}
         className="select-none pointer-events-auto opacity-90 hover:opacity-100 transition-opacity duration-300"
@@ -205,10 +201,12 @@ export default function BookPortalBackground() {
       </div>
 
       {/* GLOWING OPEN BOOK (Top-Right - Blue Theme) */}
-      <div 
-        className="absolute rounded-full bg-[#3b82f6]/20 blur-[120px] animate-portal-pulse-blue pointer-events-none" 
-        style={{ left: '86vw', top: '12vh', width: '450px', height: '450px', transform: 'translate(-50%, -50%)', zIndex: 0 }}
-      />
+      <div style={{ position: 'absolute', left: '86vw', top: '12vh', zIndex: 0 }}>
+        <div 
+          className="absolute w-[450px] h-[450px] rounded-full bg-[#3b82f6]/20 blur-[120px] animate-portal-pulse-blue pointer-events-none" 
+          style={{ left: '-225px', top: '-225px' }}
+        />
+      </div>
       <div 
         style={{ position: 'absolute', left: '86vw', top: '12vh', transform: 'translate(-50%, -50%)', zIndex: 10 }}
         className="select-none pointer-events-auto opacity-90 hover:opacity-100 transition-opacity duration-300"
