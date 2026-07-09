@@ -15,6 +15,11 @@ export default function Checkout() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentCode, setPaymentCode] = useState('');
+  
+  // Dynamic bank details from backend settings
+  const [bankBin, setBankBin] = useState('970422');
+  const [accountNumber, setAccountNumber] = useState('0909090909');
+  const [accountName, setAccountName] = useState('MINISERIES STUDIO');
 
   // Create invoice on enter
   useEffect(() => {
@@ -25,6 +30,9 @@ export default function Checkout() {
         const response = await api.createInvoice(price, planName);
         if (ignore) return;
         setPaymentCode(response.paymentCode);
+        if (response.bankBin) setBankBin(response.bankBin);
+        if (response.accountNumber) setAccountNumber(response.accountNumber);
+        if (response.accountName) setAccountName(response.accountName);
         setLoading(false);
       } catch (err: any) {
         if (ignore) return;
@@ -178,15 +186,15 @@ export default function Checkout() {
                   </h3>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.95rem' }}>
                     <span style={{ color: '#94a3b8' }}>Ngân hàng:</span>
-                    <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>MB Bank (Ngân hàng Quân Đội)</span>
+                    <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>{bankBin === '970418' ? 'BIDV (Ngân hàng Đầu tư & Phát triển VN)' : 'MB Bank (Ngân hàng Quân Đội)'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.95rem' }}>
                     <span style={{ color: '#94a3b8' }}>Số tài khoản:</span>
-                    <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>0909090909</span>
+                    <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>{accountNumber}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.95rem' }}>
                     <span style={{ color: '#94a3b8' }}>Tên người thụ hưởng:</span>
-                    <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>MINISERIES LEARNING CO.</span>
+                    <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>{accountName}</span>
                   </div>
                 </div>
 
@@ -225,7 +233,7 @@ export default function Checkout() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '14px', border: '1px solid rgba(255, 255, 255, 0.05)', padding: '24px' }}>
                 <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', marginBottom: '16px' }}>
                   <img
-                    src={`https://api.vietqr.io/image/970422-0909090909-5D1pG8K.jpg?amount=${price}&addInfo=${paymentCode}&accountName=MINISERIES%20LEARNING%20CO`}
+                    src={`https://api.vietqr.io/image/${bankBin}-${accountNumber}-compact.jpg?amount=${price}&addInfo=${paymentCode}&accountName=${encodeURIComponent(accountName)}`}
                     alt="VietQR Code"
                     style={{ width: '220px', height: '220px', display: 'block' }}
                   />

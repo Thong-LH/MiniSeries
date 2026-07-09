@@ -25,6 +25,7 @@ public sealed class CreateInvoiceRequest
 public class BankWebhookModel
 {
     public string Content { get; set; } = string.Empty;
+    public string? TransactionContent { get; set; }
     public decimal TransferAmount { get; set; }
     public decimal Amount { get; set; }
 }

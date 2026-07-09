@@ -15,7 +15,8 @@ namespace MiniSeries.WebAPI.Controllers;
 [Route("api/payment")]
 public sealed class PaymentsController(
     MiniSeriesDbContext dbContext,
-    UserPlanQuotaService quotaService) : ControllerBase
+    UserPlanQuotaService quotaService,
+    IConfiguration configuration) : ControllerBase
 {
     [Authorize(Policy = "AuthenticatedUser")]
     [HttpPost("create-invoice")]
@@ -78,6 +79,11 @@ public sealed class PaymentsController(
         dbContext.PaymentOrders.Add(order);
         await dbContext.SaveChangesAsync();
 
+        var paymentSettings = configuration.GetSection("PaymentSettings");
+        var bankBin = paymentSettings["BankBin"] ?? "970422";
+        var accountNumber = paymentSettings["AccountNumber"] ?? "0909090909";
+        var accountName = paymentSettings["AccountName"] ?? "MINISERIES STUDIO";
+
         return Ok(new
         {
             orderId = order.Id,
@@ -88,7 +94,10 @@ public sealed class PaymentsController(
             mangaMonthlyLimit = plan.MangaMonthlyLimit,
             videoMonthlyLimit = plan.VideoMonthlyLimit,
             monthlyGenerationLimit = order.TokensAmount,
-            status = order.Status
+            status = order.Status,
+            bankBin,
+            accountNumber,
+            accountName
         });
     }
 
@@ -120,7 +129,21 @@ public sealed class PaymentsController(
     [HttpPost("bank-webhook")]
     public async Task<IActionResult> BankWebhook([FromBody] BankWebhookModel bankData)
     {
-        string content = bankData.Content ?? "";
+        // 1. Optional API Key security check for SePay webhook
+        var paymentSettings = configuration.GetSection("PaymentSettings");
+        var sePayApiKey = paymentSettings["SePayApiKey"];
+        if (!string.IsNullOrWhiteSpace(sePayApiKey))
+        {
+            var authHeader = Request.Headers.Authorization.ToString();
+            // SePay authorization header format: Apikey <token>
+            if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.Equals($"Apikey {sePayApiKey}", StringComparison.Ordinal))
+            {
+                return Unauthorized(new { message = "Invalid API Key header authorization." });
+            }
+        }
+
+        // 2. Parse payload content supporting both standard and SePay parameters
+        string content = bankData.TransactionContent ?? bankData.Content ?? "";
         string contentUpper = content.ToUpperInvariant();
         var amount = bankData.TransferAmount > 0 ? bankData.TransferAmount : bankData.Amount;
 

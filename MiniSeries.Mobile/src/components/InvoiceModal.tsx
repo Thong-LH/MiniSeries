@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../hooks/use-theme';
+import { apiClient } from '../services/apiClient';
 
 interface InvoiceModalProps {
   visible: boolean;
@@ -13,6 +14,14 @@ interface InvoiceModalProps {
 export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, planName, amount }) => {
   const { themeId, triggerToast, setActivePlan, setMangaTokens, setVideoTokens } = useApp();
   const [secondsLeft, setSecondsLeft] = useState<number>(900); // 15 minutes
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [checking, setChecking] = useState<boolean>(false);
+  const [simulating, setSimulating] = useState<boolean>(false);
+  const [paymentCode, setPaymentCode] = useState<string>('');
+  const [bankBin, setBankBin] = useState<string>('970422');
+  const [accountNumber, setAccountNumber] = useState<string>('0909090909');
+  const [accountName, setAccountName] = useState<string>('MINISERIES STUDIO');
 
   const theme = useTheme();
   const isDark = theme.isDark;
@@ -28,16 +37,48 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
 
   useEffect(() => {
     let timer: any;
+    let isMounted = true;
+
     if (visible) {
       setSecondsLeft(900);
+      setLoading(true);
+      setPaymentCode('');
+
+      // Create invoice on Backend
+      const initInvoice = async () => {
+        try {
+          const res = await apiClient.post('/payment/create-invoice', {
+            amount: Number(amount),
+            planName: planName
+          });
+          if (isMounted) {
+            setPaymentCode(res.data.paymentCode);
+            if (res.data.bankBin) setBankBin(res.data.bankBin);
+            if (res.data.accountNumber) setAccountNumber(res.data.accountNumber);
+            if (res.data.accountName) setAccountName(res.data.accountName);
+            setLoading(false);
+          }
+        } catch (e: any) {
+          console.log('Failed to create invoice:', e);
+          if (isMounted) {
+            triggerToast('Không thể kết nối đến máy chủ để tạo hóa đơn.');
+            onClose();
+          }
+        }
+      };
+
+      initInvoice();
+
       timer = setInterval(() => {
         setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
     }
+
     return () => {
+      isMounted = false;
       if (timer) clearInterval(timer);
     };
-  }, [visible]);
+  }, [visible, amount, planName]);
 
   const formatTime = (secs: number) => {
     const mins = Math.floor(secs / 60);
@@ -45,16 +86,57 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
     return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
   };
 
-  const handleConfirm = () => {
-    setActivePlan(planName);
-    if (planName === 'Basic') {
-      setMangaTokens((prev) => prev + 30);
-    } else if (planName === 'Premium') {
-      setMangaTokens(99999); // Unlimited represented by large amount
-      setVideoTokens((prev) => prev + 30);
+  const handleConfirm = async () => {
+    if (!paymentCode) return;
+    setChecking(true);
+    try {
+      const res = await apiClient.get('/payment/check-status', {
+        params: { code: paymentCode }
+      });
+      if (res.data.isPaid) {
+        // Apply tokens locally (sync UI immediately)
+        setActivePlan(planName);
+        if (planName === 'Basic') {
+          setMangaTokens((prev) => prev + 30);
+        } else if (planName === 'Premium') {
+          setMangaTokens(99999); // Unlimited represented by large amount
+          setVideoTokens((prev) => prev + 30);
+        }
+        triggerToast(`Nâng cấp thành công gói ${planName}!`);
+        onClose();
+      } else {
+        triggerToast('Chưa nhận được thanh toán. Hãy thử lại hoặc chọn Giả Lập.');
+      }
+    } catch (e) {
+      console.log('Failed to check payment status:', e);
+      triggerToast('Lỗi khi kiểm tra thanh toán. Vui lòng thử lại.');
+    } finally {
+      setChecking(false);
     }
-    triggerToast(`Nâng cấp thành công gói ${planName}!`);
-    onClose();
+  };
+
+  const handleSimulatePayment = async () => {
+    if (!paymentCode) return;
+    setSimulating(true);
+    try {
+      const res = await apiClient.post('/payment/bank-webhook', {
+        content: paymentCode,
+        transferAmount: Number(amount),
+        amount: Number(amount)
+      });
+      if (res.data.success) {
+        triggerToast('Đã kích hoạt giả lập thanh toán!');
+        // Automatically check status
+        await handleConfirm();
+      } else {
+        triggerToast('Giả lập thất bại: ' + (res.data.message || ''));
+      }
+    } catch (e) {
+      console.log('Failed to simulate payment:', e);
+      triggerToast('Lỗi khi gửi yêu cầu giả lập.');
+    } finally {
+      setSimulating(false);
+    }
   };
 
   return (
@@ -62,77 +144,105 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
       <View style={[styles.overlay, { backgroundColor: colors.bg }]}>
         <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
           <Text style={[styles.header, { color: colors.text, borderBottomColor: colors.border }]}>
-            🏦 MB BANK CHUYỂN KHOẢN HÓA ĐƠN
+            🏦 {bankBin === '970418' ? 'BIDV' : 'MB BANK'} CHUYỂN KHOẢN HÓA ĐƠN
           </Text>
 
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            {/* Timer Box */}
-            <View style={[styles.timerBox, { borderColor: colors.border }]}>
-              <Text style={[styles.timerLabel, { color: colors.textMuted }]}>
-                HÓA ĐƠN HẾT HẠN SAU
-              </Text>
-              <Text style={[styles.timerText, { color: colors.primaryAccent }]}>
-                ⏳ {formatTime(secondsLeft)}
+          {loading ? (
+            <View style={{ flex: 1, padding: 40, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+              <ActivityIndicator size="large" color={colors.primaryAccent} />
+              <Text style={{ color: colors.textMuted, fontSize: 13, fontWeight: '700' }}>
+                Đang tạo hóa đơn giao dịch...
               </Text>
             </View>
+          ) : (
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+              {/* Timer Box */}
+              <View style={[styles.timerBox, { borderColor: colors.border }]}>
+                <Text style={[styles.timerLabel, { color: colors.textMuted }]}>
+                  HÓA ĐƠN HẾT HẠN SAU
+                </Text>
+                <Text style={[styles.timerText, { color: colors.primaryAccent }]}>
+                  ⏳ {formatTime(secondsLeft)}
+                </Text>
+              </View>
 
-            {/* Billing Details */}
-            <View style={styles.detailsContainer}>
-              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NGÂN HÀNG THỤ HƯỞNG</Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>MB Bank (Ngân hàng Quân Đội)</Text>
+              {/* Billing Details */}
+              <View style={styles.detailsContainer}>
+                <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+                  <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NGÂN HÀNG THỤ HƯỞNG</Text>
+                  <Text style={[styles.detailValue, { color: colors.text }]}>
+                    {bankBin === '970418' ? 'BIDV (Ngân hàng Đầu tư & Phát triển VN)' : 'MB Bank (Ngân hàng Quân Đội)'}
+                  </Text>
+                </View>
+                <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+                  <Text style={[styles.detailLabel, { color: colors.textMuted }]}>SỐ TÀI KHOẢN</Text>
+                  <Text style={[styles.detailValue, { color: colors.text }]}>{accountNumber}</Text>
+                </View>
+                <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+                  <Text style={[styles.detailLabel, { color: colors.textMuted }]}>TÊN THỤ HƯỞNG</Text>
+                  <Text style={[styles.detailValue, { color: colors.text }]}>{accountName}</Text>
+                </View>
+                <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+                  <Text style={[styles.detailLabel, { color: colors.textMuted }]}>SỐ TIỀN</Text>
+                  <Text style={[styles.detailValue, { color: colors.primaryAccent }]}>{amount}đ</Text>
+                </View>
+                <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+                  <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NỘI DUNG CHUYỂN KHOẢN</Text>
+                  <Text style={[styles.detailValue, { color: colors.text }]}>{paymentCode}</Text>
+                </View>
               </View>
-              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>SỐ TÀI KHOẢN</Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>0909090909</Text>
-              </View>
-              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>TÊN THỤ HƯỞNG</Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>MINISERIES STUDIO</Text>
-              </View>
-              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>SỐ TIỀN</Text>
-                <Text style={[styles.detailValue, { color: colors.primaryAccent }]}>{amount}đ</Text>
-              </View>
-              <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NỘI DUNG CHUYỂN KHOẢN</Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>MINISERIES VIP {planName.toUpperCase()}</Text>
-              </View>
-            </View>
 
-            {/* QR Mock Image */}
-            <View style={styles.qrContainer}>
-              <View style={[styles.qrBorder, { borderColor: colors.border, backgroundColor: colors.qrBg }]}>
-                <Image
-                  source={{ uri: `https://api.vietqr.io/image/970422-0909090909-4OitQ0s.jpg?accountName=MINISERIES%20STUDIO&amount=${planName === 'Basic' ? '10000' : '30000'}&addInfo=MINISERIES%20VIP%20${planName.toUpperCase()}` }}
-                  style={styles.qrImage}
-                  resizeMode="contain"
-                />
+              {/* QR Mock Image */}
+              <View style={styles.qrContainer}>
+                <View style={[styles.qrBorder, { borderColor: colors.border, backgroundColor: colors.qrBg }]}>
+                  <Image
+                    source={{ uri: `https://api.vietqr.io/image/${bankBin}-${accountNumber}-compact.jpg?accountName=${encodeURIComponent(accountName)}&amount=${amount}&addInfo=${paymentCode}` }}
+                    style={styles.qrImage}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text style={[styles.qrCaption, { color: colors.textMuted }]}>
+                  Quét mã QR bằng ứng dụng ngân hàng của bạn để thanh toán tự động
+                </Text>
               </View>
-              <Text style={[styles.qrCaption, { color: colors.textMuted }]}>
-                Quét mã QR bằng ứng dụng ngân hàng của bạn để thanh toán tự động
-              </Text>
-            </View>
-          </ScrollView>
+            </ScrollView>
+          )}
 
           {/* Action Buttons */}
-          <View style={[styles.actionsContainer, { borderTopColor: colors.border }]}>
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={handleConfirm}
-              style={[styles.actionBtn, { backgroundColor: colors.primaryAccent, borderColor: colors.primaryAccent }]}
-            >
-              <Text style={styles.actionBtnText}>XÁC NHẬN ĐÃ CHUYỂN KHOẢN</Text>
-            </TouchableOpacity>
+          {!loading && (
+            <View style={[styles.actionsContainer, { borderTopColor: colors.border }]}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={handleConfirm}
+                disabled={checking}
+                style={[styles.actionBtn, { backgroundColor: colors.primaryAccent, borderColor: colors.primaryAccent }]}
+              >
+                <Text style={styles.actionBtnText}>
+                  {checking ? 'ĐANG KIỂM TRA...' : 'XÁC NHẬN ĐÃ CHUYỂN KHOẢN'}
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={onClose}
-              style={[styles.actionBtn, { backgroundColor: 'transparent', borderColor: colors.border }]}
-            >
-              <Text style={[styles.actionBtnText, { color: colors.text }]}>HỦY GIAO DỊCH</Text>
-            </TouchableOpacity>
-          </View>
+              {/* Developer mode simulated payment button */}
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={handleSimulatePayment}
+                disabled={simulating}
+                style={[styles.actionBtn, { backgroundColor: 'rgba(167, 139, 250, 0.1)', borderColor: 'rgba(167, 139, 250, 0.3)' }]}
+              >
+                <Text style={[styles.actionBtnText, { color: '#a78bfa' }]}>
+                  {simulating ? 'ĐANG GIẢ LẬP...' : '✦ GIẢ LẬP CHUYỂN KHOẢN THÀNH CÔNG'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={onClose}
+                style={[styles.actionBtn, { backgroundColor: 'transparent', borderColor: colors.border }]}
+              >
+                <Text style={[styles.actionBtnText, { color: colors.text }]}>HỦY GIAO DỊCH</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </Modal>
