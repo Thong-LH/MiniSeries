@@ -177,14 +177,14 @@ export default function Checkout() {
               </button>
             </div>
 
-            <h1 className="checkout-title">
+            <h1 style={{ color: '#fafafa', marginBottom: '8px', fontSize: '2.2rem', textAlign: 'center', fontFamily: 'Cinzel, serif', fontWeight: 800, letterSpacing: '0.05em' }}>
               CỔNG THANH TOÁN
             </h1>
             <p style={{ color: 'rgba(250, 250, 250, 0.6)', textAlign: 'center', marginBottom: '36px', fontSize: '0.9rem' }}>
               Quét mã QR dưới đây hoặc bấm nút giả lập chuyển khoản để nâng cấp gói tài khoản.
             </p>
  
-            <div className="checkout-container-box checkout-grid">
+            <div className="checkout-container-grid">
               {/* Order Info */}
               <div style={{ color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
