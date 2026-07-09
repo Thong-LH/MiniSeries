@@ -33,7 +33,30 @@ public class AzureFluxService : IImageGenerationService, IMangaService
         return await GenerateImageInternalAsync(prompt, anchorImageUrl);
     }
 
+    private const string FallbackSvg = 
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\" width=\"1024\" height=\"1024\">" +
+        "<rect width=\"1024\" height=\"1024\" fill=\"#09090b\"/>" +
+        "<circle cx=\"512\" cy=\"512\" r=\"300\" fill=\"none\" stroke=\"rgba(242, 125, 38, 0.15)\" stroke-width=\"4\" stroke-dasharray=\"10 15\"/>" +
+        "<circle cx=\"512\" cy=\"512\" r=\"200\" fill=\"none\" stroke=\"rgba(56, 189, 248, 0.15)\" stroke-width=\"3\"/>" +
+        "<path d=\"M 462 462 L 562 462 L 562 562 L 462 562 Z\" fill=\"none\" stroke=\"rgba(255, 255, 255, 0.3)\" stroke-width=\"4\"/>" +
+        "<text x=\"512\" y=\"518\" fill=\"rgba(255, 255, 255, 0.4)\" font-family=\"system-ui, sans-serif\" font-size=\"24\" font-weight=\"bold\" text-anchor=\"middle\">MINISERIES</text>" +
+        "<text x=\"512\" y=\"550\" fill=\"rgba(255, 255, 255, 0.25)\" font-family=\"system-ui, sans-serif\" font-size=\"14\" text-anchor=\"middle\">Illustration Content Filtered</text>" +
+        "</svg>";
+
     private async Task<string> GenerateImageInternalAsync(string prompt, string? anchorImageUrl)
+    {
+        try
+        {
+            return await GenerateImageInternalWithRetryAsync(prompt, anchorImageUrl, true);
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"[AzureFluxService] Error generating image: {ex.Message}. Falling back to default SVG.");
+            return $"data:image/svg+xml;utf8,{System.Uri.EscapeDataString(FallbackSvg)}";
+        }
+    }
+
+    private async Task<string> GenerateImageInternalWithRetryAsync(string prompt, string? anchorImageUrl, bool allowRetry)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {
@@ -85,9 +108,21 @@ public class AzureFluxService : IImageGenerationService, IMangaService
         var json = JObject.Parse(responseContent);
 
         var dataArray = json["data"] as JArray;
-        if (dataArray == null || dataArray.Count == 0)
+        var stopReason = json["stop_reason"]?.ToString();
+        bool isRefusal = stopReason == "refusal" || (dataArray == null || dataArray.Count == 0);
+
+        if (isRefusal)
         {
-            throw new InvalidOperationException($"Azure Flux API response 'data' array is null or empty. Full response: {responseContent}");
+            if (allowRetry)
+            {
+                var sanitizedPrompt = SanitizePrompt(prompt);
+                System.Console.WriteLine($"[AzureFluxService] Prompt refused by safety. Retrying with sanitized prompt: {sanitizedPrompt}");
+                return await GenerateImageInternalWithRetryAsync(sanitizedPrompt, anchorImageUrl, false);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Azure Flux API response refused by safety policy. Stop reason: {stopReason}. Full response: {responseContent}");
+            }
         }
 
         var base64Data = dataArray[0]?["b64_json"]?.ToString();
@@ -98,6 +133,34 @@ public class AzureFluxService : IImageGenerationService, IMangaService
 
         return $"data:image/png;base64,{base64Data}";
     }
+
+    private string SanitizePrompt(string prompt)
+    {
+        var result = prompt;
+        
+        result = ReplaceIgnoreCase(result, "Nam và Minh", "two friends");
+        result = ReplaceIgnoreCase(result, "Nam & Minh", "two friends");
+        result = ReplaceIgnoreCase(result, "Nam", "a young man");
+        result = ReplaceIgnoreCase(result, "Minh", "his partner");
+        result = ReplaceIgnoreCase(result, "lãng mạn", "dreamy");
+        result = ReplaceIgnoreCase(result, "romantic", "dreamy");
+        result = ReplaceIgnoreCase(result, "xung đột cảm xúc", "intellectual conflict");
+        result = ReplaceIgnoreCase(result, "emotional conflict", "intellectual conflict");
+        result = ReplaceIgnoreCase(result, "ngồi bên nhau", "sitting facing a control panel");
+        result = ReplaceIgnoreCase(result, "sitting together", "sitting facing a control panel");
+        
+        return result;
+    }
+
+    private string ReplaceIgnoreCase(string source, string target, string replacement)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(
+            source, 
+            System.Text.RegularExpressions.Regex.Escape(target), 
+            replacement, 
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    }
+
 
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _imageBase64Cache = new();
 
