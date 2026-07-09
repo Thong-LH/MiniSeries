@@ -140,7 +140,43 @@ export default function Checkout() {
             </button>
           </div>
         ) : (
-          <div>
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px' }}>
+              <button
+                onClick={() => navigate('/pricing')}
+                style={{
+                  background: 'transparent',
+                  color: 'rgba(250, 250, 250, 0.5)',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  borderRadius: '999px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#38bdf8';
+                  e.currentTarget.style.backgroundColor = 'rgba(56, 189, 248, 0.08)';
+                  e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(250, 250, 250, 0.5)';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Quay lại Bảng giá
+              </button>
+            </div>
+
             <h1 style={{ color: '#fafafa', marginBottom: '8px', fontSize: '2.2rem', textAlign: 'center', fontFamily: 'Cinzel, serif', fontWeight: 800, letterSpacing: '0.05em' }}>
               CỔNG THANH TOÁN
             </h1>

@@ -162,7 +162,44 @@ export default function Pricing() {
         </div>
       </div>
 
-      <h2 style={{ textAlign: 'center', marginTop: '64px', marginBottom: '16px', color: '#fafafa', fontSize: '1.6rem', fontWeight: 700 }}>
+      <div style={{ textAlign: 'center', marginTop: '36px' }}>
+        <button
+          onClick={() => document.getElementById('single-tokens-section')?.scrollIntoView({ behavior: 'smooth' })}
+          style={{
+            background: 'transparent',
+            color: '#38bdf8',
+            fontSize: '0.88rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 20px',
+            borderRadius: '999px',
+            backgroundColor: 'rgba(56, 189, 248, 0.04)',
+            border: '1px dashed rgba(56, 189, 248, 0.25)',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(56, 189, 248, 0.1)';
+            e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(56, 189, 248, 0.04)';
+            e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.25)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
+          <span>💡 Chỉ cần nạp một vài lượt lẻ? Xem bảng mua lẻ tại đây</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19 12 12 19 5 12"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <h2 id="single-tokens-section" style={{ textAlign: 'center', marginTop: '64px', marginBottom: '16px', color: '#fafafa', fontSize: '1.6rem', fontWeight: 700 }}>
         Mua lẻ từng lượt tạo (Pay-As-You-Go)
       </h2>
       <p style={{ textAlign: 'center', color: 'rgba(250, 250, 250, 0.5)', maxWidth: '600px', margin: '0 auto 36px auto', fontSize: '0.88rem', lineHeight: '1.6', padding: '0 20px' }}>
