@@ -48,7 +48,6 @@
   width: 260px;
   background: rgba(9, 9, 11, 0.5) !important;
   backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
   border-right: 1px solid var(--border-color) !important;
   padding: 2rem 1.25rem !important;
   display: flex;

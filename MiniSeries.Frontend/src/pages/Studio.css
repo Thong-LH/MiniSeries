@@ -93,7 +93,6 @@
     border-radius: 24px;
     padding: 2.2rem;
     backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
     box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.6);
     position: relative;
     overflow: hidden;
@@ -263,7 +262,6 @@ input:checked + .slider:before {
     border: 1px solid var(--border-color);
     border-radius: 24px;
     backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
     box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.6);
     box-sizing: border-box;
 }
@@ -1388,7 +1386,6 @@ input:checked + .slider:before {
 .studio-nav {
     background: rgba(9, 9, 11, 0.4) !important;
     backdrop-filter: blur(24px) !important;
-    -webkit-backdrop-filter: blur(24px) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -1520,7 +1517,6 @@ input:checked + .slider:before {
     width: 300px;
     background: rgba(12, 12, 14, 0.92) !important;
     backdrop-filter: blur(24px) !important;
-    -webkit-backdrop-filter: blur(24px) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 20px;
     padding: 20px;
@@ -2060,7 +2056,6 @@ input:checked + .slider:before {
     inset: 0;
     background: rgba(9, 9, 11, 0.6);
     backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     z-index: 100000;
     display: flex;
     align-items: center;
@@ -2080,7 +2075,6 @@ input:checked + .slider:before {
     width: 100%;
     background: rgba(12, 12, 14, 0.95);
     backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
     padding: 35px 30px;
