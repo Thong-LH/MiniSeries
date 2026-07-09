@@ -29,7 +29,7 @@
 }
 
 /* 3D Flying Sheets Animation along a curved path from bottom-left Open Book to top-right Open Book */
-@@keyframes translate-sheet-1 {
+@keyframes translate-sheet-1 {
   0% { transform: translate3d(8vw, 80vh, -200px); }
   20% { transform: translate3d(22vw, 84vh, -150px); }
   50% { transform: translate3d(47vw, 50vh, -100px); }
