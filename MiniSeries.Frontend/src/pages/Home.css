@@ -22,7 +22,6 @@
 /* Global content wrapper to sit above the stream */
 .content-wrapper {
     position: relative;
-    overflow-x: clip;
     width: 100%;
 }
 

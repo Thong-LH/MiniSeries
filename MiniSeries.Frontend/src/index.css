@@ -184,7 +184,6 @@ body {
 .scene-3d {
   perspective: 1200px;
   transform-style: preserve-3d;
-  filter: saturate(0.82) contrast(0.96);
 }
 
 .sheet-3d-1 {
