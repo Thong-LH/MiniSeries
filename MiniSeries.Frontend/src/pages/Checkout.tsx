@@ -11,7 +11,6 @@ export default function Checkout() {
   const price = Number(searchParams.get('price')) || 150000;
 
   const [loading, setLoading] = useState(true);
-  const [simulating, setSimulating] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentCode, setPaymentCode] = useState('');
@@ -48,28 +47,25 @@ export default function Checkout() {
     };
   }, [price, planName]);
 
-  const handleSimulatePayment = async () => {
-    if (!paymentCode) return;
-    setSimulating(true);
-    setError(null);
+  // Poll payment status automatically for real bank webhook callback
+  useEffect(() => {
+    if (!paymentCode || success) return;
 
-    try {
-      // Simulate bank webhook call
-      const result = await api.simulateBankWebhook(paymentCode, price);
-      if (result.success) {
-        // Refresh token snapshot
-        await api.refreshProfileCache();
-        setSuccess(true);
-      } else {
-        throw new Error(result.message || 'Giả lập thanh toán không thành công.');
+    const intervalId = setInterval(async () => {
+      try {
+        const result = await api.checkPaymentStatus(paymentCode);
+        if (result && result.isPaid) {
+          clearInterval(intervalId);
+          await api.refreshProfileCache();
+          setSuccess(true);
+        }
+      } catch (err) {
+        console.error('Error polling payment status:', err);
       }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Đã xảy ra lỗi khi giả lập cổng thanh toán.');
-    } finally {
-      setSimulating(false);
-    }
-  };
+    }, 4000);
+
+    return () => clearInterval(intervalId);
+  }, [paymentCode, success]);
 
   const formattedPrice = new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -202,35 +198,10 @@ export default function Checkout() {
                   </div>
                 </div>
  
-                <div style={{ marginTop: '36px' }}>
-                  <button
-                    onClick={handleSimulatePayment}
-                    disabled={simulating}
-                    style={{
-                      width: '100%',
-                      padding: '14px',
-                      background: simulating ? 'rgba(255, 255, 255, 0.05)' : 'linear-gradient(90deg, #38bdf8, #0d9488)',
-                      border: 'none',
-                      color: simulating ? 'rgba(250, 250, 250, 0.3)' : '#09090b',
-                      fontSize: '0.9rem',
-                      fontWeight: 800,
-                      borderRadius: '999px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      cursor: simulating ? 'not-allowed' : 'pointer',
-                      boxShadow: simulating ? 'none' : '0 8px 24px rgba(56, 189, 248, 0.25)',
-                      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px'
-                    }}
-                  >
-                    {simulating && <div className="inline-spinner" style={{ borderColor: '#09090b', borderTopColor: 'transparent' }}></div>}
-                    {simulating ? 'Đang giả lập thanh toán...' : '✦ Giả lập quét mã thành công (Auto-Pay)'}
-                  </button>
-                  <p style={{ color: 'rgba(250, 250, 250, 0.35)', fontSize: '0.78rem', textAlign: 'center', marginTop: '10px' }}>
-                    * Nút này mô phỏng hành vi quét mã QR chuyển khoản thành công của người dùng trên thực tế.
+                <div style={{ marginTop: '36px', padding: '16px', background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.12)', borderRadius: '14px' }}>
+                  <p style={{ margin: 0, color: '#38bdf8', fontSize: '0.82rem', lineHeight: '1.5', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                    <span>ℹ️</span>
+                    <span>Hệ thống tự động quét giao dịch và kích hoạt gói cước ngay khi nhận được chuyển khoản từ bạn. Vui lòng giữ nguyên trang hoặc theo dõi trạng thái tại trang Lịch sử thanh toán.</span>
                   </p>
                 </div>
               </div>

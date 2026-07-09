@@ -132,20 +132,6 @@ export default function Pricing() {
           <button className="btn-buy btn-free" disabled>Gói mặc định</button>
         </div>
 
-        <div className="pricing-card">
-          <div>
-            <h3 className="plan-name" style={{ color: '#14b8a6' }}>Test</h3>
-            <div className="price">1.000đ <span>/ tháng</span></div>
-            <div className="quota">5 lượt generate / tháng</div>
-            <ul className="features">
-              <li>Dành cho việc kiểm thử thanh toán VietQR</li>
-              <li>Chuyển khoản an toàn chỉ 1.000 VND</li>
-              <li>Tự động kích hoạt khi giao dịch thành công</li>
-            </ul>
-          </div>
-          <button className="btn-buy btn-premium" onClick={() => navigate('/checkout?plan=Test&price=1000')} style={{ backgroundColor: '#14b8a6', borderColor: '#14b8a6' }}>Mua gói Test</button>
-        </div>
-
         <div className="pricing-card popular">
           <span className="pricing-badge">Phổ biến</span>
           <div>

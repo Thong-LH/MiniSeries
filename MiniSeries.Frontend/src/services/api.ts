@@ -308,6 +308,14 @@ export const api = {
         return await readJsonResponse(response);
     },
 
+    async checkPaymentStatus(code: string) {
+        const response = await fetch(`${API_BASE}/payment/check-status?code=${encodeURIComponent(code)}`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        return await readJsonResponse(response);
+    },
+
     async simulateBankWebhook(content: string, transferAmount: number) {
         const response = await fetch(`${API_BASE}/payment/bank-webhook`, {
             method: "POST",
