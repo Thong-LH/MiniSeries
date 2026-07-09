@@ -1647,11 +1647,11 @@ input:checked + .slider:before {
 .quota-badge-tier {
     font-size: 10px;
     font-weight: 700;
-    color: var(--soft-orange);
-    background: rgba(251, 146, 60, 0.08);
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.08);
     padding: 2px 8px;
     border-radius: 20px;
-    border: 1px solid rgba(251, 146, 60, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.15);
 }
 
 .quota-tokens-grid {
@@ -1686,7 +1686,7 @@ input:checked + .slider:before {
 }
 
 .manga-card .quota-token-value {
-    color: var(--soft-orange);
+    color: #14b8a6;
 }
 
 .video-card .quota-token-value {
@@ -1740,13 +1740,13 @@ input:checked + .slider:before {
 }
 
 .dropdown-action-btn-new.upgrade-btn {
-    color: var(--soft-orange) !important;
+    color: #38bdf8 !important;
     font-weight: 600;
 }
 
 .dropdown-action-btn-new.upgrade-btn:hover {
-    background-color: rgba(251, 146, 60, 0.06) !important;
-    color: var(--soft-orange) !important;
+    background-color: rgba(56, 189, 248, 0.06) !important;
+    color: #38bdf8 !important;
 }
 
 .dropdown-divider-new {

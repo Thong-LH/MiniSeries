@@ -227,7 +227,11 @@ export default function Layout() {
                       onClick={() => { navigate('/profile'); setIsDropdownOpen(false); }} 
                       className="dropdown-profile-link-btn"
                     >
-                      👤 Trang cá nhân của tôi
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle', display: 'inline-block' }}>
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                      Trang cá nhân của tôi
                     </button>
 
                     {/* Quota Section */}
@@ -238,14 +242,30 @@ export default function Layout() {
                       </div>
                       <div className="quota-tokens-grid">
                         <div className="quota-token-card manga-card">
-                          <span className="quota-token-icon">📚</span>
+                          <span className="quota-token-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#14b8a6' }}>
+                              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
+                          </span>
                           <div className="quota-token-data">
                             <span className="quota-token-value">{formatQuota(profile.mangaTokens, profile.mangaLimit)}</span>
                             <span className="quota-token-name">Truyện</span>
                           </div>
                         </div>
                         <div className="quota-token-card video-card">
-                          <span className="quota-token-icon">🎬</span>
+                          <span className="quota-token-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#38bdf8' }}>
+                              <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                              <line x1="7" y1="2" x2="7" y2="22"></line>
+                              <line x1="17" y1="2" x2="17" y2="22"></line>
+                              <line x1="2" y1="12" x2="22" y2="12"></line>
+                              <line x1="2" y1="7" x2="7" y2="7"></line>
+                              <line x1="2" y1="17" x2="7" y2="17"></line>
+                              <line x1="17" y1="17" x2="22" y2="17"></line>
+                              <line x1="17" y1="7" x2="22" y2="7"></line>
+                            </svg>
+                          </span>
                           <div className="quota-token-data">
                             <span className="quota-token-value">{formatQuota(profile.videoTokens, profile.videoLimit)}</span>
                             <span className="quota-token-name">Video</span>
@@ -257,14 +277,31 @@ export default function Layout() {
                     {/* Action Items */}
                     <div className="dropdown-actions">
                       <button type="button" onClick={() => { navigate('/profile'); setIsDropdownOpen(false); }} className="dropdown-action-btn-new">
-                        <span className="btn-icon">⭐</span> Series yêu thích
+                        <span className="btn-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                          </svg>
+                        </span>
+                        Series yêu thích
                       </button>
                       <button type="button" onClick={() => { navigate('/pricing'); setIsDropdownOpen(false); }} className="dropdown-action-btn-new upgrade-btn">
-                        <span className="btn-icon">⚡</span> Mua thêm lượt / Gói
+                        <span className="btn-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                          </svg>
+                        </span>
+                        Mua thêm lượt / Gói
                       </button>
                       <div className="dropdown-divider-new" />
                       <button type="button" onClick={handleLogout} className="dropdown-action-btn-new logout-btn">
-                        <span className="btn-icon">🚪</span> Đăng xuất tài khoản
+                        <span className="btn-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                          </svg>
+                        </span>
+                        Đăng xuất tài khoản
                       </button>
                     </div>
                   </div>
