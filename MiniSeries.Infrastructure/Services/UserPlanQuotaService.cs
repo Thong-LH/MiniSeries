@@ -10,12 +10,14 @@ public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
     private static readonly PlanQuota FreePlan = new("Free", 3, 1);
     private static readonly PlanQuota BasicPlan = new("Basic", 30, 10);
     private static readonly PlanQuota PremiumPlan = new("Premium", 100, 50);
+    private static readonly PlanQuota TestPlan = new("Test", 5, 2);
 
     public static PlanQuota ResolvePlan(string? planName)
     {
         var normalized = (planName ?? "").Trim().ToLowerInvariant();
         return normalized switch
         {
+            "test" => TestPlan,
             "plus" or "basic" => BasicPlan,
             "pro max" or "promax" or "premium" => PremiumPlan,
             _ => FreePlan
