@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Trophy, Calendar, PlayCircle, BookOpen, Ribbon, Timer, Hourglass, Medal, CheckCircle, Sparkles, Star, Wallet, Gem, Lock } from 'lucide-react';
+import { Star, Gem, Lock, CheckCircle } from 'lucide-react';
 import './FlyingPageBadgeWeb.css';
 
 export interface AchievementWeb {

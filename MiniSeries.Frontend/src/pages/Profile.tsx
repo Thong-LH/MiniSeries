@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
-import FlyingPageBadgeWeb from '../components/FlyingPageBadgeWeb';
 import {
   api,
   MY_LESSONS_CACHE_PREFIX,
