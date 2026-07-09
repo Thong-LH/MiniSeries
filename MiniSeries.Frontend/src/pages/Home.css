@@ -674,6 +674,16 @@
     .orbit-container { transform: scale(0.65); }
 }
 @media (max-width: 768px) {
+    .nav {
+        padding: 14px 20px !important;
+    }
+    .nav-brand {
+        font-size: 1.1rem !important;
+    }
+    .nav-login {
+        padding: 7px 16px !important;
+        font-size: 0.72rem !important;
+    }
     .flow-section {
         flex-direction: column;
         gap: 20px;
@@ -683,8 +693,8 @@
     .flow-page { width: 90%; }
     .branch-line { display: none; }
     .orbit-container { transform: scale(0.45); }
-    .hero-title { font-size: 3rem; }
-    .char-card { transform: scale(0.7); }
+    .hero-title { font-size: 2.5rem; }
+    .char-card { display: none !important; } /* Hide floating cards on mobile to avoid overlap and screen clutter */
 }
 
 /* ---------------------------------

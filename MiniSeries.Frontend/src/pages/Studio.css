@@ -1794,6 +1794,25 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 760px) {
+    .studio-hero h1 {
+        font-size: 1.8rem !important;
+    }
+
+    .input-container {
+        padding: 1.5rem !important;
+        border-radius: 20px !important;
+    }
+
+    .options {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .options .btn-primary {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
     .media-loading-steps {
         grid-template-columns: 1fr;
     }
