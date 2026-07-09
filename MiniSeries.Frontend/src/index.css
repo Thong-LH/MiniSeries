@@ -35,11 +35,11 @@
     opacity: 0;
   }
   12% {
-    transform: translate3d(20vw, 70vh, -150px) rotateX(46.6deg) rotateY(-35.4deg) rotateZ(11.8deg) scale(0.7);
+    transform: translate3d(20vw, 84vh, -150px) rotateX(46.6deg) rotateY(-35.4deg) rotateZ(11.8deg) scale(0.7);
     opacity: 0.95;
   }
   50% {
-    transform: translate3d(47vw, 46vh, -100px) rotateX(-15deg) rotateY(15deg) rotateZ(-12deg) scale(0.75);
+    transform: translate3d(47vw, 50vh, -100px) rotateX(-15deg) rotateY(15deg) rotateZ(-12deg) scale(0.75);
   }
   88% {
     opacity: 0.95;
@@ -56,11 +56,11 @@
     opacity: 0;
   }
   15% {
-    transform: translate3d(22vw, 68vh, -180px) rotateX(35deg) rotateY(-25deg) rotateZ(2deg) scale(0.7);
+    transform: translate3d(22vw, 82vh, -180px) rotateX(35deg) rotateY(-25deg) rotateZ(2deg) scale(0.7);
     opacity: 0.9;
   }
   55% {
-    transform: translate3d(50vw, 42vh, -120px) rotateX(-5deg) rotateY(5deg) rotateZ(-20deg) scale(0.72);
+    transform: translate3d(50vw, 46vh, -120px) rotateX(-5deg) rotateY(5deg) rotateZ(-20deg) scale(0.72);
   }
   85% {
     opacity: 0.9;
@@ -77,11 +77,11 @@
     opacity: 0;
   }
   18% {
-    transform: translate3d(24vw, 72vh, -140px) rotateX(50deg) rotateY(-40deg) rotateZ(20deg) scale(0.78);
+    transform: translate3d(24vw, 85vh, -140px) rotateX(50deg) rotateY(-40deg) rotateZ(20deg) scale(0.78);
     opacity: 0.95;
   }
   48% {
-    transform: translate3d(45vw, 50vh, -90px) rotateX(-25deg) rotateY(25deg) rotateZ(-5deg) scale(0.8);
+    transform: translate3d(45vw, 53vh, -90px) rotateX(-25deg) rotateY(25deg) rotateZ(-5deg) scale(0.8);
   }
   82% {
     opacity: 0.95;
@@ -98,7 +98,7 @@
     opacity: 0;
   }
   10% {
-    transform: translate3d(18vw, 73vh, -160px) rotateX(40deg) rotateY(-30deg) rotateZ(8deg) scale(0.72);
+    transform: translate3d(18vw, 86vh, -160px) rotateX(40deg) rotateY(-30deg) rotateZ(8deg) scale(0.72);
     opacity: 0.95;
   }
   52% {
@@ -119,11 +119,11 @@
     opacity: 0;
   }
   14% {
-    transform: translate3d(21vw, 71vh, -190px) rotateX(48deg) rotateY(-38deg) rotateZ(15deg) scale(0.75);
+    transform: translate3d(21vw, 83vh, -190px) rotateX(48deg) rotateY(-38deg) rotateZ(15deg) scale(0.75);
     opacity: 0.9;
   }
   48% {
-    transform: translate3d(46vw, 45vh, -130px) rotateX(-20deg) rotateY(20deg) rotateZ(-8deg) scale(0.78);
+    transform: translate3d(46vw, 52vh, -130px) rotateX(-20deg) rotateY(20deg) rotateZ(-8deg) scale(0.78);
   }
   86% {
     opacity: 0.9;
