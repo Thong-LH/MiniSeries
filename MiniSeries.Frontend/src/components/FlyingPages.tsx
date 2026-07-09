@@ -174,36 +174,21 @@ export default function FlyingPages() {
         page.classList.add('flipped');
       }
 
-      const orbitContainer = document.querySelector('.orbit-container');
-      if (orbitContainer) {
-        orbitContainer.appendChild(page);
-      } else {
-        document.body.appendChild(page);
-      }
-      spawnedPages.push(page);
-
       const wrapper = document.querySelector('.css-book-wrapper');
       if (!wrapper) return;
+      wrapper.appendChild(page);
+      spawnedPages.push(page);
+
       const rect = wrapper.getBoundingClientRect();
-
       const initialOffset = (Math.random() - 0.5) * 120;
-      let spawnX = rect.left + rect.width / 2 + initialOffset;
-      let spawnY = rect.top + 155;
-
-      if (orbitContainer) {
-        const orbitRect = orbitContainer.getBoundingClientRect();
-        spawnX -= orbitRect.left;
-        spawnY -= orbitRect.top;
-      } else {
-        spawnX += window.scrollX;
-        spawnY += window.scrollY;
-      }
+      const spawnX = initialOffset;
+      const spawnY = 155;
 
       const driftX = (Math.random() - 0.5) * 300;
       const driftZ = (Math.random() - 0.5) * 300;
 
       gsap.set(page, {
-        left: 0,
+        left: '50%',
         top: 0,
         margin: 0,
         x: spawnX,
@@ -216,11 +201,7 @@ export default function FlyingPages() {
         scale: 0.25
       });
 
-      let targetY = -200;
-      if (orbitContainer) {
-        const orbitRect = orbitContainer.getBoundingClientRect();
-        targetY = -(orbitRect.top + window.scrollY) - 200;
-      }
+      const targetY = -rect.top - window.scrollY - 200;
 
       const rotXEnd = (Math.random() - 0.5) * 1440;
       const rotYEnd = (Math.random() - 0.5) * 1440;
