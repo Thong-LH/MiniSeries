@@ -20,16 +20,16 @@ public class AzureFluxService : IImageGenerationService, IMangaService
 
     public async Task<string> GenerateAnchorImageAsync(string characterProfile)
     {
-        var prompt = $"{characterProfile}, high quality, full body, character sheet style";
+        var prompt = $"{characterProfile}, simple 2D anime character design, clean cell-shaded cartoon style, vibrant flat colors, character sheet, no 3D rendering, no realism";
         return await GenerateImageInternalAsync(prompt, null);
     }
 
     public async Task<string> GenerateMangaPageAsync(string anchorImageUrl, string fullPagePrompt)
     {
-        var prompt = $"{fullPagePrompt}. Style: Manga, anime lineart, clean ink-wash colors. " +
+        var prompt = $"{fullPagePrompt}. Style: Simple 2D anime cartoon, flat cell shading, clean manga lines, vibrant colors. " +
                      "IMPORTANT CONSTRAINTS: All text, speech bubbles, and dialogue in the image MUST be written in English. " +
                      "Absolutely NO Japanese (Hiragana/Katakana/Kanji), Chinese, Korean, or other Asian characters/text allowed in the panels. " +
-                     "Do not render any gibberish non-English scripts.";
+                     "Do not render any gibberish non-English scripts. No realistic 3D render, no high-detail realism, no 3D texture.";
         return await GenerateImageInternalAsync(prompt, anchorImageUrl);
     }
 

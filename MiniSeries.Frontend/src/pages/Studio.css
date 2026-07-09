@@ -1,6 +1,6 @@
 :root {
     --bg-base: #09090b;       /* Zinc 950 */
-    --bg-surface: rgba(255, 255, 255, 0.02);    /* Glassy surface */
+    --bg-surface: rgba(12, 12, 14, 0.85);    /* Obsidian dense glass */
     --bg-panel: rgba(255, 255, 255, 0.03);      /* Glassy panel */
     --bg-input: rgba(255, 255, 255, 0.04);      /* Glassy input background */
     --border-color: rgba(255, 255, 255, 0.08);  /* Glassy border */
@@ -549,9 +549,10 @@ input:checked + .slider:before {
     margin: 0 auto 3rem;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 24px;
     padding: 2.5rem;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(24px);
+    box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.6);
     position: relative;
     overflow: hidden;
     box-sizing: border-box;
@@ -874,9 +875,10 @@ input:checked + .slider:before {
 .chapter-reader {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 24px;
     padding: 0;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(24px);
+    box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.6);
     box-sizing: border-box;
 }
 
