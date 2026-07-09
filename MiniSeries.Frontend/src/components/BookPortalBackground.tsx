@@ -74,7 +74,7 @@ export default function BookPortalBackground() {
       <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-80 z-0" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
         {/* Orbit line 1 (Orange flow) */}
         <path 
-          d="M 8 80 C 20 95, 40 80, 50 50 C 60 20, 75 14, 86 18" 
+          d="M 8 80 C 20 95, 40 80, 50 50 C 60 20, 75 12, 86 12" 
           fill="none" 
           stroke="rgba(242, 125, 38, 0.85)" 
           strokeWidth="0.15" 
@@ -83,7 +83,7 @@ export default function BookPortalBackground() {
         />
         {/* Orbit line 2 (Blue flow) */}
         <path 
-          d="M 8 80 C 24 92, 38 72, 50 50 C 62 28, 76 16, 86 18" 
+          d="M 8 80 C 24 92, 38 72, 50 50 C 62 28, 76 12, 86 12" 
           fill="none" 
           stroke="rgba(59, 130, 246, 0.8)" 
           strokeWidth="0.12" 
