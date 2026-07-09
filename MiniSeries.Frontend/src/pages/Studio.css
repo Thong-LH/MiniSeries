@@ -1907,9 +1907,9 @@ input:checked + .slider:before {
 
 /* Vibe specific glows */
 .vibe-manga.active {
-    background: rgba(242, 125, 38, 0.06) !important;
-    border-color: #f27d26 !important;
-    box-shadow: 0 0 20px rgba(242, 125, 38, 0.2) !important;
+    background: rgba(20, 184, 166, 0.06) !important;
+    border-color: #14b8a6 !important;
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.2) !important;
 }
 
 .vibe-scifi.active {

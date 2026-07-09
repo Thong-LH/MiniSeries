@@ -92,7 +92,7 @@ export default function Checkout() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '80px 0', color: '#fff' }}>
             <div className="loader" style={{ margin: '0 auto 20px' }}></div>
-            <h2 style={{ color: '#06b6d4' }}>Đang khởi tạo hóa đơn giao dịch...</h2>
+            <h2 style={{ color: '#38bdf8' }}>Đang khởi tạo hóa đơn giao dịch...</h2>
             <p style={{ color: '#94a3b8' }}>Vui lòng đợi trong giây lát.</p>
           </div>
         ) : success ? (
@@ -167,7 +167,7 @@ export default function Checkout() {
               {/* Order Info */}
               <div style={{ color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <h3 style={{ color: '#f27d26', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.1rem', fontWeight: 700 }}>
+                  <h3 style={{ color: '#38bdf8', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.1rem', fontWeight: 700 }}>
                     Chi tiết đơn hàng
                   </h3>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
@@ -176,7 +176,7 @@ export default function Checkout() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
                     <span style={{ color: 'rgba(250, 250, 250, 0.5)', fontSize: '0.9rem' }}>Số tiền cần thanh toán:</span>
-                    <strong style={{ color: '#fb923c', fontSize: '1.15rem', fontWeight: 800 }}>{formattedPrice}</strong>
+                    <strong style={{ color: '#38bdf8', fontSize: '1.15rem', fontWeight: 800 }}>{formattedPrice}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
                     <span style={{ color: 'rgba(250, 250, 250, 0.5)', fontSize: '0.9rem' }}>Mã nội dung chuyển khoản:</span>
@@ -185,7 +185,7 @@ export default function Checkout() {
                     </strong>
                   </div>
  
-                  <h3 style={{ color: '#f27d26', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '10px', marginBottom: '20px', marginTop: '28px', fontSize: '1.1rem', fontWeight: 700 }}>
+                  <h3 style={{ color: '#38bdf8', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '10px', marginBottom: '20px', marginTop: '28px', fontSize: '1.1rem', fontWeight: 700 }}>
                     Thông tin tài khoản nhận
                   </h3>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
@@ -209,7 +209,7 @@ export default function Checkout() {
                     style={{
                       width: '100%',
                       padding: '14px',
-                      background: simulating ? 'rgba(255, 255, 255, 0.05)' : 'linear-gradient(90deg, #f27d26, #eab308)',
+                      background: simulating ? 'rgba(255, 255, 255, 0.05)' : 'linear-gradient(90deg, #38bdf8, #0d9488)',
                       border: 'none',
                       color: simulating ? 'rgba(250, 250, 250, 0.3)' : '#09090b',
                       fontSize: '0.9rem',
@@ -218,7 +218,7 @@ export default function Checkout() {
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em',
                       cursor: simulating ? 'not-allowed' : 'pointer',
-                      boxShadow: simulating ? 'none' : '0 8px 24px rgba(242, 125, 38, 0.25)',
+                      boxShadow: simulating ? 'none' : '0 8px 24px rgba(56, 189, 248, 0.25)',
                       transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                       display: 'flex',
                       alignItems: 'center',

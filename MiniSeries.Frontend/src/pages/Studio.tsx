@@ -599,7 +599,7 @@ export default function Studio() {
                             <label>Phong cách truyền tải (Vibe Style)</label>
                             <div className="vibe-selectors">
                                 {[
-                                    { id: 'manga', name: 'Manga', icon: '🎨', color: '#f27d26', desc: 'Nhật Bản cổ điển' },
+                                    { id: 'manga', name: 'Manga', icon: '🎨', color: '#14b8a6', desc: 'Nhật Bản cổ điển' },
                                     { id: 'scifi', name: 'Cosmic', icon: '🌌', color: '#3b82f6', desc: 'Vũ trụ huyền ảo' },
                                     { id: 'retro', name: 'Retro', icon: '🕹️', color: '#ec4899', desc: 'Neon 8-bit hoài niệm' },
                                     { id: 'medieval', name: 'Alchemy', icon: '🧪', color: '#10b981', desc: 'Giả kim cổ xưa' }

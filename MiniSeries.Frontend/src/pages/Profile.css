@@ -257,7 +257,7 @@
 }
 
 .lesson-thumbnail-container.manga-mode {
-    background: linear-gradient(135deg, rgba(242, 125, 38, 0.15), rgba(9, 9, 11, 0.8));
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.15), rgba(9, 9, 11, 0.8));
 }
 
 .lesson-thumbnail-container.video-mode {
@@ -283,7 +283,7 @@
     text-transform: uppercase;
 }
 
-.lesson-mode-fallback.manga { color: var(--soft-orange); }
+.lesson-mode-fallback.manga { color: #14b8a6; }
 .lesson-mode-fallback.video { color: var(--sky-blue); }
 
 .lesson-badge {
@@ -299,7 +299,7 @@
     letter-spacing: 0.08em;
 }
 
-.lesson-badge.manga { background: var(--soft-orange); }
+.lesson-badge.manga { background: #14b8a6; }
 .lesson-badge.video { background: var(--sky-blue); }
 
 .lesson-body {
