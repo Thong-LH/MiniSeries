@@ -55,9 +55,8 @@ async function readJsonResponse(response: Response) {
     if (response.status === 401) {
         if (!(window as any).isSessionExpiredAlerting) {
             (window as any).isSessionExpiredAlerting = true;
-            alert("Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.");
             clearAuthSession();
-            window.location.href = "/login";
+            window.location.href = "/login?expired=true";
         }
     }
 

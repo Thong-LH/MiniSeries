@@ -117,7 +117,7 @@ export default function SupportTab({ showToast, activeSubTab }: SupportTabProps)
   const handleReplySupportTicket = async (ticketId: string) => {
     const reply = supportReplyText.trim();
     if (!reply) {
-      alert("Vui lòng nhập nội dung phản hồi.");
+      showToast("Vui lòng nhập nội dung phản hồi.", "error");
       return;
     }
     setReplyingSupportId(ticketId);
@@ -147,7 +147,7 @@ export default function SupportTab({ showToast, activeSubTab }: SupportTabProps)
     const subject = cskhSubject.trim();
     const content = cskhContent.trim();
     if (!email || !content) {
-      alert("Vui lòng nhập đầy đủ địa chỉ nhận và nội dung phản hồi!");
+      showToast("Vui lòng nhập đầy đủ địa chỉ nhận và nội dung phản hồi!", "error");
       return;
     }
     setIsSendingCskhEmail(true);

@@ -83,8 +83,7 @@ export default function Dashboard() {
     const token = localStorage.getItem("token") || "";
 
     if (!token || !role || (role !== "Admin" && role !== "Staff")) {
-      alert("Bạn không có quyền truy cập khu vực quản trị!");
-      navigate('/login', { replace: true });
+      navigate('/login?unauthorized=true', { replace: true });
       return;
     }
 

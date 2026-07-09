@@ -49,6 +49,17 @@ export default function Login() {
     void api.warmup();
   }, []);
 
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('expired') === 'true') {
+      setError("Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.");
+      window.history.replaceState(null, "", window.location.pathname);
+    } else if (searchParams.get('unauthorized') === 'true') {
+      setError("Bạn không có quyền truy cập khu vực quản trị!");
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
+
   // Handle Google OAuth Callback (hash URL containing #access_token=...)
   useEffect(() => {
     const hash = window.location.hash;
