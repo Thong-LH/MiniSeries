@@ -30,73 +30,73 @@
 
 /* 3D Flying Sheets Animation along a curved path from bottom-left Open Book to top-right Open Book */
 @keyframes translate-sheet-1 {
-  0% { transform: translate3d(8vw, 80vh, -200px); }
-  10% { transform: translate3d(16.0vw, 85.5vh, -180px); }
-  20% { transform: translate3d(25.1vw, 84.6vh, -160px); }
-  30% { transform: translate3d(34.4vw, 77.8vh, -140px); }
-  40% { transform: translate3d(42.9vw, 66.1vh, -120px); }
-  50% { transform: translate3d(47vw, 50vh, -100px); }
-  60% { transform: translate3d(56.5vw, 35.0vh, -120px); }
-  70% { transform: translate3d(63.8vw, 23.4vh, -140px); }
-  80% { transform: translate3d(71.5vw, 15.6vh, -160px); }
-  90% { transform: translate3d(79.0vw, 17.7vh, -180px); }
-  100% { transform: translate3d(86vw, 18vh, -200px); }
+  0% { transform: translate3d(8.0vw, 80.0vh, -200px); }
+  10% { transform: translate3d(15.8vw, 85.5vh, -180px); }
+  20% { transform: translate3d(23.6vw, 84.7vh, -160px); }
+  30% { transform: translate3d(31.4vw, 80.1vh, -140px); }
+  40% { transform: translate3d(39.2vw, 71.3vh, -120px); }
+  50% { transform: translate3d(47.0vw, 58.5vh, -100px); }
+  60% { transform: translate3d(54.8vw, 40.5vh, -120px); }
+  70% { transform: translate3d(62.6vw, 25.5vh, -140px); }
+  80% { transform: translate3d(70.4vw, 16.5vh, -160px); }
+  90% { transform: translate3d(78.2vw, 16.6vh, -180px); }
+  100% { transform: translate3d(86.0vw, 18.0vh, -200px); }
 }
 
 @keyframes translate-sheet-2 {
-  0% { transform: translate3d(8vw, 80vh, -240px); }
-  10% { transform: translate3d(17.4vw, 83.6vh, -216px); }
-  20% { transform: translate3d(26.2vw, 81.0vh, -192px); }
-  30% { transform: translate3d(35.1vw, 74.0vh, -168px); }
-  40% { transform: translate3d(43.1vw, 63.3vh, -144px); }
-  50% { transform: translate3d(50vw, 46vh, -120px); }
-  60% { transform: translate3d(56.6vw, 36.3vh, -144px); }
-  70% { transform: translate3d(63.8vw, 25.4vh, -168px); }
-  80% { transform: translate3d(71.3vw, 18.0vh, -192px); }
-  90% { transform: translate3d(78.8vw, 16.5vh, -216px); }
-  100% { transform: translate3d(86vw, 18vh, -240px); }
+  0% { transform: translate3d(8.0vw, 80.0vh, -240px); }
+  10% { transform: translate3d(15.8vw, 84.5vh, -216px); }
+  20% { transform: translate3d(23.6vw, 82.2vh, -192px); }
+  30% { transform: translate3d(31.4vw, 75.8vh, -168px); }
+  40% { transform: translate3d(39.2vw, 66.2vh, -144px); }
+  50% { transform: translate3d(47.0vw, 54.5vh, -120px); }
+  60% { transform: translate3d(54.8vw, 38.5vh, -144px); }
+  70% { transform: translate3d(62.6vw, 25.2vh, -168px); }
+  80% { transform: translate3d(70.4vw, 17.5vh, -192px); }
+  90% { transform: translate3d(78.2vw, 16.8vh, -216px); }
+  100% { transform: translate3d(86.0vw, 18.0vh, -240px); }
 }
 
 @keyframes translate-sheet-3 {
-  0% { transform: translate3d(8vw, 80vh, -180px); }
-  10% { transform: translate3d(16.0vw, 85.5vh, -162px); }
-  20% { transform: translate3d(25.1vw, 84.6vh, -144px); }
-  30% { transform: translate3d(34.4vw, 77.8vh, -126px); }
-  40% { transform: translate3d(42.9vw, 66.1vh, -108px); }
-  50% { transform: translate3d(45vw, 53vh, -90px); }
-  60% { transform: translate3d(56.5vw, 35.0vh, -108px); }
-  70% { transform: translate3d(63.8vw, 23.4vh, -126px); }
-  80% { transform: translate3d(71.5vw, 15.6vh, -144px); }
-  90% { transform: translate3d(79.0vw, 17.7vh, -162px); }
-  100% { transform: translate3d(86vw, 18vh, -180px); }
+  0% { transform: translate3d(8.0vw, 80.0vh, -180px); }
+  10% { transform: translate3d(15.8vw, 85.5vh, -162px); }
+  20% { transform: translate3d(23.6vw, 84.7vh, -144px); }
+  30% { transform: translate3d(31.4vw, 80.1vh, -126px); }
+  40% { transform: translate3d(39.2vw, 71.3vh, -108px); }
+  50% { transform: translate3d(47.0vw, 58.5vh, -90px); }
+  60% { transform: translate3d(54.8vw, 40.5vh, -108px); }
+  70% { transform: translate3d(62.6vw, 25.5vh, -126px); }
+  80% { transform: translate3d(70.4vw, 16.5vh, -144px); }
+  90% { transform: translate3d(78.2vw, 16.6vh, -162px); }
+  100% { transform: translate3d(86.0vw, 18.0vh, -180px); }
 }
 
 @keyframes translate-sheet-4 {
-  0% { transform: translate3d(8vw, 80vh, -220px); }
-  10% { transform: translate3d(17.4vw, 83.6vh, -198px); }
-  20% { transform: translate3d(26.2vw, 81.0vh, -176px); }
-  30% { transform: translate3d(35.1vw, 74.0vh, -154px); }
-  40% { transform: translate3d(43.1vw, 63.3vh, -132px); }
-  50% { transform: translate3d(48vw, 48vh, -110px); }
-  60% { transform: translate3d(56.6vw, 36.3vh, -132px); }
-  70% { transform: translate3d(63.8vw, 25.4vh, -154px); }
-  80% { transform: translate3d(71.3vw, 18.0vh, -176px); }
-  90% { transform: translate3d(78.8vw, 16.5vh, -198px); }
-  100% { transform: translate3d(86vw, 18vh, -220px); }
+  0% { transform: translate3d(8.0vw, 80.0vh, -220px); }
+  10% { transform: translate3d(15.8vw, 84.5vh, -198px); }
+  20% { transform: translate3d(23.6vw, 82.2vh, -176px); }
+  30% { transform: translate3d(31.4vw, 75.8vh, -154px); }
+  40% { transform: translate3d(39.2vw, 66.2vh, -132px); }
+  50% { transform: translate3d(47.0vw, 54.5vh, -110px); }
+  60% { transform: translate3d(54.8vw, 38.5vh, -132px); }
+  70% { transform: translate3d(62.6vw, 25.2vh, -154px); }
+  80% { transform: translate3d(70.4vw, 17.5vh, -176px); }
+  90% { transform: translate3d(78.2vw, 16.8vh, -198px); }
+  100% { transform: translate3d(86.0vw, 18.0vh, -220px); }
 }
 
 @keyframes translate-sheet-5 {
-  0% { transform: translate3d(8vw, 80vh, -250px); }
-  10% { transform: translate3d(16.0vw, 85.5vh, -226px); }
-  20% { transform: translate3d(25.1vw, 84.6vh, -202px); }
-  30% { transform: translate3d(34.4vw, 77.8vh, -178px); }
-  40% { transform: translate3d(42.9vw, 66.1vh, -154px); }
-  50% { transform: translate3d(46vw, 52vh, -130px); }
-  60% { transform: translate3d(56.5vw, 35.0vh, -154px); }
-  70% { transform: translate3d(63.8vw, 23.4vh, -178px); }
-  80% { transform: translate3d(71.5vw, 15.6vh, -202px); }
-  90% { transform: translate3d(79.0vw, 17.7vh, -226px); }
-  100% { transform: translate3d(86vw, 18vh, -250px); }
+  0% { transform: translate3d(8.0vw, 80.0vh, -250px); }
+  10% { transform: translate3d(15.8vw, 85.5vh, -226px); }
+  20% { transform: translate3d(23.6vw, 84.7vh, -202px); }
+  30% { transform: translate3d(31.4vw, 80.1vh, -178px); }
+  40% { transform: translate3d(39.2vw, 71.3vh, -154px); }
+  50% { transform: translate3d(47.0vw, 58.5vh, -130px); }
+  60% { transform: translate3d(54.8vw, 40.5vh, -154px); }
+  70% { transform: translate3d(62.6vw, 25.5vh, -178px); }
+  80% { transform: translate3d(70.4vw, 16.5vh, -202px); }
+  90% { transform: translate3d(78.2vw, 16.6vh, -226px); }
+  100% { transform: translate3d(86.0vw, 18.0vh, -250px); }
 }
 
 @keyframes appear-sheet-1 {
