@@ -97,12 +97,14 @@ export default function Checkout() {
           </div>
         ) : success ? (
           <div style={{
-            background: 'rgba(15, 23, 42, 0.85)',
+            background: 'rgba(12, 12, 14, 0.85)',
             border: '1px solid rgba(34, 197, 94, 0.4)',
-            borderRadius: '20px',
+            borderRadius: '24px',
             padding: '48px 32px',
             textAlign: 'center',
-            boxShadow: '0 0 30px rgba(34, 197, 94, 0.15)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            boxShadow: '0 32px 64px -16px rgba(0, 0, 0, 0.6)',
             color: '#fff'
           }}>
             <div style={{
@@ -120,7 +122,7 @@ export default function Checkout() {
             }}>
               ✓
             </div>
-            <h1 style={{ color: '#22c55e', marginBottom: '14px', fontSize: '2rem' }}>Thanh toán thành công!</h1>
+            <h1 style={{ color: '#22c55e', marginBottom: '14px', fontSize: '2rem', fontWeight: 800 }}>Thanh toán thành công!</h1>
             <p style={{ color: '#cbd5e1', fontSize: '1.1rem', marginBottom: '32px', maxWidth: '500px', margin: '0 auto 32px' }}>
               Tài khoản của bạn đã được nâng cấp lên gói <strong>{planName}</strong> thành công. Lượt tạo bài học đã được cộng thêm vào tài khoản của bạn.
             </p>
@@ -130,12 +132,12 @@ export default function Checkout() {
               style={{
                 background: 'linear-gradient(90deg, #22c55e, #10b981)',
                 border: 'none',
-                boxShadow: '0 0 15px rgba(34, 197, 94, 0.4)',
+                boxShadow: '0 8px 24px rgba(34, 197, 94, 0.35)',
                 padding: '12px 28px',
                 fontSize: '1rem',
                 fontWeight: 'bold',
                 cursor: 'pointer',
-                borderRadius: '8px'
+                borderRadius: '999px'
               }}
             >
               Xem trang Hồ sơ cá nhân
@@ -143,61 +145,63 @@ export default function Checkout() {
           </div>
         ) : (
           <div>
-            <h1 style={{ color: '#06b6d4', marginBottom: '8px', fontSize: '2.2rem', textAlign: 'center' }}>
-              Cổng Thanh Toán
+            <h1 style={{ color: '#fafafa', marginBottom: '8px', fontSize: '2.2rem', textAlign: 'center', fontFamily: 'Cinzel, serif', fontWeight: 800, letterSpacing: '0.05em' }}>
+              CỔNG THANH TOÁN
             </h1>
-            <p style={{ color: '#94a3b8', textAlign: 'center', marginBottom: '36px' }}>
+            <p style={{ color: 'rgba(250, 250, 250, 0.6)', textAlign: 'center', marginBottom: '36px', fontSize: '0.9rem' }}>
               Quét mã QR dưới đây hoặc bấm nút giả lập chuyển khoản để nâng cấp gói tài khoản.
             </p>
-
+ 
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1.2fr 1fr',
               gap: '28px',
-              background: 'rgba(15, 23, 42, 0.82)',
-              border: '1px solid rgba(6, 182, 212, 0.28)',
-              borderRadius: '20px',
+              background: 'rgba(12, 12, 14, 0.85)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '24px',
               padding: '32px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              boxShadow: '0 32px 64px -16px rgba(0, 0, 0, 0.6)'
             }}>
               {/* Order Info */}
               <div style={{ color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <h3 style={{ color: '#67e8f9', borderBottom: '1px solid rgba(148, 163, 184, 0.22)', paddingBottom: '10px', marginBottom: '20px' }}>
+                  <h3 style={{ color: '#f27d26', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.1rem', fontWeight: 700 }}>
                     Chi tiết đơn hàng
                   </h3>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-                    <span style={{ color: '#94a3b8' }}>Gói cước nâng cấp:</span>
-                    <strong style={{ color: '#e2e8f0', fontSize: '1.1rem' }}>{planName}</strong>
+                    <span style={{ color: 'rgba(250, 250, 250, 0.5)', fontSize: '0.9rem' }}>Gói cước nâng cấp:</span>
+                    <strong style={{ color: '#fafafa', fontSize: '1.05rem' }}>{planName}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-                    <span style={{ color: '#94a3b8' }}>Số tiền cần thanh toán:</span>
-                    <strong style={{ color: '#67e8f9', fontSize: '1.2rem' }}>{formattedPrice}</strong>
+                    <span style={{ color: 'rgba(250, 250, 250, 0.5)', fontSize: '0.9rem' }}>Số tiền cần thanh toán:</span>
+                    <strong style={{ color: '#fb923c', fontSize: '1.15rem', fontWeight: 800 }}>{formattedPrice}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                    <span style={{ color: '#94a3b8' }}>Mã nội dung chuyển khoản:</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
+                    <span style={{ color: 'rgba(250, 250, 250, 0.5)', fontSize: '0.9rem' }}>Mã nội dung chuyển khoản:</span>
                     <strong style={{ color: '#a78bfa', background: 'rgba(167, 139, 250, 0.1)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(167, 139, 250, 0.3)', fontFamily: 'monospace', letterSpacing: '1px' }}>
                       {paymentCode}
                     </strong>
                   </div>
-
-                  <h3 style={{ color: '#67e8f9', borderBottom: '1px solid rgba(148, 163, 184, 0.22)', paddingBottom: '10px', marginBottom: '20px', marginTop: '28px' }}>
+ 
+                  <h3 style={{ color: '#f27d26', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '10px', marginBottom: '20px', marginTop: '28px', fontSize: '1.1rem', fontWeight: 700 }}>
                     Thông tin tài khoản nhận
                   </h3>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.95rem' }}>
-                    <span style={{ color: '#94a3b8' }}>Ngân hàng:</span>
-                    <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>{bankBin === '970418' ? 'BIDV (Ngân hàng Đầu tư & Phát triển VN)' : 'MB Bank (Ngân hàng Quân Đội)'}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'rgba(250, 250, 250, 0.5)' }}>Ngân hàng:</span>
+                    <span style={{ color: '#fafafa', fontWeight: '600' }}>{bankBin === '970418' ? 'BIDV (Ngân hàng Đầu tư & Phát triển VN)' : 'MB Bank (Ngân hàng Quân Đội)'}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.95rem' }}>
-                    <span style={{ color: '#94a3b8' }}>Số tài khoản:</span>
-                    <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>{accountNumber}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'rgba(250, 250, 250, 0.5)' }}>Số tài khoản:</span>
+                    <span style={{ color: '#fafafa', fontWeight: '600' }}>{accountNumber}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.95rem' }}>
-                    <span style={{ color: '#94a3b8' }}>Tên người thụ hưởng:</span>
-                    <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>{accountName}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'rgba(250, 250, 250, 0.5)' }}>Tên người thụ hưởng:</span>
+                    <span style={{ color: '#fafafa', fontWeight: '600' }}>{accountName}</span>
                   </div>
                 </div>
-
+ 
                 <div style={{ marginTop: '36px' }}>
                   <button
                     onClick={handleSimulatePayment}
@@ -205,32 +209,46 @@ export default function Checkout() {
                     style={{
                       width: '100%',
                       padding: '14px',
-                      background: simulating ? 'rgba(148, 163, 184, 0.1)' : 'linear-gradient(90deg, #a855f7, #6366f1)',
+                      background: simulating ? 'rgba(255, 255, 255, 0.05)' : 'linear-gradient(90deg, #f27d26, #eab308)',
                       border: 'none',
-                      color: simulating ? '#475569' : '#fff',
-                      fontSize: '1rem',
+                      color: simulating ? 'rgba(250, 250, 250, 0.3)' : '#09090b',
+                      fontSize: '0.9rem',
                       fontWeight: 800,
-                      borderRadius: '10px',
+                      borderRadius: '999px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
                       cursor: simulating ? 'not-allowed' : 'pointer',
-                      boxShadow: simulating ? 'none' : '0 4px 18px rgba(168, 85, 247, 0.35)',
-                      transition: 'all 0.25s',
+                      boxShadow: simulating ? 'none' : '0 8px 24px rgba(242, 125, 38, 0.25)',
+                      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '10px'
                     }}
                   >
-                    {simulating && <div className="inline-spinner" style={{ borderColor: '#fff', borderTopColor: 'transparent' }}></div>}
+                    {simulating && <div className="inline-spinner" style={{ borderColor: '#09090b', borderTopColor: 'transparent' }}></div>}
                     {simulating ? 'Đang giả lập thanh toán...' : '✦ Giả lập quét mã thành công (Auto-Pay)'}
                   </button>
-                  <p style={{ color: '#64748b', fontSize: '0.8rem', textAlign: 'center', marginTop: '10px' }}>
+                  <p style={{ color: 'rgba(250, 250, 250, 0.35)', fontSize: '0.78rem', textAlign: 'center', marginTop: '10px' }}>
                     * Nút này mô phỏng hành vi quét mã QR chuyển khoản thành công của người dùng trên thực tế.
                   </p>
                 </div>
               </div>
-
+ 
               {/* QR Code */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '14px', border: '1px solid rgba(255, 255, 255, 0.05)', padding: '24px' }}>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(255, 255, 255, 0.02)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                padding: '24px',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                boxShadow: '0 16px 32px rgba(0, 0, 0, 0.3)'
+              }}>
                 <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', marginBottom: '16px' }}>
                   <img
                     src={`https://api.vietqr.io/image/${bankBin}-${accountNumber}-compact.jpg?amount=${price}&addInfo=${paymentCode}&accountName=${encodeURIComponent(accountName)}`}
@@ -238,8 +256,8 @@ export default function Checkout() {
                     style={{ width: '220px', height: '220px', display: 'block' }}
                   />
                 </div>
-                <span style={{ color: '#cbd5e1', fontSize: '0.9rem', fontWeight: 'bold' }}>Quét QR qua Mobile Banking</span>
-                <small style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '4px', textAlign: 'center' }}>
+                <span style={{ color: '#fafafa', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Quét QR qua Mobile Banking</span>
+                <small style={{ color: 'rgba(250, 250, 250, 0.4)', fontSize: '0.75rem', marginTop: '4px', textAlign: 'center', lineHeight: 1.4 }}>
                   Mã QR này chứa sẵn số tiền và nội dung chuyển khoản tự động.
                 </small>
               </div>
