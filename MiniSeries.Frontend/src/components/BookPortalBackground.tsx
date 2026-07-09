@@ -74,7 +74,7 @@ export default function BookPortalBackground() {
       <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-80 z-0" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
         {/* Orbit line 1 (Orange flow) */}
         <path 
-          d="M 8 80 C 20 95, 40 80, 50 50 C 60 20, 75 12, 86 16" 
+          d="M 8 80 C 20 95, 40 80, 50 50 C 60 20, 75 16, 86 20" 
           fill="none" 
           stroke="rgba(242, 125, 38, 0.85)" 
           strokeWidth="0.15" 
@@ -83,7 +83,7 @@ export default function BookPortalBackground() {
         />
         {/* Orbit line 2 (Blue flow) */}
         <path 
-          d="M 8 80 C 24 92, 38 72, 50 50 C 62 28, 76 14, 86 16" 
+          d="M 8 80 C 24 92, 38 72, 50 50 C 62 28, 76 18, 86 20" 
           fill="none" 
           stroke="rgba(59, 130, 246, 0.8)" 
           strokeWidth="0.12" 
@@ -116,7 +116,7 @@ export default function BookPortalBackground() {
       </svg>
 
       {/* Left Wing Decorative Constellation / Orbit Circle */}
-      <div className="absolute left-[4vw] md:left-[6vw] top-[18vh] md:top-[24vh] w-[180px] h-[180px] pointer-events-none opacity-[0.4] md:opacity-[0.55] z-0 select-none">
+      <div className="absolute left-[4vw] md:left-[6vw] top-[10vh] md:top-[14vh] w-[180px] h-[180px] pointer-events-none opacity-[0.4] md:opacity-[0.55] z-0 select-none">
         <svg viewBox="0 0 100 100" className="w-full h-full text-orange-400 animate-spin-slow">
           <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="3,4" />
           <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="0.4" />
@@ -130,7 +130,7 @@ export default function BookPortalBackground() {
       </div>
 
       {/* Right Wing Decorative Constellation Map */}
-      <div className="absolute right-[4vw] md:right-[6vw] top-[42vh] md:top-[50vh] w-[200px] h-[200px] pointer-events-none opacity-[0.38] md:opacity-[0.52] z-0 select-none">
+      <div className="absolute right-[4vw] md:right-[6vw] top-[48vh] md:top-[56vh] w-[200px] h-[200px] pointer-events-none opacity-[0.38] md:opacity-[0.52] z-0 select-none">
         <svg viewBox="0 0 100 100" className="w-full h-full text-blue-400 animate-spin-reverse-slow">
           <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4,6" />
           <path d="M 22 22 L 50 50 L 78 28 M 50 50 L 38 78 L 78 78" fill="none" stroke="currentColor" strokeWidth="0.4" strokeDasharray="2,3" />
