@@ -145,6 +145,14 @@ public sealed class PaymentsController(
         // 2. Parse payload content supporting both standard and SePay parameters
         string content = bankData.TransactionContent ?? bankData.Content ?? "";
         string contentUpper = content.ToUpperInvariant();
+
+        if (contentUpper.Contains("TEST", StringComparison.OrdinalIgnoreCase) || 
+            contentUpper.Contains("SEPAY", StringComparison.OrdinalIgnoreCase) || 
+            contentUpper.Trim() == "TEST")
+        {
+            return Ok(new { success = true, message = "Test webhook received successfully." });
+        }
+
         var amount = bankData.TransferAmount > 0 ? bankData.TransferAmount : bankData.Amount;
 
         var recentOrders = await dbContext.PaymentOrders
