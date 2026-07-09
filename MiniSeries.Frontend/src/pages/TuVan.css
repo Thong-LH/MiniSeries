@@ -107,16 +107,3 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-@media (max-width: 768px) {
-  .tuvan-page {
-    padding: 90px 16px 40px;
-  }
-  .tuvan-title {
-    font-size: 1.8rem;
-  }
-  .tuvan-container {
-    padding: 24px 20px;
-    border-radius: 20px;
-  }
-}
