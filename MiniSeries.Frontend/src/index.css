@@ -678,3 +678,58 @@ body {
 .animate-spin-reverse-slow {
   animation: spin-reverse-slow 180s linear infinite;
 }
+
+/* Responsive navbar and layout styles for mobile devices */
+@media (max-width: 768px) {
+  /* Override inline style padding of studio navbar */
+  .studio-nav {
+    padding: 0 16px !important;
+  }
+  
+  /* Shrink gap of navigation links container */
+  .studio-nav-right {
+    gap: 12px !important;
+  }
+  
+  /* Make navbar links smaller */
+  .cyber-nav-link {
+    font-size: 0.8rem !important;
+  }
+  
+  /* Hide quota pills and user name in the navbar badge to fit on one line */
+  .studio-user-badge .quota-pill,
+  .studio-user-badge .user-badge-name {
+    display: none !important;
+  }
+  
+  /* Make the badge a compact circle for the avatar */
+  .studio-user-badge {
+    padding: 3px !important;
+    border-radius: 50% !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+  }
+  
+  .studio-user-badge .user-badge-avatar {
+    width: 28px !important;
+    height: 28px !important;
+    margin: 0 !important;
+  }
+  
+  /* Dropdown layout adjustments on small screens */
+  .cyber-profile-dropdown.premium-dropdown-card {
+    width: calc(100vw - 32px) !important;
+    right: 0 !important;
+    top: 60px !important;
+    border-radius: 16px !important;
+    padding: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hide text navigation links on very small mobile screens (except Studio) to prevent wrapping */
+  .studio-nav-right a.cyber-nav-link:not([href="/studio"]) {
+    display: none !important;
+  }
+}
