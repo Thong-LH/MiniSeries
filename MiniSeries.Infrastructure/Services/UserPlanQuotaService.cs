@@ -48,19 +48,42 @@ public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
     public async Task<UserPlanQuotaSnapshot> ApplyPaidPlanAsync(Guid userId, string? planName)
     {
         var profile = await GetProfileAsync(userId);
-        var plan = ResolvePlan(planName);
-        var now = DateTime.UtcNow;
+        var normalizedPlan = (planName ?? "").Trim().ToLowerInvariant();
 
-        profile.PlanName = plan.Name;
-        profile.MangaMonthlyLimit = plan.MangaMonthlyLimit;
-        profile.VideoMonthlyLimit = plan.VideoMonthlyLimit;
-        profile.UsedMangaCount = 0;
-        profile.UsedVideoCount = 0;
-        profile.CurrentPeriodStart = now;
-        profile.CurrentPeriodEnd = now.AddMonths(1);
+        if (normalizedPlan == "addon_manga_1")
+        {
+            profile.MangaMonthlyLimit += 1;
+        }
+        else if (normalizedPlan == "addon_video_1")
+        {
+            profile.VideoMonthlyLimit += 1;
+        }
+        else
+        {
+            var plan = ResolvePlan(planName);
+            profile.MangaMonthlyLimit += plan.MangaMonthlyLimit;
+            profile.VideoMonthlyLimit += plan.VideoMonthlyLimit;
+
+            int currentLevel = GetPlanLevel(profile.PlanName);
+            int newLevel = GetPlanLevel(plan.Name);
+            if (newLevel > currentLevel)
+            {
+                profile.PlanName = plan.Name;
+            }
+        }
 
         await dbContext.SaveChangesAsync();
         return UserPlanQuotaSnapshot.FromProfile(profile);
+    }
+
+    private static int GetPlanLevel(string planName)
+    {
+        return (planName ?? "").Trim().ToLowerInvariant() switch
+        {
+            "premium" or "pro max" => 2,
+            "basic" or "plus" => 1,
+            _ => 0
+        };
     }
 
     public async Task<QuotaReservationResult> TryReserveGenerationAsync(Guid userId, OutputMode outputMode)
@@ -117,20 +140,8 @@ public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
 
     private static bool EnsureCurrentPeriod(UserProfile profile, DateTime now)
     {
-        if (profile.CurrentPeriodEnd > now)
-        {
-            return false;
-        }
-
-        var plan = ResolvePlan(profile.PlanName);
-        profile.PlanName = plan.Name;
-        profile.MangaMonthlyLimit = plan.MangaMonthlyLimit;
-        profile.VideoMonthlyLimit = plan.VideoMonthlyLimit;
-        profile.UsedMangaCount = 0;
-        profile.UsedVideoCount = 0;
-        profile.CurrentPeriodStart = now;
-        profile.CurrentPeriodEnd = now.AddMonths(1);
-        return true;
+        // Lifetime tokens: no monthly resets!
+        return false;
     }
 }
 

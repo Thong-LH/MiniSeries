@@ -84,8 +84,8 @@ function buildSessionProfile(userId: string): HeaderProfile {
   };
 }
 
-function formatQuota(remaining: number | null, limit: number | null) {
-  return remaining === null || limit === null ? '--/--' : `${remaining}/${limit}`;
+function formatQuota(remaining: number | null, _limit: number | null) {
+  return remaining === null ? '--' : String(remaining);
 }
 
 export default function Layout() {

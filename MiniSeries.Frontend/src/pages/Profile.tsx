@@ -414,18 +414,14 @@ export default function Profile() {
 
               <div className="profile-quotas">
                 <div className="profile-quota-card manga">
-                  <p>Quota truyện</p>
-                  <strong>{profile.remainingMangaCount}/{profile.mangaMonthlyLimit}</strong>
+                  <p>Lượt tạo truyện còn lại</p>
+                  <strong>{profile.remainingMangaCount} lượt</strong>
                 </div>
                 <div className="profile-quota-card video">
-                  <p>Quota video</p>
-                  <strong>{profile.remainingVideoCount}/{profile.videoMonthlyLimit}</strong>
+                  <p>Lượt tạo video còn lại</p>
+                  <strong>{profile.remainingVideoCount} lượt</strong>
                 </div>
               </div>
-
-              <p className="profile-period-text">
-                Chu kỳ hiện tại kết thúc: {formatDate(profile.currentPeriodEnd)}
-              </p>
             </div>
           </div>
         )}
