@@ -13,7 +13,16 @@
 }
 
 .home-container {
-    background-color: transparent;
+    background-color: var(--paper-beige);
+    /* Add structural grid and lateral ambient glows */
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        radial-gradient(circle at 0% 40%, rgba(56, 189, 248, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 100% 60%, rgba(167, 139, 250, 0.15) 0%, transparent 40%);
+    background-size: 60px 60px, 60px 60px, 100% 100%, 100% 100%;
+    background-position: center center;
+    background-attachment: fixed;
     color: var(--ink-black);
     font-family: var(--font-sans);
     min-height: 100vh;
