@@ -140,12 +140,11 @@
     position: relative;
     flex: 1 1 280px;
     max-width: 320px;
-    background: rgba(15, 23, 42, 0.55);
-    backdrop-filter: blur(16px);
+    background: #0c0c0e;
     border-radius: 24px;
     padding: 40px 30px 30px 30px;
     box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .flow-page::before {
@@ -329,12 +328,11 @@
 .review-card {
     width: 100%;
     height: 100%;
-    background: rgba(15, 23, 42, 0.55);
-    backdrop-filter: blur(16px);
+    background: #0c0c0e;
     border-radius: 24px;
-    padding: 18px 20px;
+    padding: 12px 14px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4); 
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-bottom: 3px solid var(--sky-blue);
     cursor: pointer;
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-bottom-color 0.3s ease;
@@ -349,18 +347,18 @@
     z-index: 10;
 }
 .review-card p {
-    font-style: italic; font-size: 0.8rem; line-height: 1.45; color: #a1a1aa;
-    margin-top: 6px; margin-bottom: 10px;
+    font-style: italic; font-size: 0.72rem; line-height: 1.38; color: #a1a1aa;
+    margin-top: 4px; margin-bottom: 6px;
     display: -webkit-box;
-    -webkit-line-clamp: 5;
-    line-clamp: 5;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 .review-author {
     display: flex; justify-content: space-between; align-items: center;
-    border-top: 1px solid rgba(0,0,0,0.1);
-    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 8px;
 }
 .review-badge {
     font-size: 0.75rem; font-weight: bold; background: var(--sky-blue);

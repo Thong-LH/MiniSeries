@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import FlyingPages from '../components/FlyingPages';
@@ -28,6 +28,7 @@ const reviews = [
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const comparisonContainerRef = useRef<HTMLDivElement>(null);
 
   // (SelectedOption state removed to enable automatic simulation loop)
@@ -41,6 +42,19 @@ export default function Home() {
       navigate('/login');
     }
   };
+
+  useEffect(() => {
+    if (location.state && (location.state as any).scrollTo) {
+      const targetId = (location.state as any).scrollTo;
+      navigate(location.pathname, { replace: true, state: {} });
+      setTimeout(() => {
+        const element = document.getElementById(targetId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     let ctx = gsap.context(() => {
