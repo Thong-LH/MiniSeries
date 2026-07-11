@@ -3,7 +3,7 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Cinzel", Georgia, Cambria, serif;
+  --font-serif: "Lora", Georgia, Cambria, serif;
   --font-mono: "JetBrains Mono", monospace;
 }
 
@@ -31,105 +31,255 @@
 /* 3D Flying Sheets Animation along a curved path from bottom-left Open Book to top-right Open Book */
 @keyframes fly-sheet-1 {
   0% {
-    transform: translate3d(8vw, 80vh, -200px) rotateX(55deg) rotateY(-45deg) rotateZ(15deg) scale(0.05);
+    transform: translate3d(8.0vw, 80.0vh, -200px) rotateX(55deg) rotateY(-45deg) rotateZ(15deg) scale(0.05);
     opacity: 0;
   }
-  12% {
-    transform: translate3d(20vw, 70vh, -150px) rotateX(46.6deg) rotateY(-35.4deg) rotateZ(11.8deg) scale(0.7);
+  10% {
+    transform: translate3d(15.8vw, 73.5vh, -180px) rotateX(46.6deg) rotateY(-35.4deg) rotateZ(11.8deg) scale(0.7);
+    opacity: 0.95;
+  }
+  20% {
+    transform: translate3d(23.6vw, 70.8vh, -160px) rotateX(31.2deg) rotateY(-22.8deg) rotateZ(5.1deg) scale(0.71);
+    opacity: 0.95;
+  }
+  30% {
+    transform: translate3d(31.4vw, 67.2vh, -140px) rotateX(15.8deg) rotateY(-10.2deg) rotateZ(-1.6deg) scale(0.72);
+    opacity: 0.95;
+  }
+  40% {
+    transform: translate3d(39.2vw, 61.5vh, -120px) rotateX(0.4deg) rotateY(2.4deg) rotateZ(-8.3deg) scale(0.73);
     opacity: 0.95;
   }
   50% {
-    transform: translate3d(47vw, 46vh, -100px) rotateX(-15deg) rotateY(15deg) rotateZ(-12deg) scale(0.75);
-  }
-  88% {
+    transform: translate3d(47.0vw, 54.5vh, -100px) rotateX(-15deg) rotateY(15deg) rotateZ(-12deg) scale(0.75);
     opacity: 0.95;
   }
+  60% {
+    transform: translate3d(54.8vw, 38.5vh, -120px) rotateX(-20deg) rotateY(20deg) rotateZ(-2deg) scale(0.74);
+    opacity: 0.95;
+  }
+  70% {
+    transform: translate3d(62.6vw, 25.5vh, -140px) rotateX(-25deg) rotateY(25deg) rotateZ(8deg) scale(0.73);
+    opacity: 0.95;
+  }
+  80% {
+    transform: translate3d(70.4vw, 14.2vh, -160px) rotateX(-30deg) rotateY(30deg) rotateZ(18deg) scale(0.72);
+    opacity: 0.95;
+  }
+  90% {
+    transform: translate3d(78.2vw, 11.8vh, -180px) rotateX(-35deg) rotateY(35deg) rotateZ(25deg) scale(0.7);
+    opacity: 0.95;
+  }
+  96% {
+    transform: translate3d(82.9vw, 11.5vh, -192px) rotateX(-44deg) rotateY(47deg) rotateZ(37deg) scale(0.4);
+    opacity: 0.6;
+  }
   100% {
-    transform: translate3d(86vw, 12vh, -200px) rotateX(-50deg) rotateY(55deg) rotateZ(45deg) scale(0.05);
+    transform: translate3d(86.0vw, 12.0vh, -200px) rotateX(-50deg) rotateY(55deg) rotateZ(45deg) scale(0.05);
     opacity: 0;
   }
 }
 
 @keyframes fly-sheet-2 {
   0% {
-    transform: translate3d(8vw, 80vh, -240px) rotateX(45deg) rotateY(-35deg) rotateZ(5deg) scale(0.05);
+    transform: translate3d(8.0vw, 80.0vh, -240px) rotateX(45deg) rotateY(-35deg) rotateZ(5deg) scale(0.05);
     opacity: 0;
   }
-  15% {
-    transform: translate3d(22vw, 68vh, -180px) rotateX(35deg) rotateY(-25deg) rotateZ(2deg) scale(0.7);
+  10% {
+    transform: translate3d(15.8vw, 72.8vh, -216px) rotateX(35deg) rotateY(-25deg) rotateZ(2deg) scale(0.7);
     opacity: 0.9;
   }
-  55% {
-    transform: translate3d(50vw, 42vh, -120px) rotateX(-5deg) rotateY(5deg) rotateZ(-20deg) scale(0.72);
-  }
-  85% {
+  20% {
+    transform: translate3d(23.6vw, 69.2vh, -192px) rotateX(25deg) rotateY(-15deg) rotateZ(-4deg) scale(0.7);
     opacity: 0.9;
+  }
+  30% {
+    transform: translate3d(31.4vw, 65.5vh, -168px) rotateX(15deg) rotateY(-5deg) rotateZ(-10deg) scale(0.71);
+    opacity: 0.9;
+  }
+  40% {
+    transform: translate3d(39.2vw, 59.8vh, -144px) rotateX(5deg) rotateY(0deg) rotateZ(-15deg) scale(0.71);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate3d(47.0vw, 52.5vh, -120px) rotateX(-5deg) rotateY(5deg) rotateZ(-20deg) scale(0.72);
+    opacity: 0.9;
+  }
+  60% {
+    transform: translate3d(54.8vw, 38.5vh, -144px) rotateX(-10deg) rotateY(10deg) rotateZ(-12deg) scale(0.71);
+    opacity: 0.9;
+  }
+  70% {
+    transform: translate3d(62.6vw, 25.2vh, -168px) rotateX(-17deg) rotateY(17deg) rotateZ(-2deg) scale(0.71);
+    opacity: 0.9;
+  }
+  80% {
+    transform: translate3d(70.4vw, 15.2vh, -192px) rotateX(-23deg) rotateY(23deg) rotateZ(6deg) scale(0.7);
+    opacity: 0.9;
+  }
+  90% {
+    transform: translate3d(78.2vw, 12.2vh, -216px) rotateX(-30deg) rotateY(30deg) rotateZ(15deg) scale(0.7);
+    opacity: 0.9;
+  }
+  96% {
+    transform: translate3d(82.9vw, 11.6vh, -230px) rotateX(-39deg) rotateY(39deg) rotateZ(21deg) scale(0.4);
+    opacity: 0.55;
   }
   100% {
-    transform: translate3d(86vw, 12vh, -240px) rotateX(-45deg) rotateY(45deg) rotateZ(25deg) scale(0.05);
+    transform: translate3d(86.0vw, 12.0vh, -240px) rotateX(-45deg) rotateY(45deg) rotateZ(25deg) scale(0.05);
     opacity: 0;
   }
 }
 
 @keyframes fly-sheet-3 {
   0% {
-    transform: translate3d(8vw, 80vh, -180px) rotateX(60deg) rotateY(-50deg) rotateZ(25deg) scale(0.05);
+    transform: translate3d(8.0vw, 80.0vh, -180px) rotateX(60deg) rotateY(-50deg) rotateZ(25deg) scale(0.05);
     opacity: 0;
   }
-  18% {
-    transform: translate3d(24vw, 72vh, -140px) rotateX(50deg) rotateY(-40deg) rotateZ(20deg) scale(0.78);
+  10% {
+    transform: translate3d(15.8vw, 73.5vh, -162px) rotateX(50deg) rotateY(-40deg) rotateZ(20deg) scale(0.78);
     opacity: 0.95;
   }
-  48% {
-    transform: translate3d(45vw, 50vh, -90px) rotateX(-25deg) rotateY(25deg) rotateZ(-5deg) scale(0.8);
-  }
-  82% {
+  20% {
+    transform: translate3d(23.6vw, 70.8vh, -144px) rotateX(35deg) rotateY(-26deg) rotateZ(12deg) scale(0.78);
     opacity: 0.95;
+  }
+  30% {
+    transform: translate3d(31.4vw, 67.2vh, -126px) rotateX(18deg) rotateY(-11deg) rotateZ(4deg) scale(0.79);
+    opacity: 0.95;
+  }
+  40% {
+    transform: translate3d(39.2vw, 61.5vh, -108px) rotateX(2deg) rotateY(4deg) rotateZ(-3deg) scale(0.79);
+    opacity: 0.95;
+  }
+  50% {
+    transform: translate3d(47.0vw, 54.5vh, -90px) rotateX(-25deg) rotateY(25deg) rotateZ(-5deg) scale(0.8);
+    opacity: 0.95;
+  }
+  60% {
+    transform: translate3d(54.8vw, 40.5vh, -108px) rotateX(-27deg) rotateY(27deg) rotateZ(5deg) scale(0.79);
+    opacity: 0.95;
+  }
+  70% {
+    transform: translate3d(62.6vw, 25.5vh, -126px) rotateX(-29deg) rotateY(29deg) rotateZ(14deg) scale(0.79);
+    opacity: 0.95;
+  }
+  80% {
+    transform: translate3d(70.4vw, 14.2vh, -144px) rotateX(-30deg) rotateY(30deg) rotateZ(22deg) scale(0.78);
+    opacity: 0.95;
+  }
+  90% {
+    transform: translate3d(78.2vw, 11.8vh, -162px) rotateX(-32deg) rotateY(32deg) rotateZ(28deg) scale(0.78);
+    opacity: 0.95;
+  }
+  96% {
+    transform: translate3d(82.9vw, 11.5vh, -172px) rotateX(-46deg) rotateY(49deg) rotateZ(44deg) scale(0.4);
+    opacity: 0.6;
   }
   100% {
-    transform: translate3d(86vw, 12vh, -180px) rotateX(-55deg) rotateY(60deg) rotateZ(55deg) scale(0.05);
+    transform: translate3d(86.0vw, 12.0vh, -180px) rotateX(-55deg) rotateY(60deg) rotateZ(55deg) scale(0.05);
     opacity: 0;
   }
 }
 
 @keyframes fly-sheet-4 {
   0% {
-    transform: translate3d(8vw, 80vh, -220px) rotateX(50deg) rotateY(-40deg) rotateZ(10deg) scale(0.05);
+    transform: translate3d(8.0vw, 80.0vh, -220px) rotateX(50deg) rotateY(-40deg) rotateZ(10deg) scale(0.05);
     opacity: 0;
   }
   10% {
-    transform: translate3d(18vw, 73vh, -160px) rotateX(40deg) rotateY(-30deg) rotateZ(8deg) scale(0.72);
+    transform: translate3d(15.8vw, 72.8vh, -198px) rotateX(40deg) rotateY(-30deg) rotateZ(8deg) scale(0.72);
     opacity: 0.95;
   }
-  52% {
-    transform: translate3d(48vw, 48vh, -110px) rotateX(-10deg) rotateY(10deg) rotateZ(-15deg) scale(0.75);
+  20% {
+    transform: translate3d(23.6vw, 69.2vh, -176px) rotateX(28deg) rotateY(-18deg) rotateZ(1deg) scale(0.72);
+    opacity: 0.95;
+  }
+  30% {
+    transform: translate3d(31.4vw, 65.5vh, -154px) rotateX(15deg) rotateY(-8deg) rotateZ(-5deg) scale(0.73);
+    opacity: 0.95;
+  }
+  40% {
+    transform: translate3d(39.2vw, 59.8vh, -132px) rotateX(3deg) rotateY(1deg) rotateZ(-10deg) scale(0.74);
+    opacity: 0.95;
+  }
+  50% {
+    transform: translate3d(47.0vw, 52.5vh, -110px) rotateX(-10deg) rotateY(10deg) rotateZ(-15deg) scale(0.75);
+    opacity: 0.95;
+  }
+  60% {
+    transform: translate3d(54.8vw, 38.5vh, -132px) rotateX(-14deg) rotateY(14deg) rotateZ(-8deg) scale(0.74);
+    opacity: 0.95;
+  }
+  70% {
+    transform: translate3d(62.6vw, 25.2vh, -154px) rotateX(-19deg) rotateY(19deg) rotateZ(1deg) scale(0.73);
+    opacity: 0.95;
+  }
+  80% {
+    transform: translate3d(70.4vw, 15.2vh, -176px) rotateX(-23deg) rotateY(23deg) rotateZ(9deg) scale(0.73);
+    opacity: 0.95;
   }
   90% {
+    transform: translate3d(78.2vw, 12.2vh, -198px) rotateX(-28deg) rotateY(28deg) rotateZ(22deg) scale(0.72);
     opacity: 0.95;
   }
+  96% {
+    transform: translate3d(82.9vw, 11.6vh, -210px) rotateX(-40deg) rotateY(41deg) rotateZ(30deg) scale(0.4);
+    opacity: 0.6;
+  }
   100% {
-    transform: translate3d(86vw, 12vh, -220px) rotateX(-48deg) rotateY(50deg) rotateZ(35deg) scale(0.05);
+    transform: translate3d(86.0vw, 12.0vh, -220px) rotateX(-48deg) rotateY(50deg) rotateZ(35deg) scale(0.05);
     opacity: 0;
   }
 }
 
 @keyframes fly-sheet-5 {
   0% {
-    transform: translate3d(8vw, 80vh, -250px) rotateX(58deg) rotateY(-48deg) rotateZ(20deg) scale(0.05);
+    transform: translate3d(8.0vw, 80.0vh, -250px) rotateX(58deg) rotateY(-48deg) rotateZ(20deg) scale(0.05);
     opacity: 0;
   }
-  14% {
-    transform: translate3d(21vw, 71vh, -190px) rotateX(48deg) rotateY(-38deg) rotateZ(15deg) scale(0.75);
+  10% {
+    transform: translate3d(15.8vw, 73.5vh, -226px) rotateX(48deg) rotateY(-38deg) rotateZ(15deg) scale(0.75);
     opacity: 0.9;
   }
-  48% {
-    transform: translate3d(46vw, 45vh, -130px) rotateX(-20deg) rotateY(20deg) rotateZ(-8deg) scale(0.78);
-  }
-  86% {
+  20% {
+    transform: translate3d(23.6vw, 70.8vh, -202px) rotateX(34deg) rotateY(-24deg) rotateZ(8deg) scale(0.76);
     opacity: 0.9;
+  }
+  30% {
+    transform: translate3d(31.4vw, 67.2vh, -178px) rotateX(19deg) rotateY(-11deg) rotateZ(1deg) scale(0.76);
+    opacity: 0.9;
+  }
+  40% {
+    transform: translate3d(39.2vw, 61.5vh, -154px) rotateX(2deg) rotateY(4deg) rotateZ(-5deg) scale(0.77);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate3d(47.0vw, 54.5vh, -130px) rotateX(-20deg) rotateY(20deg) rotateZ(-8deg) scale(0.78);
+    opacity: 0.9;
+  }
+  60% {
+    transform: translate3d(54.8vw, 40.5vh, -154px) rotateX(-24deg) rotateY(24deg) rotateZ(2deg) scale(0.77);
+    opacity: 0.9;
+  }
+  70% {
+    transform: translate3d(62.6vw, 25.5vh, -178px) rotateX(-28deg) rotateY(28deg) rotateZ(12deg) scale(0.77);
+    opacity: 0.9;
+  }
+  80% {
+    transform: translate3d(70.4vw, 14.2vh, -202px) rotateX(-31deg) rotateY(31deg) rotateZ(21deg) scale(0.76);
+    opacity: 0.9;
+  }
+  90% {
+    transform: translate3d(78.2vw, 11.8vh, -226px) rotateX(-35deg) rotateY(35deg) rotateZ(30deg) scale(0.75);
+    opacity: 0.9;
+  }
+  96% {
+    transform: translate3d(82.9vw, 11.5vh, -238px) rotateX(-45deg) rotateY(49deg) rotateZ(41deg) scale(0.4);
+    opacity: 0.55;
   }
   100% {
-    transform: translate3d(86vw, 12vh, -250px) rotateX(-52deg) rotateY(58deg) rotateZ(48deg) scale(0.05);
+    transform: translate3d(86.0vw, 12.0vh, -250px) rotateX(-52deg) rotateY(58deg) rotateZ(48deg) scale(0.05);
     opacity: 0;
   }
 }
@@ -237,7 +387,7 @@ body {
   background: 
     radial-gradient(circle at 10% 90%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
     radial-gradient(circle at 90% 10%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-    #09090b;
+    #060b18;
 }
 
 /* 3D CSS Book Styles for Portals */
@@ -527,4 +677,59 @@ body {
 
 .animate-spin-reverse-slow {
   animation: spin-reverse-slow 180s linear infinite;
+}
+
+/* Responsive navbar and layout styles for mobile devices */
+@media (max-width: 768px) {
+  /* Override inline style padding of studio navbar */
+  .studio-nav {
+    padding: 0 16px !important;
+  }
+  
+  /* Shrink gap of navigation links container */
+  .studio-nav-right {
+    gap: 12px !important;
+  }
+  
+  /* Make navbar links smaller */
+  .cyber-nav-link {
+    font-size: 0.8rem !important;
+  }
+  
+  /* Hide quota pills and user name in the navbar badge to fit on one line */
+  .studio-user-badge .quota-pill,
+  .studio-user-badge .user-badge-name {
+    display: none !important;
+  }
+  
+  /* Make the badge a compact circle for the avatar */
+  .studio-user-badge {
+    padding: 3px !important;
+    border-radius: 50% !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+  }
+  
+  .studio-user-badge .user-badge-avatar {
+    width: 28px !important;
+    height: 28px !important;
+    margin: 0 !important;
+  }
+  
+  /* Dropdown layout adjustments on small screens */
+  .cyber-profile-dropdown.premium-dropdown-card {
+    width: calc(100vw - 32px) !important;
+    right: 0 !important;
+    top: 60px !important;
+    border-radius: 16px !important;
+    padding: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hide text navigation links on very small mobile screens (except Studio) to prevent wrapping */
+  .studio-nav-right a.cyber-nav-link:not([href="/studio"]) {
+    display: none !important;
+  }
 }

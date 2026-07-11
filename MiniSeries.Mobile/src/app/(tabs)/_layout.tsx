@@ -2,13 +2,15 @@ import React, { useEffect } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { useTheme } from '../../hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Platform } from 'react-native';
 import { useApp } from '../../context/AppContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabsLayout() {
   const theme = useTheme();
   const { isAuthenticated } = useApp();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -29,13 +31,13 @@ export default function TabsLayout() {
           backgroundColor: theme.background,
           borderTopWidth: 1,
           borderTopColor: theme.border,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: Platform.OS === 'ios' ? 60 + insets.bottom : 72 + (insets.bottom > 0 ? insets.bottom - 10 : 0),
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+          paddingTop: 10,
           overflow: 'visible',
         },
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: '800',
           letterSpacing: 0.5,
         },
@@ -46,7 +48,7 @@ export default function TabsLayout() {
         options={{
           title: 'KHÁM PHÁ',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'compass' : 'compass-outline'} size={20} color={color} />
+            <Ionicons name={focused ? 'compass' : 'compass-outline'} size={26} color={color} />
           ),
         }}
       />
@@ -55,14 +57,7 @@ export default function TabsLayout() {
         options={{
           title: 'TẠO MỚI',
           tabBarIcon: ({ color, focused }) => (
-            <View style={[
-              styles.flatCreateButton,
-              {
-                backgroundColor: theme.primaryAccent,
-              }
-            ]}>
-              <Ionicons name="add" size={20} color="#FFFFFF" />
-            </View>
+            <Ionicons name={focused ? 'add-circle' : 'add-circle-outline'} size={26} color={color} />
           ),
         }}
       />
@@ -71,7 +66,7 @@ export default function TabsLayout() {
         options={{
           title: 'TIẾN ĐỘ',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'stats-chart' : 'stats-chart-outline'} size={20} color={color} />
+            <Ionicons name={focused ? 'stats-chart' : 'stats-chart-outline'} size={26} color={color} />
           ),
         }}
       />
@@ -80,7 +75,7 @@ export default function TabsLayout() {
         options={{
           title: 'HỒ SƠ',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} size={20} color={color} />
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={26} color={color} />
           ),
         }}
       />

@@ -4,36 +4,31 @@ import { router } from 'expo-router';
 
 import Constants from 'expo-constants';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const getBaseUrl = () => {
-  // Tự động lấy IP của máy tính chạy dev server để điện thoại thật kết nối được
-  const hostUri = Constants.expoConfig?.hostUri; 
-  if (hostUri) {
-    const ip = hostUri.split(':')[0];
-    // Nếu không phải là link tunnel của ngrok, lấy IP nội bộ
-    if (ip && !ip.includes('ngrok')) {
-      return `http://${ip}:5088/api`;
-    }
-  }
-  
-  // Fallbacks mặc định cho giả lập hoặc web
-  return Platform.OS === 'android'
-    ? 'http://10.0.2.2:5088/api'
-    : 'http://localhost:5088/api';
+  return 'https://miniseries.onrender.com/api';
 };
 
 const BASE_URL = getBaseUrl();
 console.log('Mobile API Base URL:', BASE_URL);
 
-let authToken: string | null = null;
+let authToken: string | null = (Platform.OS === 'web' && typeof window !== 'undefined')
+  ? localStorage.getItem('authToken')
+  : null;
 
-// Khôi phục token từ localStorage nếu đang chạy trên trình duyệt (Web)
-if (Platform.OS === 'web' && typeof window !== 'undefined') {
+export const initializeAuthToken = async () => {
   try {
-    authToken = localStorage.getItem('authToken');
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      authToken = localStorage.getItem('authToken');
+    } else {
+      authToken = await AsyncStorage.getItem('authToken');
+    }
   } catch (e) {
-    console.log('Không thể đọc token từ localStorage:', e);
+    console.log('Không thể khôi phục token từ bộ nhớ:', e);
   }
-}
+  return authToken;
+};
 
 export const setAuthToken = (token: string | null) => {
   authToken = token;
@@ -46,6 +41,16 @@ export const setAuthToken = (token: string | null) => {
       }
     } catch (e) {
       console.log('Không thể lưu/xóa token trong localStorage:', e);
+    }
+  } else {
+    try {
+      if (token) {
+        AsyncStorage.setItem('authToken', token).catch(e => console.log('Không thể lưu token:', e));
+      } else {
+        AsyncStorage.removeItem('authToken').catch(e => console.log('Không thể xóa token:', e));
+      }
+    } catch (e) {
+      console.log('Lỗi thao tác AsyncStorage:', e);
     }
   }
 };
@@ -72,6 +77,11 @@ apiClient.interceptors.request.use(
   }
 );
 
+let onUnauthorizedCallback: (() => void) | null = null;
+export const setUnauthorizedCallback = (callback: () => void) => {
+  onUnauthorizedCallback = callback;
+};
+
 let isAlerting = false;
 
 // Bộ đánh chặn xử lý lỗi phản hồi từ Server (ví dụ: Token hết hạn - 401 Unauthorized)
@@ -79,11 +89,23 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
+      const requestUrl = error.config?.url || '';
+      if (
+        requestUrl.includes('/auth/login') || 
+        requestUrl.includes('/auth/login-profile') || 
+        requestUrl.includes('/auth/register')
+      ) {
+        return Promise.reject(error);
+      }
+
       if (!isAlerting) {
         isAlerting = true;
         
         const logout = () => {
           isAlerting = false;
+          if (onUnauthorizedCallback) {
+            onUnauthorizedCallback();
+          }
           // Clear session variables
           if (Platform.OS === 'web' && typeof window !== 'undefined') {
             try {

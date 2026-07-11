@@ -1,17 +1,18 @@
 {
   "expo": {
-    "name": "MiniSeries.Mobile",
-    "slug": "MiniSeries.Mobile",
+    "name": "MiniSeries",
+    "slug": "miniseries-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "miniseriesmobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.miniseries.app"
     },
     "android": {
-      "package": "com.thonglh.miniseries",
+      "package": "com.miniseries.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -35,11 +36,23 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.126955656491-vddeqf0bguj9g5gpah91m5u9sl3d0bbu"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7afad071-dd1d-4cdc-ad40-96f29eeed426"
+      }
     }
   }
 }

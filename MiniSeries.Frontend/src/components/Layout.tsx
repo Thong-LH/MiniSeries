@@ -95,6 +95,18 @@ export default function Layout() {
   const isProfilePage = location.pathname === '/profile';
   const useStudioNavbar = !isHomePage;
 
+  const handleNavClick = (event: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    event.preventDefault();
+    if (location.pathname === '/') {
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      navigate('/', { state: { scrollTo: targetId } });
+    }
+  };
+
   const [profile, setProfile] = useState<HeaderProfile | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -318,10 +330,10 @@ export default function Layout() {
             <Logo width={32} height={32} />
           </Link>
           <div className="nav-links">
-            <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Trang chủ</Link>
-            <a href="#flow">Tính năng</a>
-            <a href="#comparison">Trải nghiệm</a>
-            <a href="#feedback">Phản hồi</a>
+            <Link to="/" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Trang chủ</Link>
+            <a href="#flow" onClick={(e) => handleNavClick(e, 'flow')}>Tính năng</a>
+            <a href="#comparison" onClick={(e) => handleNavClick(e, 'comparison')}>Trải nghiệm</a>
+            <a href="#feedback" onClick={(e) => handleNavClick(e, 'feedback')}>Phản hồi</a>
           </div>
           <Link to="/login" onClick={handleProtectedNavigation} className="nav-login">Bắt đầu</Link>
         </header>

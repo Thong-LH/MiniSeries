@@ -6,17 +6,23 @@ import { QuizSection } from '../../components/QuizSection';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../services/apiClient';
 import { useTheme } from '../../hooks/use-theme';
+import { useStudyTimer } from '../../hooks/useStudyTimer';
 
 export default function LessonViewerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { themeId, triggerToast, isAuthenticated } = useApp();
+  const { themeId, triggerToast, isAuthenticated, setShouldRefreshHome } = useApp();
   const router = useRouter();
+
+  // Kích hoạt bộ đếm thời gian học cụ thể
+  useStudyTimer(id);
 
   const [loading, setLoading] = useState<boolean>(false);
   const [lessonData, setLessonData] = useState<any>(null);
   const [currentChapterIndex, setCurrentChapterIndex] = useState<number>(0);
   const [fullscreenVisible, setFullscreenVisible] = useState<boolean>(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const imgFadeAnim = useRef(new Animated.Value(0)).current;
+  const [imgLoading, setImgLoading] = useState<boolean>(true);
 
   const colors = useTheme();
   const isDark = colors.isDark;
@@ -46,6 +52,7 @@ export default function LessonViewerScreen() {
     }
   }, [id, isAuthenticated]);
 
+
   useEffect(() => {
     fadeAnim.setValue(0.3);
     Animated.timing(fadeAnim, {
@@ -53,7 +60,24 @@ export default function LessonViewerScreen() {
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [currentChapterIndex]);
+
+    // Reset image load animation state
+    setImgLoading(true);
+    imgFadeAnim.setValue(0);
+
+    // Save study progress to database
+    if (lessonData && lessonData.id && chapters && chapters.length > 0) {
+      apiClient.post('/progress/update', {
+        lessonId: lessonData.id,
+        lastReadChapterOrder: currentChapterIndex + 1,
+        totalChapters: chapters.length
+      })
+      .then(() => {
+        setShouldRefreshHome(true);
+      })
+      .catch(err => console.log('Error updating study progress:', err));
+    }
+  }, [currentChapterIndex, lessonData]);
 
   if (loading) {
     return (
@@ -148,7 +172,7 @@ export default function LessonViewerScreen() {
           <TouchableOpacity
             activeOpacity={0.95}
             onPress={() => {
-              if (!isVideoMode && currentChapter?.imageUrl) {
+              if (!isVideoMode && currentChapter?.mangaUrl) {
                 setFullscreenVisible(true);
               }
             }}
@@ -174,9 +198,27 @@ export default function LessonViewerScreen() {
                 </View>
               )
             ) : (
-              currentChapter?.imageUrl ? (
-                <View style={{ flex: 1 }}>
-                  <Image source={{ uri: currentChapter.imageUrl }} style={styles.mangaImage} />
+              currentChapter?.mangaUrl ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+                  {imgLoading && (
+                    <ActivityIndicator 
+                      size="large" 
+                      color={colors.primaryAccent} 
+                      style={{ position: 'absolute', zIndex: 2 }} 
+                    />
+                  )}
+                  <Animated.Image 
+                    source={{ uri: currentChapter.mangaUrl }} 
+                    style={[styles.mangaImage, { opacity: imgFadeAnim }]} 
+                    onLoadEnd={() => {
+                      setImgLoading(false);
+                      Animated.timing(imgFadeAnim, {
+                        toValue: 1,
+                        duration: 350,
+                        useNativeDriver: true,
+                      }).start();
+                    }}
+                  />
                   <View style={styles.playOverlay}>
                     <Ionicons name="expand" size={32} color="#FFFFFF" />
                     <Text style={styles.playOverlayText}>BẤM ĐỂ PHÓNG TO</Text>
@@ -217,6 +259,14 @@ export default function LessonViewerScreen() {
               quiz={parsedQuiz}
               onComplete={() => {
                 triggerToast('Tuyệt vời! Bạn đã trả lời đúng câu hỏi của chương này.');
+                setShouldRefreshHome(true);
+                if (currentChapter && currentChapter.quiz) {
+                  apiClient.post('/progress/quiz-attempt', {
+                    chapterId: currentChapter.id,
+                    selectedOption: currentChapter.quiz.correctOption || 'A',
+                    isCorrect: true
+                  }).catch(err => console.log('Error saving quiz progress:', err));
+                }
               }}
             />
           </View>
@@ -299,8 +349,8 @@ export default function LessonViewerScreen() {
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
           >
-            {currentChapter?.imageUrl && (
-              <Image source={{ uri: currentChapter.imageUrl }} style={styles.fullscreenMangaImage} />
+            {currentChapter?.mangaUrl && (
+              <Image source={{ uri: currentChapter.mangaUrl }} style={styles.fullscreenMangaImage} />
             )}
           </ScrollView>
         </View>

@@ -61,7 +61,7 @@ export default function BookPortalBackground() {
   };
 
   return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none scene-3d">
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none scene-3d" style={{ width: '100vw', height: '100vh', left: 0, top: 0 }}>
       {/* Background Nebulas */}
       <div className="absolute top-[25%] left-[20%] w-[600px] h-[600px] rounded-full bg-indigo-950/15 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[20%] right-[10%] w-[550px] h-[550px] rounded-full bg-purple-950/10 blur-[160px] pointer-events-none" />
@@ -71,10 +71,10 @@ export default function BookPortalBackground() {
       {renderFloatingSparks()}
 
       {/* Dynamic Faint Orbit Lines connecting Portals */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-80 z-0" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-80 z-0 hidden md:block" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
         {/* Orbit line 1 (Orange flow) */}
         <path 
-          d="M 8 80 C 25 75, 35 45, 50 50 C 65 55, 75 25, 86 12" 
+          d="M 8 80 C 20 65, 40 80, 50 50 C 60 20, 75 12, 86 12" 
           fill="none" 
           stroke="rgba(242, 125, 38, 0.85)" 
           strokeWidth="0.15" 
@@ -83,7 +83,7 @@ export default function BookPortalBackground() {
         />
         {/* Orbit line 2 (Blue flow) */}
         <path 
-          d="M 8 80 C 22 72, 38 48, 50 50 C 62 52, 78 28, 86 12" 
+          d="M 8 80 C 24 62, 38 72, 50 50 C 62 28, 76 12, 86 12" 
           fill="none" 
           stroke="rgba(59, 130, 246, 0.8)" 
           strokeWidth="0.12" 
@@ -116,10 +116,7 @@ export default function BookPortalBackground() {
       </svg>
 
       {/* Left Wing Decorative Constellation / Orbit Circle */}
-      <div 
-        className="absolute w-[180px] h-[180px] pointer-events-none opacity-[0.4] md:opacity-[0.55] z-0 select-none"
-        style={{ left: '8vw', top: '80vh', transform: 'translate(-50%, -50%)' }}
-      >
+      <div className="absolute left-[4vw] md:left-[6vw] top-[10vh] md:top-[14vh] w-[180px] h-[180px] pointer-events-none opacity-[0.4] md:opacity-[0.55] z-0 select-none hidden md:block">
         <svg viewBox="0 0 100 100" className="w-full h-full text-orange-400 animate-spin-slow">
           <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="3,4" />
           <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="0.4" />
@@ -133,10 +130,7 @@ export default function BookPortalBackground() {
       </div>
 
       {/* Right Wing Decorative Constellation Map */}
-      <div 
-        className="absolute w-[200px] h-[200px] pointer-events-none opacity-[0.38] md:opacity-[0.52] z-0 select-none"
-        style={{ left: '86vw', top: '12vh', transform: 'translate(-50%, -50%)' }}
-      >
+      <div className="absolute right-[4vw] md:right-[6vw] top-[48vh] md:top-[56vh] w-[200px] h-[200px] pointer-events-none opacity-[0.38] md:opacity-[0.52] z-0 select-none hidden md:block">
         <svg viewBox="0 0 100 100" className="w-full h-full text-blue-400 animate-spin-reverse-slow">
           <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4,6" />
           <path d="M 22 22 L 50 50 L 78 28 M 50 50 L 38 78 L 78 78" fill="none" stroke="currentColor" strokeWidth="0.4" strokeDasharray="2,3" />
@@ -149,13 +143,15 @@ export default function BookPortalBackground() {
       </div>
 
       {/* GLOWING OPEN BOOK (Bottom-Left - Orange Theme) */}
-      <div 
-        className="absolute rounded-full bg-[#f27d26]/20 blur-[120px] animate-portal-pulse-orange pointer-events-none" 
-        style={{ left: '8vw', top: '80vh', width: '450px', height: '450px', transform: 'translate(-50%, -50%)', zIndex: 0 }}
-      />
+      <div className="hidden md:block" style={{ position: 'absolute', left: '8vw', top: '80vh', zIndex: 0 }}>
+        <div 
+          className="absolute w-[450px] h-[450px] rounded-full bg-[#f27d26]/20 blur-[120px] animate-portal-pulse-orange pointer-events-none" 
+          style={{ left: '-225px', top: '-225px' }}
+        />
+      </div>
       <div 
         style={{ position: 'absolute', left: '8vw', top: '80vh', transform: 'translate(-50%, -50%)', zIndex: 10 }}
-        className="select-none pointer-events-auto opacity-90 hover:opacity-100 transition-opacity duration-300"
+        className="select-none pointer-events-auto opacity-90 hover:opacity-100 transition-opacity duration-300 hidden md:block"
       >
         <div className="animate-float-gentle">
           <div className="portal-book-container portal-book-orange">
@@ -205,13 +201,15 @@ export default function BookPortalBackground() {
       </div>
 
       {/* GLOWING OPEN BOOK (Top-Right - Blue Theme) */}
-      <div 
-        className="absolute rounded-full bg-[#3b82f6]/20 blur-[120px] animate-portal-pulse-blue pointer-events-none" 
-        style={{ left: '86vw', top: '12vh', width: '450px', height: '450px', transform: 'translate(-50%, -50%)', zIndex: 0 }}
-      />
+      <div className="hidden md:block" style={{ position: 'absolute', left: '86vw', top: '12vh', zIndex: 0 }}>
+        <div 
+          className="absolute w-[450px] h-[450px] rounded-full bg-[#3b82f6]/20 blur-[120px] animate-portal-pulse-blue pointer-events-none" 
+          style={{ left: '-225px', top: '-225px' }}
+        />
+      </div>
       <div 
         style={{ position: 'absolute', left: '86vw', top: '12vh', transform: 'translate(-50%, -50%)', zIndex: 10 }}
-        className="select-none pointer-events-auto opacity-90 hover:opacity-100 transition-opacity duration-300"
+        className="select-none pointer-events-auto opacity-90 hover:opacity-100 transition-opacity duration-300 hidden md:block"
       >
         <div className="animate-float-gentle">
           <div className="portal-book-container portal-book-blue">
@@ -261,7 +259,7 @@ export default function BookPortalBackground() {
       </div>
 
       {/* Moving Interactive floating sheets */}
-      <div className="absolute sheet-3d-1 pointer-events-auto hover:pause-animation opacity-75 hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute sheet-3d-1 pointer-events-auto hover:pause-animation opacity-75 hover:opacity-100 transition-opacity duration-300 hidden md:block">
         <div className="flying-page">
           <div className="mini-page-lined">
             <div className="mini-margin-red"></div>
@@ -289,7 +287,7 @@ export default function BookPortalBackground() {
         </div>
       </div>
 
-      <div className="absolute sheet-3d-2 pointer-events-auto opacity-75 hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute sheet-3d-2 pointer-events-auto opacity-75 hover:opacity-100 transition-opacity duration-300 hidden md:block">
         <div className="flying-page">
           <div className="mini-page-grid">
             <div className="mini-formula-title">math formulas</div>
@@ -303,7 +301,7 @@ export default function BookPortalBackground() {
         </div>
       </div>
 
-      <div className="absolute sheet-3d-3 pointer-events-auto opacity-75 hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute sheet-3d-3 pointer-events-auto opacity-75 hover:opacity-100 transition-opacity duration-300 hidden md:block">
         <div className="flying-page">
           <div className="mini-page-script-graded">
             <div className="mini-grade-badge-red">10/10</div>
@@ -319,7 +317,7 @@ export default function BookPortalBackground() {
       </div>
 
       {/* sheet-3d-4 (Chemistry Doodle) */}
-      <div className="absolute sheet-3d-4 pointer-events-auto opacity-75 hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute sheet-3d-4 pointer-events-auto opacity-75 hover:opacity-100 transition-opacity duration-300 hidden md:block">
         <div className="flying-page">
           <div className="mini-page-chemistry">
             <div className="mini-chem-title">organic chem</div>
@@ -337,7 +335,7 @@ export default function BookPortalBackground() {
       </div>
 
       {/* sheet-3d-5 (Geography / Astronomy Doodle) */}
-      <div className="absolute sheet-3d-5 pointer-events-auto opacity-75 hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute sheet-3d-5 pointer-events-auto opacity-75 hover:opacity-100 transition-opacity duration-300 hidden md:block">
         <div className="flying-page">
           <div className="mini-page-geo">
             <div className="mini-geo-title">astronomy</div>
