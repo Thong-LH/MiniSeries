@@ -191,4 +191,3 @@ elseif ($action -eq "sync_mobile_tasks") {
     Write-Host "Jira Sync Completed!"
 }
 Write-Host "Jira Sync Completed successfully!"
-}

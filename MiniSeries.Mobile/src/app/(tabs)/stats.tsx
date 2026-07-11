@@ -6,6 +6,7 @@ import { SpaceBackground } from '../../components/SpaceBackground';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../services/apiClient';
 import { useNavigation, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FlyingPageBadge, Achievement } from '../../components/FlyingPageBadge';
 import { LevelAvatar } from '../../components/LevelAvatar';
 
@@ -36,7 +37,10 @@ export default function StatsScreen() {
     weeklyTarget, 
     setWeeklyTarget, 
     updateStatsFromData,
-    globalStreak
+    globalStreak,
+    isAuthenticated,
+    shouldRefreshHome,
+    activePlan,
   } = useApp();
   const colors = useTheme();
   const isDark = colors.isDark;
@@ -57,60 +61,75 @@ export default function StatsScreen() {
 
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loadingAchievements, setLoadingAchievements] = useState<boolean>(false);
+  const [historyLessons, setHistoryLessons] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date(2026, 6, 11));
   const [showTargetSelector, setShowTargetSelector] = useState<boolean>(false);
-  const [selectedBadge, setSelectedBadge] = useState<Achievement | null>(null);
-  const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
-  const [activeFilter, setActiveFilter] = useState<string>('All');
-
-  const selectorAnim = useRef(new Animated.Value(0)).current;
-  const flyAnim = useRef(new Animated.Value(0)).current;
-  const detailFloatAnim = useRef(new Animated.Value(0)).current;
+  const [showDetailedHistory, setShowDetailedHistory] = useState<boolean>(false);
+  const [localStudyMinutes, setLocalStudyMinutes] = useState<number>(0);
 
   useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(detailFloatAnim, {
-          toValue: -8,
-          duration: 1800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(detailFloatAnim, {
-          toValue: 0,
-          duration: 1800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    const loadCachedData = async () => {
+      try {
+        const cachedStats = await AsyncStorage.getItem('cached_dashboard_stats');
+        if (cachedStats) {
+          setStats(JSON.parse(cachedStats));
+        }
+        const cachedHistory = await AsyncStorage.getItem('cached_history_lessons');
+        if (cachedHistory) {
+          setHistoryLessons(JSON.parse(cachedHistory));
+        }
+        const cachedTimer = await AsyncStorage.getItem('local_study_timer_data');
+        if (cachedTimer) {
+          const parsed = JSON.parse(cachedTimer);
+          const totalSeconds = Object.values(parsed).reduce((acc: number, val: any) => acc + (val || 0), 0);
+          setLocalStudyMinutes(Math.round(totalSeconds / 60));
+        }
+      } catch (e) {
+        console.log('Error loading cache:', e);
+      }
+    };
+    loadCachedData();
   }, []);
 
-  const changeSelectedBadge = (badge: Achievement) => {
-    // 1. Fly out to the left
-    Animated.timing(flyAnim, {
-      toValue: -320,
-      duration: 250,
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-      useNativeDriver: true,
-    }).start(() => {
-      // 2. Set new badge state
-      setSelectedBadge(badge);
-      // 3. Teleport to offscreen right
-      flyAnim.setValue(320);
-      // 4. Fly in from the right to resting center position (0)
-      Animated.spring(flyAnim, {
-        toValue: 0,
-        friction: 6.5,
-        tension: 38,
-        useNativeDriver: true,
-      }).start();
-    });
+  const getWeeklyCalendar = () => {
+    const days = [];
+    const today = new Date(2026, 6, 11);
+    const dayOfWeek = today.getDay();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - dayOfWeek);
+    const dayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      const dayLabel = dayLabels[i];
+      const isToday = d.toDateString() === today.toDateString();
+      const isActive = historyLessons.some(lesson => {
+        if (!lesson.createdAt) return false;
+        const ld = new Date(lesson.createdAt);
+        return ld.getDate() === d.getDate() && 
+               ld.getMonth() === d.getMonth() && 
+               ld.getFullYear() === d.getFullYear();
+      });
+      days.push({
+        dayLabel,
+        dateNum: d.getDate(),
+        isToday,
+        isActive,
+        dateObj: d
+      });
+    }
+    return days;
   };
 
-  const openBadgeDetail = (badge: Achievement) => {
-    setSelectedBadge(badge);
-    setShowDetailsModal(true);
-    flyAnim.setValue(0);
+  const selectorAnim = useRef(new Animated.Value(0)).current;
+  const lastFetchTimeRef = useRef<number>(0);
+
+  const openBadgeDetail = (badge?: Achievement) => {
+    router.push({
+      pathname: '/achievements' as any,
+      params: badge ? { selectedKey: badge.key } : {}
+    });
   };
 
   useEffect(() => {
@@ -136,8 +155,11 @@ export default function StatsScreen() {
     setThemeId(themeId === 'bold-typography-dark' ? 'bold-typography' : 'bold-typography-dark');
   };
 
-  const fetchDashboardStats = async () => {
-    setLoading(true);
+  const fetchDashboardStats = async (silent = false) => {
+    if (!isAuthenticated) return;
+    if (!silent && stats.weeklyActivity.length === 0) {
+      setLoading(true);
+    }
     try {
       const res = await apiClient.get('/progress/dashboard');
       if (res.data) {
@@ -152,7 +174,8 @@ export default function StatsScreen() {
   };
 
   const fetchAchievements = async () => {
-    setLoadingAchievements(true);
+    if (!isAuthenticated) return;
+    if (!achievements || achievements.length === 0) setLoadingAchievements(true);
     try {
       const res = await apiClient.get('/progress/achievements');
       if (res.data) {
@@ -165,48 +188,120 @@ export default function StatsScreen() {
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchDashboardStats();
-      fetchAchievements();
-    });
-    return unsubscribe;
-  }, [navigation]);
-  useEffect(() => {
-    fetchDashboardStats();
-    fetchAchievements();
-  }, []);
-  // Generate date numbers for the weekly calendar row based on current week
-  const getWeeklyCalendar = () => {
-    const today = new Date();
-    const currentDay = today.getDay(); // 0 is Sun, 1 is Mon...
-    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + mondayOffset);
-
-    // Shift to start on Sunday (CN) like in the screenshot
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() - 1);
-
-    const weekLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-    return weekLabels.map((label, idx) => {
-      const date = new Date(sunday);
-      date.setDate(sunday.getDate() + idx);
-      const isToday = date.toDateString() === today.toDateString();
-      
-      // Try to find if this day was active in stats.weeklyActivity
-      const activity = stats.weeklyActivity.find(a => a.dayLabel === label);
-
-      return {
-        dayLabel: label,
-        dateNum: date.getDate(),
-        isToday,
-        isActive: activity ? activity.isActive : false
-      };
-    });
+  const fetchStatsData = async (force = false) => {
+    if (!isAuthenticated) return;
+    if (!force && historyLessons.length > 0) {
+      return;
+    }
+    try {
+      setLoading(true);
+      setLoadingHistory(true);
+      const [statsRes, achievementsRes, historyRes] = await Promise.all([
+        apiClient.get('/progress/dashboard'),
+        apiClient.get('/progress/achievements'),
+        apiClient.get('/lessons/my', { params: { page: 1, pageSize: 100 } })
+      ]);
+      if (statsRes.data) {
+        setStats(statsRes.data);
+        updateStatsFromData(statsRes.data);
+        AsyncStorage.setItem('cached_dashboard_stats', JSON.stringify(statsRes.data)).catch(err => console.log(err));
+      }
+      if (achievementsRes.data) {
+        setAchievements(achievementsRes.data);
+      }
+      if (historyRes.data && Array.isArray(historyRes.data)) {
+        setHistoryLessons(historyRes.data);
+        AsyncStorage.setItem('cached_history_lessons', JSON.stringify(historyRes.data)).catch(err => console.log(err));
+      }
+    } catch (e) {
+      console.log('Error fetching stats data:', e);
+    } finally {
+      setLoading(false);
+      setLoadingHistory(false);
+    }
   };
 
-  const calendarDays = getWeeklyCalendar();
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (isAuthenticated) {
+        const force = shouldRefreshHome;
+        fetchStatsData(force);
+      }
+    });
+    return unsubscribe;
+  }, [navigation, isAuthenticated, shouldRefreshHome, historyLessons.length]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchStatsData(true);
+    }
+  }, [isAuthenticated]);
+
+
+
+  // Lấy các ngày trong tháng (bao gồm cả các ô trống padding ở đầu tháng)
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const startDayOfWeek = firstDay.getDay(); // 0 = CN, 1 = T2...
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    
+    const days = [];
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(null);
+    }
+    for (let d = 1; d <= totalDays; d++) {
+      days.push(new Date(year, month, d));
+    }
+    return days;
+  };
+
+  // Phân nhóm lịch sử bài học đã tạo theo tuần trong tháng được chọn
+  const getLessonsGroupedByWeek = (lessonsList: any[], targetMonth: Date) => {
+    const month = targetMonth.getMonth();
+    const year = targetMonth.getFullYear();
+    
+    // Lọc các bài học trong tháng này
+    const monthLessons = lessonsList.filter(lesson => {
+      if (!lesson.createdAt) return false;
+      const d = new Date(lesson.createdAt);
+      return d.getMonth() === month && d.getFullYear() === year;
+    });
+    
+    // Sắp xếp bài học mới nhất lên đầu
+    monthLessons.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    // Nhóm theo tuần
+    const weeks: Record<string, { label: string; items: any[] }> = {};
+    
+    monthLessons.forEach(lesson => {
+      const d = new Date(lesson.createdAt);
+      const currentDay = d.getDay();
+      const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1;
+      
+      const monday = new Date(d);
+      monday.setDate(d.getDate() - distanceToMonday);
+      monday.setHours(0,0,0,0);
+      
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23,59,59,999);
+      
+      const key = `${monday.getFullYear()}-${monday.getMonth()}-${monday.getDate()}`;
+      
+      const formattedMonday = `${monday.getDate()} Th${monday.getMonth() + 1}`;
+      const formattedSunday = `${sunday.getDate()} Th${sunday.getMonth() + 1}`;
+      const label = `${formattedMonday} - ${formattedSunday}, ${monday.getFullYear()}`;
+      
+      if (!weeks[key]) {
+        weeks[key] = { label, items: [] };
+      }
+      weeks[key].items.push(lesson);
+    });
+    
+    return Object.values(weeks);
+  };
 
   // Focus rating/score calculations
   const totalCreated = stats.mangaCount + stats.videoCount;
@@ -222,12 +317,39 @@ export default function StatsScreen() {
   // Range is 15 to 40
   const pointerPercentage = Math.min(100, Math.max(0, ((focusScore - 15) / (40 - 15)) * 100));
 
+  // Tính toán lại cấp độ nếu API cũ bị giới hạn (Fallback vô hạn)
+  let displayLevel = stats.currentLevel ?? 1;
+  let displayPrevExp = stats.prevLevelExp ?? 0;
+  let displayNextExp = stats.nextLevelExp ?? 100;
+  let displayLevelLabel = stats.levelLabel ?? 'Tập sự';
+
+  const totalExp = stats.totalExp ?? 0;
+
+  if (totalExp >= displayNextExp) {
+    let levelReq = displayNextExp - displayPrevExp;
+    // Nếu levelReq <= 0 do data lỗi, reset về logic chuẩn từ đầu
+    if (levelReq <= 0) {
+      displayLevel = 1;
+      displayPrevExp = 0;
+      levelReq = 100;
+    }
+    
+    while (totalExp >= displayPrevExp + levelReq) {
+      displayPrevExp += levelReq;
+      displayLevel++;
+      levelReq = 100 * (1 << (displayLevel - 1));
+    }
+    displayNextExp = displayPrevExp + levelReq;
+    
+    if (displayLevel >= 6) {
+      displayLevelLabel = `Khai sáng Lvl ${displayLevel}`;
+    }
+  }
+
   // EXP thăng cấp percentage
-  const currentLevelExp = stats.totalExp ?? 0;
-  const levelMinExp = stats.prevLevelExp ?? 0;
-  const levelMaxExp = stats.nextLevelExp ?? 100;
-  const expProgress = currentLevelExp - levelMinExp;
-  const expRange = Math.max(1, levelMaxExp - levelMinExp);
+  const currentLevelExp = totalExp;
+  const expProgress = currentLevelExp - displayPrevExp;
+  const expRange = Math.max(1, displayNextExp - displayPrevExp);
   const expPercentage = Math.min(100, Math.max(0, (expProgress * 100) / expRange));
 
   // Sắp xếp huy hiệu: đã đạt được lên đầu, chưa đạt được xếp sau theo bộ
@@ -238,11 +360,6 @@ export default function StatsScreen() {
       return a.category.localeCompare(b.category);
     });
   };
-
-  const modalAchievementsList = getSortedAchievements().filter(item => {
-    if (activeFilter === 'All') return true;
-    return item.category === activeFilter;
-  });
 
   const renderStreakFlame = (streakCount: number, size: number = 14) => {
     if (streakCount === 0) {
@@ -280,6 +397,9 @@ export default function StatsScreen() {
     );
   };
 
+  const displayLessons = historyLessons.length || stats.totalLessons || stats.completedLessons || 0;
+  const displayStudyMinutes = (stats.totalStudyMinutes || 0) + localStudyMinutes;
+
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <SpaceBackground plain={true} />
@@ -293,27 +413,6 @@ export default function StatsScreen() {
             {renderStreakFlame(globalStreak, 13)}
             <Text style={[styles.streakText, { color: colors.text, marginLeft: 3 }]}>{globalStreak}</Text>
           </View>
-
-          <View style={[styles.headerTokenBadge, { borderColor: colors.border, backgroundColor: colors.bg }]}>
-            <Ionicons name="book-outline" size={12} color={colors.text} style={{ marginRight: 2 }} />
-            <Text style={[styles.headerTokenText, { color: colors.text }]}>
-              {mangaTokens > 1000 ? '∞' : mangaTokens}
-            </Text>
-            <Text style={{ color: colors.textMuted, marginHorizontal: 4, fontSize: 10 }}>|</Text>
-            <Ionicons name="film-outline" size={12} color={colors.text} style={{ marginRight: 2 }} />
-            <Text style={[styles.headerTokenText, { color: colors.text }]}>
-              {videoTokens}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={toggleTheme}
-            style={[styles.headerThemeBtn, { borderColor: colors.border, backgroundColor: colors.bg }]}
-          >
-            <Ionicons name={isDark ? 'sunny' : 'moon'} size={14} color={colors.text} />
-          </TouchableOpacity>
-
           {/* Gamified Level Avatar with Circular Progress */}
           <LevelAvatar />
         </View>
@@ -325,19 +424,17 @@ export default function StatsScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
           <Text style={[styles.sectionTitle, { color: colors.text }]}>BÁO CÁO</Text>
-
-          {/* Level & EXP Progress Bar Card */}
-          <View style={[styles.levelCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+          <View style={[styles.levelCard, { backgroundColor: colors.cardBg, borderColor: colors.border, marginBottom: 12 }]}>
             <View style={styles.levelHeaderRow}>
               <View>
                 <Text style={[styles.levelSubTitle, { color: colors.textMuted }]}>CẤP ĐỘ HIỆN TẠI</Text>
                 <Text style={[styles.levelTitleText, { color: colors.primaryAccent }]}>
-                  Lv.{stats.currentLevel ?? 1} • {stats.levelLabel ?? 'Tập sự'}
+                  Lv.{displayLevel} • {displayLevelLabel}
                 </Text>
               </View>
               <View style={styles.expTextContainer}>
                 <Text style={[styles.expText, { color: colors.text }]}>
-                  {stats.totalExp ?? 0} <Text style={{ color: colors.textMuted, fontSize: 10 }}>/ {stats.nextLevelExp ?? 100} EXP</Text>
+                  {totalExp} <Text style={{ color: colors.textMuted, fontSize: 10 }}>/ {displayNextExp} EXP</Text>
                 </Text>
               </View>
             </View>
@@ -351,175 +448,172 @@ export default function StatsScreen() {
               ]} />
             </View>
             <Text style={{ fontSize: 10, color: colors.textMuted, marginTop: 6, fontStyle: 'italic' }}>
-              {stats.totalExp && stats.totalExp >= 1500 ? 'Chúc mừng! Bạn đã đạt Cấp độ tối đa.' : `Cần thêm ${Math.max(0, (stats.nextLevelExp ?? 100) - (stats.totalExp ?? 0))} EXP để thăng cấp tiếp theo.`}
+              Cần thêm {Math.max(0, displayNextExp - totalExp)} EXP để thăng cấp tiếp theo.
             </Text>
           </View>
 
-          {/* Section 1: Dashboard Stats Card */}
-          <View style={[styles.statsDashboardCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-            <View style={styles.statDashboardCol}>
-              <Ionicons name="medal-outline" size={24} color="#6366f1" />
-              <Text style={[styles.statValText, { color: colors.text }]}>{stats.completedLessons}</Text>
-              <Text style={[styles.statLabelText, { color: colors.textMuted }]}>Bài giảng</Text>
+          {/* Top 3-column Stats Header Card - BELOW LEVEL */}
+          <View style={[styles.mainStatsHeaderCard, { backgroundColor: colors.cardBg, borderColor: colors.border, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 18, borderRadius: 16, borderWidth: 1, marginBottom: 20 }]}>
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <Ionicons name="book-outline" size={18} color="#0284c7" style={{ marginBottom: 6 }} />
+              <Text style={{ fontSize: 24, fontWeight: '900', color: '#0284c7' }}>{displayLessons}</Text>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: colors.textMuted, marginTop: 4 }}>Bài học</Text>
             </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.statDashboardCol}>
-              <Ionicons name="flash-outline" size={24} color="#fb923c" />
-              <Text style={[styles.statValText, { color: colors.text }]}>{mangaTokens + videoTokens}</Text>
-              <Text style={[styles.statLabelText, { color: colors.textMuted }]}>Tokens</Text>
+            <View style={{ width: 1, height: 38, backgroundColor: colors.border }} />
+            <View style={{ flex: 1.4, alignItems: 'center' }}>
+              <Ionicons name="sparkles-outline" size={18} color="#6366f1" style={{ marginBottom: 6 }} />
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ fontSize: 20, fontWeight: '900', color: '#6366f1' }}>{stats.mangaCount}</Text>
+                <Text style={{ fontSize: 20, fontWeight: '300', color: colors.border, marginHorizontal: 4 }}>/</Text>
+                <Text style={{ fontSize: 20, fontWeight: '900', color: '#eb5e28' }}>{stats.videoCount}</Text>
+              </View>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: colors.textMuted, marginTop: 4 }}>Manga / Video</Text>
             </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.statDashboardCol}>
-              <Ionicons name="time-outline" size={24} color="#38bdf8" />
-              <Text style={[styles.statValText, { color: colors.text }]}>{stats.totalStudyMinutes}</Text>
-              <Text style={[styles.statLabelText, { color: colors.textMuted }]}>Phút học</Text>
+            <View style={{ width: 1, height: 38, backgroundColor: colors.border }} />
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <Ionicons name="time-outline" size={18} color="#f59e0b" style={{ marginBottom: 6 }} />
+              <Text style={{ fontSize: 24, fontWeight: '900', color: '#f59e0b' }}>{displayStudyMinutes}</Text>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: colors.textMuted, marginTop: 4 }}>Phút</Text>
             </View>
           </View>
 
-          {/* Section 2: Lịch sử (Weekly Calendar & Streak) */}
+          {/* Section 2: Tuần này */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionSubtitle, { color: colors.text }]}>Lịch sử học tập</Text>
+            <Text style={[styles.sectionSubtitle, { color: colors.text }]}>Tuần này</Text>
+            <TouchableOpacity 
+              activeOpacity={0.8}
+              onPress={() => router.push('/history')}
+              style={styles.historyLinkBtn}
+            >
+              <Text style={[styles.historyLinkText, { color: colors.primaryAccent }]}>Lịch sử &gt;</Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={[styles.historyCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-            <View style={styles.calendarRow}>
-              {calendarDays.map((day, index) => (
-                <View key={index} style={styles.calendarCol}>
-                  <Text style={[styles.calendarDayLabel, { color: colors.textMuted }]}>{day.dayLabel}</Text>
+          <View style={[styles.historyCard, { backgroundColor: colors.cardBg, borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 20 }]}>
+            <View style={[styles.calendarRow, { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }]}>
+              {getWeeklyCalendar().map((day, index) => (
+                <View key={index} style={[styles.calendarCol, { alignItems: 'center', flex: 1 }]}>
+                  <Text style={[styles.calendarDayLabel, { color: colors.textMuted, fontSize: 11, fontWeight: '800', marginBottom: 6 }]}>{day.dayLabel}</Text>
                   <View style={[
                     styles.calendarDateCircle,
+                    { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
                     day.isToday && { borderColor: colors.primaryAccent, borderWidth: 1.5 },
                     day.isActive && { backgroundColor: 'rgba(99, 102, 241, 0.15)' }
                   ]}>
                     <Text style={[
                       styles.calendarDateText, 
-                      { color: day.isToday ? colors.primaryAccent : colors.text },
+                      { color: day.isToday ? colors.primaryAccent : colors.text, fontSize: 13, fontWeight: '700' },
                       day.isActive && { color: '#6366f1', fontWeight: '900' }
                     ]}>
                       {day.dateNum}
                     </Text>
-                    {day.isActive && <View style={styles.activeDayDot} />}
+                    {day.isActive && <View style={[styles.activeDayDot, { width: 4, height: 4, borderRadius: 2, backgroundColor: '#6366f1', marginTop: 1 }]} />}
                   </View>
                 </View>
               ))}
             </View>
 
-            <View style={[styles.calendarDivider, { backgroundColor: colors.border }]} />
+            <View style={[styles.calendarDivider, { height: 1, backgroundColor: colors.border, marginVertical: 12 }]} />
 
-            <View style={styles.streakFooterRow}>
-              <View style={styles.streakFooterCol}>
-                <Text style={[styles.streakFooterLabel, { color: colors.textMuted }]}>Ngày liên tiếp</Text>
-                <View style={styles.streakFooterValRow}>
-                  {renderStreakFlame(stats.currentStreak, 18)}
-                  <Text style={[styles.streakFooterVal, { color: colors.text, marginLeft: 6 }]}>{stats.currentStreak}</Text>
-                </View>
+            <View style={[styles.streakFooterRow, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {renderStreakFlame(stats.currentStreak, 18)}
+                <Text style={{ fontSize: 13, fontWeight: '800', color: colors.text, marginLeft: 6 }}>{stats.currentStreak} ngày liên tiếp</Text>
               </View>
-              <View style={styles.streakFooterCol}>
-                <Text style={[styles.streakFooterLabel, { color: colors.textMuted }]}>Tốt nhất của Cá nhân</Text>
-                <Text style={[styles.streakFooterVal, { color: colors.text }]}>{stats.longestStreak} Ngày</Text>
-              </View>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textMuted }}>Kỷ lục cá nhân: {stats.longestStreak} ngày</Text>
             </View>
           </View>
 
-          {/* Section 3: Tiến độ bài giảng (Cumulative Graph) */}
+          {/* Section 3: Tần suất hoạt động (Activity Bar Chart) */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionSubtitle, { color: colors.text }]}>Tiến độ</Text>
-            <TouchableOpacity 
-              activeOpacity={0.8}
-              onPress={() => router.replace('/(tabs)/create')}
-              style={[styles.smallBlueBtn, { backgroundColor: colors.primaryAccent }]}
-            >
-              <Text style={styles.smallBlueBtnText}>Học ngay</Text>
-            </TouchableOpacity>
+            <Text style={[styles.sectionSubtitle, { color: colors.text }]}>Tần suất hoạt động</Text>
           </View>
 
-          <View style={[styles.weightProgressCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+          <View style={[styles.weightProgressCard, { backgroundColor: colors.cardBg, borderColor: colors.border, marginBottom: 20 }]}>
             <View style={styles.weightHeaderRow}>
               <View>
-                <Text style={[styles.weightHeaderLabel, { color: colors.textMuted }]}>Hiện tại</Text>
-                <Text style={[styles.weightHeaderVal, { color: colors.text }]}>{stats.completedLessons} bài giảng</Text>
+                <Text style={[styles.weightHeaderLabel, { color: colors.textMuted }]}>Tổng bài học</Text>
+                <Text style={[styles.weightHeaderVal, { color: colors.text, fontSize: 16, fontWeight: '900' }]}>{stats.completedLessons} bài</Text>
               </View>
               <View style={styles.weightHeaderRight}>
-                <Text style={[styles.weightMinMaxLabel, { color: colors.textMuted }]}>Nhiều nhất: {stats.totalLessons}</Text>
-                <Text style={[styles.weightMinMaxLabel, { color: colors.textMuted }]}>Ít nhất: 0</Text>
+                <Text style={[styles.weightMinMaxLabel, { color: colors.textMuted }]}>Chuỗi học: {stats.currentStreak} ngày</Text>
+                <Text style={[styles.weightMinMaxLabel, { color: colors.textMuted }]}>Thời gian: {stats.totalStudyMinutes} phút</Text>
               </View>
             </View>
 
-            {/* Custom styled Line Chart grid using CSS absolute points from real DB activityCount */}
             <View style={styles.lineChartContainer}>
-              {/* Horizontal dotted lines */}
               <View style={[styles.gridLine, { top: '0%' }]} />
               <View style={[styles.gridLine, { top: '25%' }]} />
               <View style={[styles.gridLine, { top: '50%' }]} />
               <View style={[styles.gridLine, { top: '75%' }]} />
               <View style={[styles.gridLine, { top: '100%' }]} />
 
-              {/* Data points & connecting visual bars */}
-              <View style={styles.chartPointsRow}>
-                {stats.weeklyActivity.map((day, idx) => {
-                  const heightVal = Math.min(90, Math.max(15, 15 + (day.activityCount ?? 0) * 25));
-                  const isToday = calendarDays[idx]?.isToday;
-                  return (
-                    <View key={idx} style={styles.chartColContainer}>
-                      <View style={[
-                        styles.barFillVisual, 
-                        { 
-                          height: `${heightVal}%`, 
-                          backgroundColor: isToday ? 'rgba(99, 102, 241, 0.3)' : 'rgba(148, 163, 184, 0.15)',
-                          borderColor: isToday ? '#6366f1' : '#94a3b8',
-                          borderWidth: 1,
-                        }
-                      ]}>
-                        {isToday && (
-                          <View style={styles.activeChartPointIndicator}>
-                            <View style={styles.innerActivePointDot} />
-                          </View>
-                        )}
+              {loading && stats.weeklyActivity.length === 0 ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <ActivityIndicator size="small" color={colors.primaryAccent} />
+                </View>
+              ) : (
+                <View style={styles.chartPointsRow}>
+                  {getWeeklyCalendar().map((day, idx) => {
+                    const activity = stats.weeklyActivity.find(a => a.dayLabel === day.dayLabel);
+                    const count = activity ? (activity.activityCount ?? 0) : 0;
+                    const heightVal = count === 0 ? 10 : Math.min(90, 15 + count * 25);
+                    const isToday = day.isToday;
+                    return (
+                      <View key={idx} style={styles.chartColContainer}>
+                        <View style={[
+                          styles.barFillVisual, 
+                          { 
+                            height: `${heightVal}%`, 
+                            backgroundColor: isToday 
+                              ? 'rgba(99, 102, 241, 0.45)' 
+                              : count > 0 
+                                ? 'rgba(99, 102, 241, 0.25)' 
+                                : 'rgba(148, 163, 184, 0.12)',
+                            borderColor: isToday ? '#6366f1' : count > 0 ? 'rgba(99, 102, 241, 0.4)' : 'rgba(148, 163, 184, 0.2)',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                          }
+                        ]}>
+                          {count > 0 && (
+                            <Text style={{ 
+                              fontSize: 8, 
+                              fontWeight: '900', 
+                              color: isToday ? '#6366f1' : colors.textMuted,
+                              position: 'absolute',
+                              top: -14,
+                              alignSelf: 'center'
+                            }}>
+                              +{count}
+                            </Text>
+                          )}
+                        </View>
                       </View>
-                    </View>
-                  );
-                })}
-              </View>
-
-              {/* Highlight Label Badge on Active Point */}
-              <View style={[styles.activePointValueBadge, { left: '80%' }]}>
-                <Text style={styles.activePointValueText}>{stats.completedLessons}.0</Text>
-              </View>
+                    );
+                  })}
+                </View>
+              )}
             </View>
 
             <View style={styles.chartDatesRow}>
-              {stats.weeklyActivity.map((day, idx) => {
-                let dateStr = '--';
-                if (day.dateStr) {
-                  const parts = day.dateStr.split('-');
-                  dateStr = parts[parts.length - 1];
-                }
-                return (
-                  <Text key={idx} style={[styles.chartDateLabel, { color: colors.textMuted }]}>{dateStr}</Text>
-                );
-              })}
+              {getWeeklyCalendar().map((day, idx) => (
+                <Text key={idx} style={[styles.chartDateLabel, { color: day.isToday ? colors.primaryAccent : colors.textMuted, fontWeight: day.isToday ? '900' : '600' }]}>
+                  {day.dayLabel}
+                </Text>
+              ))}
             </View>
           </View>
 
-
-
-          {/* Section 5: Huy hiệu Trang giấy bay (Flying Page Badges) */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionSubtitle, { color: colors.text }]}>Huy hiệu Trang giấy bay</Text>
-            <TouchableOpacity onPress={() => {
-              if (achievements.length > 0) {
-                openBadgeDetail(achievements[0]);
-              } else {
-                setShowDetailsModal(true);
-              }
-            }}>
-              <Text style={{ color: colors.primaryAccent, fontSize: 12, fontWeight: '800' }}>Xem tất cả</Text>
+            <Text style={[styles.sectionSubtitle, { color: colors.text }]}>Bộ sưu tập huy hiệu</Text>
+            <TouchableOpacity onPress={() => openBadgeDetail()}>
+              <Text style={{ color: colors.primaryAccent, fontSize: 14, fontWeight: '800' }}>Xem tất cả</Text>
             </TouchableOpacity>
           </View>
 
           <View style={[styles.badgesContainerCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-            <Text style={{ fontSize: 11, color: colors.textMuted, marginBottom: 12, lineHeight: 16 }}>
-              Mỗi danh hiệu mở khóa một trang giấy bay độc nhất lơ lửng đầy màu sắc. Ấn "Xem tất cả" hoặc nhấn vào huy hiệu để xem chi tiết.
+            <Text style={{ fontSize: 13.5, color: colors.textMuted, marginBottom: 12, lineHeight: 20 }}>
+              Đạt danh hiệu để mở khóa những trang giấy đầy màu sắc. Bấm 'Xem tất cả' hoặc chọn huy hiệu để xem thêm.
             </Text>
             <ScrollView
               horizontal
@@ -528,9 +622,9 @@ export default function StatsScreen() {
             >
               {achievements.filter(item => item.isUnlocked).map((item) => (
                 <TouchableOpacity key={item.key} activeOpacity={0.8} onPress={() => openBadgeDetail(item)}>
-                  <View style={{ marginRight: 16, alignItems: 'center', width: 80 }}>
+                  <View style={{ marginRight: 16, alignItems: 'center', width: 130 }}>
                     <FlyingPageBadge achievement={item} />
-                    <Text style={{ fontSize: 9, fontWeight: '800', color: colors.text, marginTop: 4, width: '100%', textAlign: 'center' }} numberOfLines={1}>
+                    <Text style={{ fontSize: 12.5, fontWeight: '800', color: colors.text, marginTop: 4, width: '100%', textAlign: 'center' }} numberOfLines={1}>
                       {item.name}
                     </Text>
                   </View>
@@ -543,172 +637,12 @@ export default function StatsScreen() {
               )}
             </ScrollView>
           </View>
-
-          {/* Modal Xem chi tiết danh hiệu */}
-          <Modal
-            visible={showDetailsModal}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setShowDetailsModal(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={[styles.modalContent, { backgroundColor: colors.bg, borderColor: colors.border }]}>
-                {/* Header */}
-                <View style={styles.modalHeader}>
-                  <Text style={[styles.modalTitle, { color: colors.text }]}>Danh hiệu Trang giấy bay</Text>
-                  <TouchableOpacity onPress={() => setShowDetailsModal(false)} style={styles.modalCloseBtn}>
-                    <Ionicons name="close" size={24} color={colors.text} />
-                  </TouchableOpacity>
-                </View>
-
-                {selectedBadge ? (
-                  <>
-                    {/* Split content row */}
-                    <View style={styles.detailSplitRow}>
-                      {/* Left: Animated Floating Badge */}
-                      <View style={styles.detailLeftCol}>
-                        <Animated.View style={[
-                          styles.detailBadgeContainer,
-                          {
-                            transform: [
-                              { translateX: flyAnim },
-                              { translateY: detailFloatAnim }
-                            ]
-                          }
-                        ]}>
-                          <FlyingPageBadge achievement={selectedBadge} />
-                        </Animated.View>
-                      </View>
-
-                      {/* Right: Badge Details */}
-                      <View style={styles.detailRightCol}>
-                        <Text style={[styles.detailBadgeName, { color: colors.primaryAccent }]}>
-                          {selectedBadge.name}
-                        </Text>
-                        <Text style={[styles.detailBadgeDesc, { color: colors.text }]}>
-                          {selectedBadge.description}
-                        </Text>
-
-                        {/* Progress */}
-                        <View style={styles.detailProgressContainer}>
-                          <Text style={[styles.detailProgressLabel, { color: colors.textMuted }]}>Tiến độ hiện tại</Text>
-                          <View style={styles.progressRow}>
-                            <View style={[styles.detailProgressBarBg, { backgroundColor: colors.border }]}>
-                              <View style={[
-                                styles.detailProgressBarFill,
-                                {
-                                  backgroundColor: colors.primaryAccent,
-                                  width: `${Math.min(100, (selectedBadge.currentProgress * 100) / Math.max(1, selectedBadge.targetProgress))}%`
-                                }
-                              ]} />
-                            </View>
-                            <Text style={[styles.detailProgressText, { color: colors.text }]}>
-                              {selectedBadge.currentProgress} / {selectedBadge.targetProgress}
-                            </Text>
-                          </View>
-                        </View>
-
-                        {/* Status / Date */}
-                        <View style={styles.detailStatusContainer}>
-                          <Text style={[styles.detailStatusLabel, { color: colors.textMuted }]}>Trạng thái</Text>
-                          {selectedBadge.isUnlocked ? (
-                            <View style={styles.statusBadgeUnlocked}>
-                              <Ionicons name="checkmark-circle" size={16} color="#22c55e" />
-                              <Text style={styles.statusTextUnlocked}>
-                                Đã mở khóa ({selectedBadge.unlockedAt ? new Date(selectedBadge.unlockedAt).toLocaleDateString('vi-VN') : 'Gần đây'})
-                              </Text>
-                            </View>
-                          ) : (
-                            <View style={styles.statusBadgeLocked}>
-                              <Ionicons name="lock-closed" size={16} color={colors.textMuted} />
-                              <Text style={[styles.statusTextLocked, { color: colors.textMuted }]}>Chưa mở khóa</Text>
-                            </View>
-                          )}
-                        </View>
-                      </View>
-                    </View>
-
-                    {/* Bottom: List of achievements as thumbnails */}
-                    <Text style={[styles.bottomListTitle, { color: colors.textMuted }]}>Chọn danh hiệu để xem chi tiết:</Text>
-                    
-                    {/* Category Filter Pills (Horizontal Scroll) */}
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.filterPillsScrollContent}
-                      style={styles.filterPillsScrollContainer}
-                    >
-                      {['All', 'Streak', 'Lessons', 'Minutes', 'Quiz', 'Level'].map((cat) => {
-                        const labelMap: Record<string, string> = {
-                          All: 'Tất cả',
-                          Streak: 'Chuyên cần',
-                          Lessons: 'Bài giảng',
-                          Minutes: 'Thời gian',
-                          Quiz: 'Luyện tập',
-                          Level: 'Cấp độ',
-                        };
-                        const isActive = activeFilter === cat;
-                        return (
-                          <TouchableOpacity
-                            key={cat}
-                            onPress={() => setActiveFilter(cat)}
-                            style={[
-                              styles.filterPill,
-                              isActive && { backgroundColor: colors.primaryAccent, borderColor: colors.primaryAccent }
-                            ]}
-                          >
-                            <Text style={[
-                              styles.filterPillText,
-                              { color: isActive ? '#ffffff' : colors.textMuted }
-                            ]}>
-                              {labelMap[cat]}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </ScrollView>
-
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.bottomListScrollContent}
-                    >
-                      {modalAchievementsList.map((item) => {
-                        const isSelected = selectedBadge.key === item.key;
-                        return (
-                          <TouchableOpacity
-                            key={item.key}
-                            onPress={() => changeSelectedBadge(item)}
-                            style={styles.thumbnailItem}
-                          >
-                            <FlyingPageBadge achievement={item} isSelected={isSelected} />
-                            <Text style={[
-                              styles.thumbnailText,
-                              { color: isSelected ? colors.primaryAccent : colors.textMuted }
-                            ]} numberOfLines={1}>
-                              {item.name}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                      {modalAchievementsList.length === 0 && (
-                        <Text style={{ color: colors.textMuted, fontSize: 11, paddingVertical: 12, paddingHorizontal: 8 }}>
-                          Không tìm thấy danh hiệu thuộc nhóm này.
-                        </Text>
-                      )}
-                    </ScrollView>
-                  </>
-                ) : (
-                  <ActivityIndicator size="large" color={colors.primaryAccent} style={{ marginVertical: 50 }} />
-                )}
-              </View>
-            </View>
-          </Modal>
-
         </ScrollView>
       )}
-    </View>
-  );
+
+
+        </View>
+      );
 }
 
 const styles = StyleSheet.create({
@@ -716,59 +650,60 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 50,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
+    paddingTop: 54,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   brand: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '900',
+    letterSpacing: 1.5,
   },
   headerRightBadges: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   streakBadge: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     marginHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   streakEmoji: {
-    fontSize: 12,
-    marginRight: 2,
+    fontSize: 16,
+    marginRight: 4,
   },
   streakText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '900',
   },
   headerTokenBadge: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     marginHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTokenText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '900',
   },
   headerThemeBtn: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -857,28 +792,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   calendarDayLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '800',
     marginBottom: 8,
   },
   calendarDateCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   calendarDateText: {
-    fontSize: 12,
+    fontSize: 18,
     fontWeight: '700',
   },
   activeDayDot: {
     position: 'absolute',
-    bottom: 2,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    bottom: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#6366f1',
   },
   calendarDivider: {
@@ -893,7 +828,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   streakFooterLabel: {
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -902,11 +837,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   streakFooterEmoji: {
-    fontSize: 14,
+    fontSize: 18,
     marginRight: 4,
   },
   streakFooterVal: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: '900',
   },
   weightProgressCard: {
@@ -925,23 +860,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   weightHeaderLabel: {
-    fontSize: 10,
+    fontSize: 13.5,
     fontWeight: '700',
     marginBottom: 2,
   },
   weightHeaderVal: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: '900',
   },
   weightHeaderRight: {
     alignItems: 'flex-end',
   },
   weightMinMaxLabel: {
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: '700',
   },
   lineChartContainer: {
-    height: 100,
+    height: 140,
     position: 'relative',
     marginTop: 10,
   },
@@ -966,13 +901,13 @@ const styles = StyleSheet.create({
   },
   chartColContainer: {
     height: '100%',
-    width: 20,
+    width: 28,
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
   barFillVisual: {
-    width: 8,
-    borderRadius: 4,
+    width: 12,
+    borderRadius: 6,
     alignItems: 'center',
     position: 'relative',
   },
@@ -1012,7 +947,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   chartDateLabel: {
-    fontSize: 9,
+    fontSize: 13,
     fontWeight: '800',
   },
   bmiCard: {
@@ -1222,7 +1157,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
-    minHeight: 160,
+    minHeight: 210,
   },
   detailLeftCol: {
     width: '40%',
@@ -1307,7 +1242,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   bottomListTitle: {
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: '800',
     marginBottom: 8,
     textTransform: 'uppercase',
@@ -1317,7 +1252,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   thumbnailItem: {
-    width: 76,
+    width: 124,
     alignItems: 'center',
     marginHorizontal: 12,
     padding: 6,
@@ -1326,14 +1261,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   thumbnailText: {
-    fontSize: 8,
+    fontSize: 11.5,
     fontWeight: '800',
     marginTop: 4,
     width: '100%',
     textAlign: 'center',
   },
   filterPillsScrollContainer: {
-    maxHeight: 38,
+    maxHeight: 48,
     marginBottom: 10,
     marginTop: 4,
   },
@@ -1343,15 +1278,350 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.28)',
     marginRight: 6,
   },
   filterPillText: {
-    fontSize: 9,
+    fontSize: 12.5,
     fontWeight: '800',
   },
+  tokenUsageCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  tokenRow: {
+    marginVertical: 4,
+  },
+  tokenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  tokenTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tokenIconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  tokenNameText: {
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  tokenCountText: {
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  tokenProgressBg: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  tokenProgressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  tokenDivider: {
+    height: 1,
+    marginVertical: 14,
+  },
+  calendarHistoryCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  monthChooserRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  monthNavBtn: {
+    padding: 6,
+  },
+  monthLabelText: {
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+  monthGridHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    paddingHorizontal: 4,
+  },
+  monthGridHeaderLabel: {
+    width: '14.28%',
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  monthGridDaysContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  monthGridDayCell: {
+    width: '14.28%',
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    marginBottom: 6,
+  },
+  monthGridDayCellEmpty: {
+    width: '14.28%',
+    height: 44,
+  },
+  monthGridDateCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monthGridDateText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  monthGridActiveDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    position: 'absolute',
+    bottom: 2,
+  },
+  weekGroupContainer: {
+    marginBottom: 20,
+  },
+  weekGroupHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 2,
+  },
+  weekGroupLabel: {
+    fontSize: 13.5,
+    fontWeight: '900',
+  },
+  weekGroupCount: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  historyItemCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  historyItemIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  historyItemCenter: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  historyItemTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    marginBottom: 2,
+  },
+  historyItemCategory: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  historyItemMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  historyItemMetaText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  historyItemDivider: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    marginHorizontal: 6,
+  },
+  historyItemRight: {
+    padding: 6,
+    marginLeft: 4,
+  },
+  emptyHistoryBox: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  emptyHistoryText: {
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  tokenStatsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    gap: 12,
+  },
+  tokenStatBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  tokenIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  tokenBoxVal: {
+    fontSize: 26,
+    fontWeight: '900',
+    marginBottom: 2,
+  },
+  tokenBoxLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  mainStatsHeaderCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingVertical: 14,
+    marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  unifiedTokenCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  unifiedTokenLeft: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  unifiedTokenTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    marginBottom: 2,
+  },
+  unifiedTokenSub: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  percentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  percentBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 44,
+  },
+  percentVal: {
+    fontSize: 22,
+    fontWeight: '900',
+    lineHeight: 26,
+  },
+  percentLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  percentSlash: {
+    fontSize: 26,
+    fontWeight: '300',
+    opacity: 0.5,
+    marginHorizontal: 2,
+  },
+  historyLinkBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  historyLinkText: {
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  detailHeaderBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderRadius: 12,
+  },
+  detailHeaderBackBtn: {
+    padding: 6,
+  },
+  detailHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+  },
 });
+
+
+
+

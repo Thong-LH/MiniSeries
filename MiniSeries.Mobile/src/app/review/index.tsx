@@ -21,6 +21,7 @@ export default function ReviewScreen() {
     setVideoTokens,
     triggerToast,
     isAuthenticated,
+    setShouldRefreshHome,
   } = useApp();
   const router = useRouter();
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
@@ -103,6 +104,7 @@ export default function ReviewScreen() {
           if (data.quota.remainingVideoCount !== undefined) setVideoTokens(data.quota.remainingVideoCount);
         }
         triggerToast('Phê duyệt thành công! Tiến trình sinh media bắt đầu.');
+        setShouldRefreshHome(true);
         router.replace('/(tabs)/home');
       }
     } catch (err: any) {

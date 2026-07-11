@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Dimensions, Animated, Easing, Platform } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Dimensions, Animated, Easing, Platform, FlatList } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Lesson } from '../../types';
@@ -10,6 +10,9 @@ import { useTheme } from '../../hooks/use-theme';
 import { LevelAvatar } from '../../components/LevelAvatar';
 
 const { width } = Dimensions.get('window');
+const CARD_WIDTH = width * 0.82;
+const CARD_GAP = 12;
+const SNAP_INTERVAL = CARD_WIDTH + CARD_GAP;
 
 export default function HomeScreen() {
   const {
@@ -27,6 +30,8 @@ export default function HomeScreen() {
     isAuthenticated,
     refreshProfile,
     globalStreak,
+    shouldRefreshHome,
+    setShouldRefreshHome,
   } = useApp();
   const router = useRouter();
   const navigation = useNavigation();
@@ -35,14 +40,17 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeFilter, setActiveFilter] = useState<string>('Manga');
   const [loading, setLoading] = useState<boolean>(false);
-  const [streak, setStreak] = useState<number>(7);
+  const [streak, setStreak] = useState<number>(0);
   const [weekDays, setWeekDays] = useState<any[]>([]);
   const [showTargetSelector, setShowTargetSelector] = useState<boolean>(false);
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   
   // Pager / Carousel state
   const [carouselLessons, setCarouselLessons] = useState<Lesson[]>([]);
+  const [carouselLoading, setCarouselLoading] = useState<boolean>(false);
+
   const scrollViewRef = useRef<ScrollView>(null);
+  const lastFetchTimeRef = useRef<number>(0);
 
   // Rotating logo animation
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -141,18 +149,36 @@ export default function HomeScreen() {
     inputRange: [0, 1],
     outputRange: [0.40, 0.70], // breathes visibly without disappearing
   });
-
   // View More / Fullscreen overlay state
   const [showAllLessons, setShowAllLessons] = useState<boolean>(false);
   const [allLessons, setAllLessons] = useState<Lesson[]>([]);
   const [allLessonsPage, setAllLessonsPage] = useState<number>(1);
   const [allLessonsHasMore, setAllLessonsHasMore] = useState<boolean>(true);
   const [allLessonsSearch, setAllLessonsSearch] = useState<string>('');
+  const [searchInputText, setSearchInputText] = useState<string>('');
   const [allLessonsFilter, setAllLessonsFilter] = useState<string>('Manga');
   const [allLessonsLoading, setAllLessonsLoading] = useState<boolean>(false);
 
   const colors = useTheme();
   const isDark = colors.isDark;
+
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setAllLessonsSearch(searchInputText);
+    }, 400);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchInputText]);
+
+  useEffect(() => {
+    if (!showAllLessons) {
+      setSearchInputText('');
+      setAllLessonsSearch('');
+    }
+  }, [showAllLessons]);
 
   const toggleTheme = () => {
     setThemeId(isDark ? 'bold-typography' : 'bold-typography-dark');
@@ -209,8 +235,11 @@ export default function HomeScreen() {
     }
   };
 
-  const fetchHomeLessons = async () => {
+  const fetchHomeLessons = async (silent = false) => {
     if (!isAuthenticated) return;
+    if (!silent && carouselLessons.length === 0) {
+      setCarouselLoading(true);
+    }
     try {
       const res = await apiClient.get('/lessons/my', {
         params: { page: 1, pageSize: 20 }
@@ -221,6 +250,8 @@ export default function HomeScreen() {
       }
     } catch (err) {
       console.log('Lỗi tải bài học carousel:', err);
+    } finally {
+      setCarouselLoading(false);
     }
   };
 
@@ -290,31 +321,53 @@ export default function HomeScreen() {
     }
   }, [allLessonsPage]);
 
+  const fetchHomeData = async (force = false) => {
+    if (!isAuthenticated) return;
+    if (!force && carouselLessons.length > 0) {
+      return;
+    }
+    try {
+      await Promise.all([
+        fetchHomeLessons(true),
+        fetchDashboardStats(),
+        refreshProfile()
+      ]);
+    } catch (e) {
+      console.log('Error fetching home data:', e);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      fetchHomeLessons();
-      fetchDashboardStats();
-      refreshProfile();
-      apiClient.post('/analytics/track', { path: '/home', deviceType: 'Mobile' }).catch(() => {});
+      if (isAuthenticated) {
+        const force = shouldRefreshHome;
+        fetchHomeData(force);
+        if (shouldRefreshHome) {
+          setShouldRefreshHome(false);
+        }
+        apiClient.post('/analytics/track', { path: '/home', deviceType: 'Mobile' }).catch(() => {});
+      }
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, isAuthenticated, shouldRefreshHome, carouselLessons.length]);
+
   useEffect(() => {
-    fetchHomeLessons();
-    fetchDashboardStats();
-    refreshProfile();
-  }, []);
+    if (isAuthenticated) {
+      fetchHomeData(true);
+    }
+  }, [isAuthenticated]);
+
   const handleTabPress = (tabName: string) => {
     setActiveFilter(tabName);
     const index = categories.indexOf(tabName);
     if (index !== -1 && scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({ x: index * width, animated: true });
+      scrollViewRef.current.scrollTo({ x: index * SNAP_INTERVAL, animated: true });
     }
   };
 
   const handleScroll = (event: any) => {
     const contentOffset = event.nativeEvent.contentOffset.x;
-    const page = Math.round(contentOffset / width);
+    const page = Math.round(contentOffset / SNAP_INTERVAL);
     if (page >= 0 && page < categories.length) {
       if (categories[page] !== activeFilter) {
         setActiveFilter(categories[page]);
@@ -364,120 +417,126 @@ export default function HomeScreen() {
             onPress={toggleTheme}
             style={[styles.headerThemeBtn, { borderColor: colors.border, backgroundColor: colors.bg }]}
           >
-            <Ionicons name={isDark ? 'sunny' : 'moon'} size={14} color={colors.text} />
+            <Ionicons name={isDark ? 'sunny' : 'moon'} size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Search Bar */}
-          <View style={styles.searchSection}>
-            <Ionicons name="search-outline" size={16} color={colors.textMuted} style={styles.searchIcon} />
-            <TextInput
-              placeholder="Tìm kiếm bài giảng..."
-              placeholderTextColor={colors.textMuted}
-              value={allLessonsSearch}
-              onChangeText={setAllLessonsSearch}
-              style={[styles.searchInput, { backgroundColor: isDark ? '#18181b' : '#f1f5f9', color: colors.text }]}
-            />
-          </View>
+        <FlatList
+          data={allLessons}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View>
+              {/* Search Bar */}
+              <View style={[styles.searchSection, { marginBottom: 12 }]}>
+                <Ionicons name="search-outline" size={16} color={colors.textMuted} style={styles.searchIcon} />
+                <TextInput
+                  placeholder="Tìm kiếm bài giảng..."
+                  placeholderTextColor={colors.textMuted}
+                  value={searchInputText}
+                  onChangeText={setSearchInputText}
+                  style={[styles.searchInput, { backgroundColor: isDark ? '#18181b' : '#f1f5f9', color: colors.text }]}
+                />
+              </View>
 
-          {/* Categories / Filter Scroll */}
-          <View style={styles.filterSection}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filtersScrollContent}
-            >
-              {categories.map((tab) => {
-                const active = allLessonsFilter === tab;
-                return (
-                  <TouchableOpacity
-                    key={tab}
-                    activeOpacity={0.8}
-                    onPress={() => setAllLessonsFilter(tab)}
-                    style={[
-                      styles.filterTab,
-                      {
-                        backgroundColor: active ? 'rgba(56, 189, 248, 0.15)' : colors.cardBg,
-                        borderColor: active ? colors.primaryAccent : colors.border
-                      }
-                    ]}
-                  >
-                    <Text style={[styles.filterTabText, { color: active ? colors.primaryAccent : colors.text }]}>
-                      {tab}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-
-          {/* Full List of Lessons */}
-          {allLessonsLoading ? (
-            <ActivityIndicator size="large" color={colors.primaryAccent} style={{ marginTop: 40 }} />
-          ) : allLessons.length === 0 ? (
-            <View style={[styles.emptyContainer, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
-              <Ionicons name="folder-open-outline" size={40} color={colors.textMuted} style={{ marginBottom: 10 }} />
-              <Text style={{ color: colors.text, fontWeight: 'bold', marginBottom: 10, fontSize: 13 }}>Không tìm thấy bài học nào</Text>
-            </View>
-          ) : (
-            <View style={styles.listContainer}>
-              {allLessons.map((lesson) => (
-                <TouchableOpacity
-                  key={lesson.id}
-                  activeOpacity={0.8}
-                  onPress={() => handleViewLesson(lesson)}
-                  style={[styles.lessonRow, { backgroundColor: colors.cardBg, borderColor: colors.border }]}
+              {/* Categories / Filter Scroll */}
+              <View style={[styles.filterSection, { marginBottom: 16 }]}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.filtersScrollContent}
                 >
-                  <Image source={{ uri: lesson.coverUrl }} style={styles.rowImage} />
-                  <View style={styles.rowContent}>
-                    <View style={styles.rowHeader}>
-                      <View style={[
-                        styles.typeBadge,
-                        {
-                          backgroundColor: lesson.type === 'manga' ? colors.mangaBadgeBg : colors.videoBadgeBg,
-                        }
-                      ]}>
-                        <Text style={[
-                          styles.typeBadgeText,
-                          { color: lesson.type === 'manga' ? colors.mangaAccent : colors.videoAccent }
-                        ]}>
-                          {lesson.type.toUpperCase()}
-                        </Text>
-                      </View>
-                      <Text style={[
-                        styles.rowStatusText,
-                        { color: lesson.status === 'Hoàn thành' ? '#10b981' : '#f59e0b' }
-                      ]}>
-                        {lesson.status}
-                      </Text>
-                    </View>
-                    <Text style={[styles.rowTitle, { color: colors.text }]} numberOfLines={1}>
-                      {lesson.title}
-                    </Text>
-                    <Text style={[styles.rowDesc, { color: colors.textMuted }]} numberOfLines={1}>
-                      {lesson.description || 'Bài giảng được tạo tự động bởi AI.'}
-                    </Text>
-                    <View style={styles.rowProgressContainer}>
-                      <View style={[styles.rowProgressBarBg, { backgroundColor: isDark ? '#27272a' : '#e4e4e7' }]}>
-                        <View style={[
-                          styles.rowProgressBarFill,
+                  {categories.map((tab) => {
+                    const active = allLessonsFilter === tab;
+                    return (
+                      <TouchableOpacity
+                        key={tab}
+                        activeOpacity={0.8}
+                        onPress={() => setAllLessonsFilter(tab)}
+                        style={[
+                          styles.filterTab,
                           {
-                            width: `${lesson.progress || 0}%`,
-                            backgroundColor: colors.primaryAccent
+                            backgroundColor: active ? 'rgba(56, 189, 248, 0.15)' : colors.cardBg,
+                            borderColor: active ? colors.primaryAccent : colors.border
                           }
-                        ]} />
-                      </View>
-                      <Text style={[styles.rowProgressText, { color: colors.textMuted }]}>
-                        {lesson.progress || 0}%
-                      </Text>
-                    </View>
+                        ]}
+                      >
+                        <Text style={[styles.filterTabText, { color: active ? colors.primaryAccent : colors.text }]}>
+                          {tab}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            </View>
+          }
+          renderItem={({ item: lesson }) => (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => handleViewLesson(lesson)}
+              style={[styles.lessonRow, { backgroundColor: colors.cardBg, borderColor: colors.border, marginBottom: 12 }]}
+            >
+              <Image source={{ uri: lesson.coverUrl }} style={styles.rowImage} />
+              <View style={styles.rowContent}>
+                <View style={styles.rowHeader}>
+                  <View style={[
+                    styles.typeBadge,
+                    {
+                      backgroundColor: lesson.type === 'manga' ? colors.mangaBadgeBg : colors.videoBadgeBg,
+                    }
+                  ]}>
+                    <Text style={[
+                      styles.typeBadgeText,
+                      { color: lesson.type === 'manga' ? colors.mangaAccent : colors.videoAccent }
+                    ]}>
+                      {lesson.type.toUpperCase()}
+                    </Text>
                   </View>
-                </TouchableOpacity>
-              ))}
-
-              {/* Pagination Controls */}
-              <View style={styles.paginationRow}>
+                  <Text style={[
+                    styles.rowStatusText,
+                    { color: lesson.status === 'Hoàn thành' ? '#10b981' : '#f59e0b' }
+                  ]}>
+                    {lesson.status}
+                  </Text>
+                </View>
+                <Text style={[styles.rowTitle, { color: colors.text }]} numberOfLines={1}>
+                  {lesson.title}
+                </Text>
+                <Text style={[styles.rowDesc, { color: colors.textMuted }]} numberOfLines={1}>
+                  {lesson.description || 'Bài giảng được tạo tự động bởi AI.'}
+                </Text>
+                <View style={styles.rowProgressContainer}>
+                  <View style={[styles.rowProgressBarBg, { backgroundColor: isDark ? '#27272a' : '#e4e4e7' }]}>
+                    <View style={[
+                      styles.rowProgressBarFill,
+                      {
+                        width: `${lesson.progress || 0}%`,
+                        backgroundColor: colors.primaryAccent
+                      }
+                    ]} />
+                  </View>
+                  <Text style={[styles.rowProgressText, { color: colors.textMuted }]}>
+                    {lesson.progress || 0}%
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+          ListEmptyComponent={
+            allLessonsLoading ? (
+              <ActivityIndicator size="large" color={colors.primaryAccent} style={{ marginTop: 40 }} />
+            ) : (
+              <View style={[styles.emptyContainer, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+                <Ionicons name="folder-open-outline" size={40} color={colors.textMuted} style={{ marginBottom: 10 }} />
+                <Text style={{ color: colors.text, fontWeight: 'bold', marginBottom: 10, fontSize: 13 }}>Không tìm thấy bài học nào</Text>
+              </View>
+            )
+          }
+          ListFooterComponent={
+            !allLessonsLoading && allLessons.length > 0 ? (
+              <View style={[styles.paginationRow, { marginTop: 12, marginBottom: 20 }]}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   disabled={allLessonsPage === 1}
@@ -512,9 +571,9 @@ export default function HomeScreen() {
                   <Text style={[styles.pageBtnText, { color: !allLessonsHasMore ? colors.text : colors.buttonTextActive }]}>SAU</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          )}
-        </ScrollView>
+            ) : null
+          }
+        />
       </View>
     );
   }
@@ -570,15 +629,6 @@ export default function HomeScreen() {
             <Text style={[styles.streakText, { color: colors.text, marginLeft: 3 }]}>{globalStreak}</Text>
           </View>
 
-
-          {/* Unified Theme Toggle Button */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={toggleTheme}
-            style={[styles.headerThemeBtn, { borderColor: colors.border, backgroundColor: colors.bg }]}
-          >
-            <Ionicons name={isDark ? 'sunny' : 'moon'} size={14} color={colors.text} />
-          </TouchableOpacity>
 
           {/* Gamified Level Avatar with Circular Progress */}
           <LevelAvatar />
@@ -704,7 +754,7 @@ export default function HomeScreen() {
           <View style={styles.challengeInfo}>
             <Text style={styles.challengeTitle}>THỬ THÁCH HỌC TẬP 7 NGÀY</Text>
             <Text style={styles.challengeSub}>
-              Hoàn thành kịch bản bài học mỗi ngày để nhận điểm kinh nghiệm (EXP)! Đã tích lũy: {streak * 15} EXP (+15 EXP/ngày)
+              Hoàn thành bài học nhận +15 EXP mỗi ngày. Đã nhận: {streak * 15} EXP.
             </Text>
             
             {/* Interactive Step Progress Circles */}
@@ -720,11 +770,11 @@ export default function HomeScreen() {
                       isCurrent && { borderColor: '#ffffff', borderWidth: 1.5, borderStyle: 'dashed' }
                     ]}>
                       {isCompleted ? (
-                        <Text style={{ fontSize: 10 }}>🔥</Text>
+                        <Text style={{ fontSize: 16 }}>🔥</Text>
                       ) : isCurrent ? (
-                        <Text style={{ color: '#ffffff', fontSize: 7, fontWeight: '900' }}>+15</Text>
+                        <Text style={{ color: '#ffffff', fontSize: 11, fontWeight: '900' }}>+15</Text>
                       ) : (
-                        <Ionicons name="lock-closed" size={9} color="rgba(255, 255, 255, 0.4)" />
+                        <Ionicons name="lock-closed" size={13} color="rgba(255, 255, 255, 0.4)" />
                       )}
                     </View>
                     <Text style={styles.challengeStepLabel}>N{idx + 1}</Text>
@@ -789,10 +839,17 @@ export default function HomeScreen() {
           ref={scrollViewRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          pagingEnabled={true}
+          pagingEnabled={false}
+          snapToInterval={SNAP_INTERVAL}
+          snapToAlignment="start"
+          decelerationRate="fast"
           scrollEventThrottle={16}
           onScroll={handleScroll}
-          contentContainerStyle={{ paddingHorizontal: 0 }}
+          contentContainerStyle={{ 
+            paddingLeft: 16, 
+            paddingRight: width - CARD_WIDTH - 16 
+          }}
+          style={{ marginHorizontal: -16 }}
         >
           {categories.map((cat, catIdx) => {
             const filtered = carouselLessons.filter(l => {
@@ -807,8 +864,8 @@ export default function HomeScreen() {
               <View 
                 key={cat} 
                 style={{ 
-                  width: width, 
-                  paddingHorizontal: 16
+                  width: CARD_WIDTH, 
+                  marginRight: CARD_GAP
                 }}
               >
                 <View style={[
@@ -818,7 +875,12 @@ export default function HomeScreen() {
                     borderColor: colors.border,
                   }
                 ]}>
-                  {sliced.length === 0 ? (
+                  {carouselLoading ? (
+                    <View style={styles.carouselEmptyContainer}>
+                      <ActivityIndicator size="small" color={colors.primaryAccent} />
+                      <Text style={[styles.carouselEmptyText, { color: colors.textMuted, marginTop: 8 }]}>Đang tải...</Text>
+                    </View>
+                  ) : sliced.length === 0 ? (
                     <View style={styles.carouselEmptyContainer}>
                       <Ionicons name="folder-open-outline" size={32} color={colors.textMuted} />
                       <Text style={[styles.carouselEmptyText, { color: colors.textMuted }]}>Chưa có bài giảng nào</Text>
@@ -910,66 +972,67 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 50,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
+    paddingTop: 54,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   brand: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '900',
+    letterSpacing: 1.5,
   },
   headerRightBadges: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   streakBadge: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     marginHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   streakEmoji: {
-    fontSize: 12,
-    marginRight: 2,
+    fontSize: 16,
+    marginRight: 4,
   },
   streakText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '900',
   },
   headerTokenBadge: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     marginHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTokenText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '900',
   },
   headerThemeBtn: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 4,
   },
   scrollContent: {
-    padding: 16,
+    padding: 18,
     paddingBottom: 40,
   },
   searchSection: {
@@ -992,8 +1055,8 @@ const styles = StyleSheet.create({
   },
   weeklyGoalCard: {
     borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 18,
+    padding: 20,
     marginTop: 16,
     marginBottom: 16,
     shadowOffset: { width: 0, height: 2 },
@@ -1061,7 +1124,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   weeklyGoalTitle: {
-    fontSize: 14,
+    fontSize: 17,
     fontWeight: '800',
   },
   weeklyGoalTargetContainer: {
@@ -1069,7 +1132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weeklyGoalTargetText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '900',
   },
   targetSelectorContainer: {
@@ -1125,8 +1188,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   challengeCard: {
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 18,
+    padding: 24,
     marginBottom: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1145,16 +1208,16 @@ const styles = StyleSheet.create({
   },
   challengeTitle: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 18.5,
     fontWeight: '900',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   challengeSub: {
     color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '600',
-    lineHeight: 16,
+    lineHeight: 18,
     marginBottom: 14,
   },
   challengeProgressRow: {
@@ -1165,18 +1228,18 @@ const styles = StyleSheet.create({
   },
   challengeStepCol: {
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   challengeStepCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   challengeStepLabel: {
-    fontSize: 8,
+    fontSize: 12.5,
     color: 'rgba(255, 255, 255, 0.6)',
     fontWeight: '800',
   },
@@ -1199,7 +1262,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   challengeBtnText: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '900',
   },
   challengeIconContainer: {
@@ -1212,7 +1275,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: '800',
     marginBottom: 12,
   },
@@ -1221,12 +1284,12 @@ const styles = StyleSheet.create({
   },
   filterTab: {
     borderWidth: 1,
-    borderRadius: 18,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
   },
   filterTabText: {
-    fontSize: 11,
+    fontSize: 13.5,
     fontWeight: '800',
   },
   listContainer: {
@@ -1335,9 +1398,9 @@ const styles = StyleSheet.create({
   },
   carouselCard: {
     borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    minHeight: 180,
+    borderRadius: 18,
+    padding: 20,
+    minHeight: 210,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -1375,11 +1438,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   carouselRowTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '800',
   },
   carouselRowDesc: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600',
     marginTop: 2,
   },
@@ -1390,7 +1453,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   carouselCardMoreText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '900',
   },
   exploreBannerCard: {

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { InvoiceModal } from '../../components/InvoiceModal';
+import { PaymentHistoryModal } from '../../components/PaymentHistoryModal';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../services/apiClient';
 import { SpaceBackground } from '../../components/SpaceBackground';
@@ -29,6 +30,7 @@ export default function ProfileScreen() {
   const [invoiceVisible, setInvoiceVisible] = useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = useState<string>('');
   const [selectedAmount, setSelectedAmount] = useState<string>('');
+  const [historyVisible, setHistoryVisible] = useState<boolean>(false);
 
   const colors = useTheme();
   const isDark = colors.isDark;
@@ -125,29 +127,6 @@ export default function ProfileScreen() {
             {renderStreakFlame(globalStreak, 13)}
             <Text style={[styles.streakText, { color: colors.text, marginLeft: 3 }]}>{globalStreak}</Text>
           </View>
-
-          {/* Token Badge */}
-          <View style={[styles.headerTokenBadge, { borderColor: colors.border, backgroundColor: colors.bg }]}>
-            <Ionicons name="book-outline" size={12} color={colors.text} style={{ marginRight: 2 }} />
-            <Text style={[styles.headerTokenText, { color: colors.text }]}>
-              {mangaTokens > 1000 ? '∞' : mangaTokens}
-            </Text>
-            <Text style={{ color: colors.textMuted, marginHorizontal: 4, fontSize: 10 }}>|</Text>
-            <Ionicons name="film-outline" size={12} color={colors.text} style={{ marginRight: 2 }} />
-            <Text style={[styles.headerTokenText, { color: colors.text }]}>
-              {videoTokens}
-            </Text>
-          </View>
-
-          {/* Unified Theme Toggle Button */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={toggleTheme}
-            style={[styles.headerThemeBtn, { borderColor: colors.border, backgroundColor: colors.bg }]}
-          >
-            <Ionicons name={isDark ? 'sunny' : 'moon'} size={14} color={colors.text} />
-          </TouchableOpacity>
-
           {/* Gamified Level Avatar with Circular Progress */}
           <LevelAvatar />
         </View>
@@ -175,77 +154,131 @@ export default function ProfileScreen() {
         {/* Pricing Header */}
         <Text style={[styles.sectionTitle, { color: colors.text }]}>NÂNG CẤP GÓI CƯỚC</Text>
 
-        {/* Basic Plan */}
+        {/* Basic Pack */}
         <View style={[
           styles.planCard,
-          { borderColor: activePlan === 'Basic' ? colors.primaryAccent : colors.border, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' },
-          activePlan === 'Basic' && { borderWidth: 2 }
+          { borderColor: colors.primaryAccent, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' },
         ]}>
           <View style={[styles.planHeader, { borderBottomColor: colors.border }]}>
-            <Text style={[styles.planTitle, { color: colors.text }]}>BASIC PLAN</Text>
-            <Text style={[styles.planPrice, { color: activePlan === 'Basic' ? colors.primaryAccent : colors.text }]}>10,000đ / tháng</Text>
+            <Text style={[styles.planTitle, { color: colors.text }]}>BASIC PACK</Text>
+            <Text style={[styles.planPrice, { color: colors.primaryAccent }]}>150,000đ</Text>
           </View>
           <Text style={[styles.planDesc, { color: colors.textMuted }]}>
-            Phần lớn học viên cá nhân muốn trải nghiệm bài giảng trắc nghiệm truyện tranh AI.
+            Phần lớn học viên cá nhân muốn trải nghiệm bài giảng trắc nghiệm truyện tranh và hoạt cảnh AI.
           </Text>
           <View style={styles.featuresList}>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ 30 Manga Tokens củng cố kiến thức</Text>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Truy cập mọi bài giảng truyện tranh mẫu</Text>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Hỗ trợ khách hàng tiêu chuẩn 24/7</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +30 Manga Tokens tạo truyện</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +10 Video Tokens hoạt cảnh AI</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Lượt tạo cộng dồn vĩnh viễn, không hết hạn</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Quy đổi siêu tiết kiệm cho nhu cầu học tập</Text>
           </View>
           <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() => handleUpgradeClick('Basic', '10000')}
-            disabled={activePlan === 'Basic'}
+            onPress={() => handleUpgradeClick('Basic', '150000')}
             style={[
               styles.planBtn,
               {
-                backgroundColor: activePlan === 'Basic' ? 'transparent' : colors.primaryAccent,
-                borderColor: activePlan === 'Basic' ? colors.border : colors.primaryAccent
+                backgroundColor: colors.primaryAccent,
+                borderColor: colors.primaryAccent
               }
             ]}
           >
-            <Text style={[styles.planBtnText, { color: activePlan === 'Basic' ? colors.text : '#ffffff' }]}>
-              {activePlan === 'Basic' ? 'ĐANG SỬ DỤNG' : 'NÂNG CẤP GÓI'}
+            <Text style={[styles.planBtnText, { color: '#ffffff' }]}>
+              MUA GÓI BASIC
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Premium Plan */}
+        {/* Premium Pack */}
         <View style={[
           styles.planCard,
-          { borderColor: activePlan === 'Premium' ? colors.plasmaAccent : colors.border, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' },
-          activePlan === 'Premium' && { borderWidth: 2 }
+          { borderColor: '#fbbf24', backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' },
         ]}>
           <View style={[styles.planHeader, { borderBottomColor: colors.border }]}>
-            <Text style={[styles.planTitle, { color: colors.text }]}>PREMIUM PLAN</Text>
-            <Text style={[styles.planPrice, { color: activePlan === 'Premium' ? colors.plasmaAccent : colors.text }]}>30,000đ / tháng</Text>
+            <Text style={[styles.planTitle, { color: colors.text }]}>PREMIUM PACK</Text>
+            <Text style={[styles.planPrice, { color: '#fbbf24' }]}>300,000đ</Text>
           </View>
           <Text style={[styles.planDesc, { color: colors.textMuted }]}>
             Dành cho người sáng tạo và giảng viên muốn thiết kế khối lượng bài học lớn bằng cả video & manga.
           </Text>
           <View style={styles.featuresList}>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Không giới hạn bài học truyện tranh (Manga)</Text>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ 10 Video Tokens sinh hoạt cảnh AI hàng tháng</Text>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Chất lượng hình ảnh sắc nét, tùy biến cao</Text>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Ưu tiên hỗ trợ CSKH trực tuyến 24/7</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +100 Manga Tokens tạo truyện</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +50 Video Tokens hoạt cảnh AI</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Tiết kiệm hơn 30% so với gói Basic</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Lượt tạo cộng dồn vĩnh viễn, không hết hạn</Text>
           </View>
           <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() => handleUpgradeClick('Premium', '30000')}
-            disabled={activePlan === 'Premium'}
+            onPress={() => handleUpgradeClick('Premium', '300000')}
             style={[
               styles.planBtn,
               {
-                backgroundColor: activePlan === 'Premium' ? 'transparent' : colors.plasmaAccent,
-                borderColor: activePlan === 'Premium' ? colors.border : colors.plasmaAccent
+                backgroundColor: '#fbbf24',
+                borderColor: '#fbbf24'
               }
             ]}
           >
-            <Text style={[styles.planBtnText, { color: activePlan === 'Premium' ? colors.text : '#ffffff' }]}>
-              {activePlan === 'Premium' ? 'ĐANG SỬ DỤNG' : 'NÂNG CẤP GÓI'}
+            <Text style={[styles.planBtnText, { color: '#000000' }]}>
+              MUA GÓI PREMIUM
             </Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Buy individual tokens section */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>MUA LẺ TỪNG LƯỢT TẠO (PAY-AS-YOU-GO)</Text>
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+          {/* Manga token lẻ */}
+          <View style={[
+            styles.addonCard,
+            { flex: 1, borderColor: colors.primaryAccent, backgroundColor: colors.cardBg }
+          ]}>
+            <Text style={[styles.addonTitle, { color: colors.primaryAccent }]}>Manga lẻ</Text>
+            <Text style={[styles.addonPrice, { color: colors.text }]}>7.000đ</Text>
+            <Text style={[styles.addonDesc, { color: colors.textMuted }]}>+1 lượt tạo Truyện</Text>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => handleUpgradeClick('addon_manga_1', '7000')}
+              style={[styles.addonBtn, { backgroundColor: colors.primaryAccent }]}
+            >
+              <Text style={[styles.addonBtnText, { color: '#ffffff' }]}>Mua Manga</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Video token lẻ */}
+          <View style={[
+            styles.addonCard,
+            { flex: 1, borderColor: '#38bdf8', backgroundColor: colors.cardBg }
+          ]}>
+            <Text style={[styles.addonTitle, { color: '#38bdf8' }]}>Video lẻ</Text>
+            <Text style={[styles.addonPrice, { color: colors.text }]}>20.000đ</Text>
+            <Text style={[styles.addonDesc, { color: colors.textMuted }]}>+1 lượt tạo Video</Text>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => handleUpgradeClick('addon_video_1', '20000')}
+              style={[styles.addonBtn, { backgroundColor: '#38bdf8' }]}
+            >
+              <Text style={[styles.addonBtnText, { color: '#000000' }]}>Mua Video</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* CÀI ĐẶT GIAO DIỆN (Theme Setting Shortcut) */}
+        <View style={[styles.themeSettingCard, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Ionicons name="moon-outline" size={24} color={colors.primaryAccent} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.supportTitle, { color: colors.text }]}>CHẾ ĐỘ TỐI</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 9, fontWeight: '700' }}>
+                Thay đổi chế độ Sáng / Tối của hệ thống
+              </Text>
+            </View>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: '#475569', true: colors.primaryAccent }}
+              thumbColor={isDark ? '#ffffff' : '#94a3b8'}
+            />
+          </View>
         </View>
 
         {/* Customer Support Shortcut (Consultation & Billing, Profile section) */}
@@ -262,6 +295,20 @@ export default function ProfileScreen() {
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.text} />
           </View>
+        </TouchableOpacity>        {/* Transaction History Button */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => setHistoryVisible(true)}
+          style={[styles.supportShortcutCard, { borderColor: colors.border, backgroundColor: colors.cardBg, marginTop: 12 }]}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Ionicons name="receipt-outline" size={24} color={colors.primaryAccent} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.supportTitle, { color: colors.text }]}>LỊCH SỬ THANH TOÁN</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 9, fontWeight: '700' }}>Xem toàn bộ lịch sử giao dịch và hóa đơn của bạn</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.text} />
+          </View>
         </TouchableOpacity>
 
         {/* Logout Button */}
@@ -273,6 +320,12 @@ export default function ProfileScreen() {
           <Text style={[styles.logoutBtnText, { color: colors.text }]}>ĐĂNG XUẤT TÀI KHOẢN</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Payment History Modal */}
+      <PaymentHistoryModal
+        visible={historyVisible}
+        onClose={() => setHistoryVisible(false)}
+      />
 
       {/* Dynamic VietQR Invoice Payment Modal */}
       <InvoiceModal
@@ -293,56 +346,56 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 50,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
+    paddingTop: 54,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   brand: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '900',
     letterSpacing: 1.5,
   },
   headerTokenBadge: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     marginHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTokenText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '900',
   },
   headerRightBadges: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   streakBadge: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     marginHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   streakText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '900',
   },
   headerThemeBtn: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -486,5 +539,48 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 0.5,
+  },
+  addonCard: {
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  addonTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    marginBottom: 4,
+  },
+  addonPrice: {
+    fontSize: 18,
+    fontWeight: '900',
+    marginBottom: 4,
+  },
+  addonDesc: {
+    fontSize: 10,
+    fontWeight: '800',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  addonBtn: {
+    width: '100%',
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addonBtnText: {
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  themeSettingCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
   },
 });

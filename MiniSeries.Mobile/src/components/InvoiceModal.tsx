@@ -16,8 +16,6 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
   const [secondsLeft, setSecondsLeft] = useState<number>(900); // 15 minutes
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [checking, setChecking] = useState<boolean>(false);
-  const [simulating, setSimulating] = useState<boolean>(false);
   const [paymentCode, setPaymentCode] = useState<string>('');
   const [bankBin, setBankBin] = useState<string>('970422');
   const [accountNumber, setAccountNumber] = useState<string>('0909090909');
@@ -86,58 +84,43 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
     return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
   };
 
-  const handleConfirm = async () => {
-    if (!paymentCode) return;
-    setChecking(true);
-    try {
-      const res = await apiClient.get('/payment/check-status', {
-        params: { code: paymentCode }
-      });
-      if (res.data.isPaid) {
-        // Apply tokens locally (sync UI immediately)
-        setActivePlan(planName);
-        if (planName === 'Basic') {
-          setMangaTokens((prev) => prev + 30);
-        } else if (planName === 'Premium') {
-          setMangaTokens(99999); // Unlimited represented by large amount
-          setVideoTokens((prev) => prev + 30);
-        }
-        triggerToast(`Nâng cấp thành công gói ${planName}!`);
-        onClose();
-      } else {
-        triggerToast('Chưa nhận được thanh toán. Hãy thử lại hoặc chọn Giả Lập.');
-      }
-    } catch (e) {
-      console.log('Failed to check payment status:', e);
-      triggerToast('Lỗi khi kiểm tra thanh toán. Vui lòng thử lại.');
-    } finally {
-      setChecking(false);
-    }
-  };
+  // Polling payment status
+  useEffect(() => {
+    let checkInterval: any;
+    let isChecking = false;
 
-  const handleSimulatePayment = async () => {
-    if (!paymentCode) return;
-    setSimulating(true);
-    try {
-      const res = await apiClient.post('/payment/bank-webhook', {
-        content: paymentCode,
-        transferAmount: Number(amount),
-        amount: Number(amount)
-      });
-      if (res.data.success) {
-        triggerToast('Đã kích hoạt giả lập thanh toán!');
-        // Automatically check status
-        await handleConfirm();
-      } else {
-        triggerToast('Giả lập thất bại: ' + (res.data.message || ''));
-      }
-    } catch (e) {
-      console.log('Failed to simulate payment:', e);
-      triggerToast('Lỗi khi gửi yêu cầu giả lập.');
-    } finally {
-      setSimulating(false);
+    if (visible && paymentCode) {
+      checkInterval = setInterval(async () => {
+        if (isChecking) return;
+        isChecking = true;
+        try {
+          const res = await apiClient.get('/payment/check-status', {
+            params: { code: paymentCode }
+          });
+          if (res.data.isPaid) {
+            clearInterval(checkInterval);
+            setActivePlan(planName);
+            if (planName === 'Basic') {
+              setMangaTokens((prev) => prev + 30);
+            } else if (planName === 'Premium') {
+              setMangaTokens(99999);
+              setVideoTokens((prev) => prev + 30);
+            }
+            triggerToast(`Nâng cấp thành công gói ${planName}!`);
+            onClose();
+          }
+        } catch (e) {
+          console.log('Polling error:', e);
+        } finally {
+          isChecking = false;
+        }
+      }, 4000);
     }
-  };
+
+    return () => {
+      if (checkInterval) clearInterval(checkInterval);
+    };
+  }, [visible, paymentCode, planName]);
 
   return (
     <Modal visible={visible} transparent animationType="slide">
@@ -211,28 +194,6 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
           {/* Action Buttons */}
           {!loading && (
             <View style={[styles.actionsContainer, { borderTopColor: colors.border }]}>
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={handleConfirm}
-                disabled={checking}
-                style={[styles.actionBtn, { backgroundColor: colors.primaryAccent, borderColor: colors.primaryAccent }]}
-              >
-                <Text style={styles.actionBtnText}>
-                  {checking ? 'ĐANG KIỂM TRA...' : 'XÁC NHẬN ĐÃ CHUYỂN KHOẢN'}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Developer mode simulated payment button */}
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={handleSimulatePayment}
-                disabled={simulating}
-                style={[styles.actionBtn, { backgroundColor: 'rgba(167, 139, 250, 0.1)', borderColor: 'rgba(167, 139, 250, 0.3)' }]}
-              >
-                <Text style={[styles.actionBtnText, { color: '#a78bfa' }]}>
-                  {simulating ? 'ĐANG GIẢ LẬP...' : '✦ GIẢ LẬP CHUYỂN KHOẢN THÀNH CÔNG'}
-                </Text>
-              </TouchableOpacity>
 
               <TouchableOpacity
                 activeOpacity={0.8}

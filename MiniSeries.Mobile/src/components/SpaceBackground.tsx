@@ -104,7 +104,11 @@ export const SpaceBackground: React.FC<SpaceBackgroundProps> = ({ plain = false 
 
   if (plain) {
     return (
-      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: colors.bg }]} />
+      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: colors.bg }]}>
+        <View style={styles.nebulaOrange} />
+        <View style={styles.nebulaBlue} />
+        <View style={styles.nebulaPurple} />
+      </View>
     );
   }
 
