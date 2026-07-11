@@ -121,18 +121,14 @@ export const LevelAvatar: React.FC = () => {
   const percentage = Math.min(100, Math.max(0, (progress * 100) / range));
 
   // Circle properties
-  const size = 36;
-  const strokeWidth = 2.5;
+  const size = 44;
+  const strokeWidth = 3;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (circumference * percentage) / 100;
 
   return (
-    <TouchableOpacity 
-      activeOpacity={0.8} 
-      onPress={() => awardExpMock(15)} 
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.avatarWrapper}>
         <SvgComponent pointerEvents="none" width={size} height={size} style={styles.svg}>
           {/* Background Track Circle */}
@@ -185,20 +181,20 @@ export const LevelAvatar: React.FC = () => {
           </Animated.View>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: 38,
-    height: 38,
+    width: 46,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarWrapper: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -208,15 +204,15 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   innerContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
   levelText: {
-    fontSize: 14.5,
+    fontSize: 18,
     fontWeight: '900',
     fontFamily: Platform.OS === 'ios' ? 'System' : 'monospace',
     textAlign: 'center',

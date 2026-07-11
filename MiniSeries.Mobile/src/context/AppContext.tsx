@@ -1,8 +1,9 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { DesignThemeId, DesignTheme, Lesson } from '../types';
 import { designThemes } from '../data';
-import { apiClient } from '../services/apiClient';
+import { apiClient, initializeAuthToken, setUnauthorizedCallback } from '../services/apiClient';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AppContextType {
   themeId: DesignThemeId;
@@ -21,8 +22,9 @@ interface AppContextType {
   userEmail: string;
   setUserEmail: (email: string) => void;
   refreshProfile: () => Promise<void>;
+  shouldRefreshHome: boolean;
+  setShouldRefreshHome: (refresh: boolean) => void;
   
-  // Create forms state
   lessonTitle: string;
   setLessonTitle: (title: string) => void;
   lessonContent: string;
@@ -86,12 +88,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Initialize lessons to empty array instead of initialLessons to avoid displaying mock lessons before API finishes
   const [lessons, setLessons] = useState<Lesson[]>([]);
 
-  const [userEmail, setUserEmailState] = useState<string>(() => {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      return localStorage.getItem('userEmail') || 'thonglhse182025@fpt.edu.vn';
-    }
-    return 'thonglhse182025@fpt.edu.vn';
-  });
+  const [userEmail, setUserEmailState] = useState<string>('thonglhse182025@fpt.edu.vn');
   
   // Create forms state
   const [lessonTitle, setLessonTitle] = useState<string>('');
@@ -104,15 +101,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [viewingLesson, setViewingLesson] = useState<Lesson | null>(null);
   const [viewerPage, setViewerPage] = useState<number>(1);
   
-  // Toast state
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [shouldRefreshHome, setShouldRefreshHome] = useState<boolean>(false);
   const activeTheme = designThemes.find(t => t.id === themeId) || designThemes[0];
+
+  // Khôi phục phiên đăng nhập trên thiết bị di động khi app được mount
+  useEffect(() => {
+    setUnauthorizedCallback(() => {
+      setIsAuthenticated(false);
+      setUserEmailState('');
+    });
+
+    const restoreSession = async () => {
+      try {
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          return;
+        }
+        const token = await initializeAuthToken();
+        const savedEmail = await AsyncStorage.getItem('userEmail');
+        const savedIsAuth = await AsyncStorage.getItem('isAuthenticated');
+        if (token && savedIsAuth === 'true') {
+          if (savedEmail) {
+            setUserEmailState(savedEmail);
+          }
+          setIsAuthenticatedState(true);
+        }
+      } catch (e) {
+        console.log('Lỗi phục hồi token xác thực:', e);
+      }
+    };
+    restoreSession();
+  }, []);
 
   const setIsAuthenticated = (auth: boolean) => {
     setIsAuthenticatedState(auth);
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       localStorage.setItem('isAuthenticated', String(auth));
+    } else {
+      if (auth) {
+        AsyncStorage.setItem('isAuthenticated', 'true').catch(() => {});
+      } else {
+        AsyncStorage.removeItem('isAuthenticated').catch(() => {});
+        AsyncStorage.removeItem('authToken').catch(() => {});
+      }
     }
   };
 
@@ -120,6 +152,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUserEmailState(email);
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       localStorage.setItem('userEmail', email);
+    } else {
+      AsyncStorage.setItem('userEmail', email).catch(() => {});
     }
   };
 
@@ -174,7 +208,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [globalPrevLevelExp, setGlobalPrevLevelExp] = useState<number>(0);
   const [globalLevelLabel, setGlobalLevelLabel] = useState<string>('Tập sự');
   const [expNotification, setExpNotification] = useState<number | null>(null);
-  const [globalStreak, setGlobalStreak] = useState<number>(7);
+  const [globalStreak, setGlobalStreak] = useState<number>(0);
 
   const updateStatsFromData = (data: any) => {
     const oldExp = globalExp;
@@ -252,6 +286,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         userEmail,
         setUserEmail,
         refreshProfile,
+        shouldRefreshHome,
+        setShouldRefreshHome,
         weeklyTarget,
         setWeeklyTarget,
         globalLevel,

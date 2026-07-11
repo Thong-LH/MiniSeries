@@ -117,9 +117,12 @@ export default function CreateScreen() {
       if (data && data.id) {
         setLessonTitle('');
         setLessonContent('');
-        triggerToast('Đã kịch bản nháp thành công!');
+        triggerToast('Tạo kịch bản nháp thành công!');
         setIsGenerating(false);
-        router.push('/(tabs)/home');
+        router.replace({
+          pathname: '/review',
+          params: { lessonId: data.id }
+        });
       } else {
         triggerToast('Lỗi tạo kịch bản, vui lòng thử lại.');
         setIsGenerating(false);
@@ -140,33 +143,18 @@ export default function CreateScreen() {
         <Text style={[styles.brand, { color: colors.text }]}>MINISERIES</Text>
         
         <View style={styles.headerRightBadges}>
-          {/* Streak Flame Badge */}
-          <View style={[styles.streakBadge, { borderColor: colors.border, backgroundColor: colors.bg, paddingLeft: 6, paddingRight: 8 }]}>
-            {renderStreakFlame(globalStreak, 13)}
-            <Text style={[styles.streakText, { color: colors.text, marginLeft: 3 }]}>{globalStreak}</Text>
-          </View>
-
           {/* Token Badge */}
           <View style={[styles.headerTokenBadge, { borderColor: colors.border, backgroundColor: colors.bg }]}>
-            <Ionicons name="book-outline" size={12} color={colors.text} style={{ marginRight: 2 }} />
+            <Ionicons name="book-outline" size={14} color={colors.text} style={{ marginRight: 4 }} />
             <Text style={[styles.headerTokenText, { color: colors.text }]}>
               {mangaTokens > 1000 ? '∞' : mangaTokens}
             </Text>
-            <Text style={{ color: colors.textMuted, marginHorizontal: 4, fontSize: 10 }}>|</Text>
-            <Ionicons name="film-outline" size={12} color={colors.text} style={{ marginRight: 2 }} />
+            <Text style={{ color: colors.textMuted, marginHorizontal: 6, fontSize: 13 }}>|</Text>
+            <Ionicons name="film-outline" size={14} color={colors.text} style={{ marginRight: 4 }} />
             <Text style={[styles.headerTokenText, { color: colors.text }]}>
               {videoTokens}
             </Text>
           </View>
-
-          {/* Unified Theme Toggle Button */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={toggleTheme}
-            style={[styles.headerThemeBtn, { borderColor: colors.border, backgroundColor: colors.bg }]}
-          >
-            <Ionicons name={isDark ? 'sunny' : 'moon'} size={14} color={colors.text} />
-          </TouchableOpacity>
 
           {/* Gamified Level Avatar with Circular Progress */}
           <LevelAvatar />
@@ -327,60 +315,60 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 50,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
+    paddingTop: 54,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   brand: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '900',
     letterSpacing: 1.5,
   },
   headerRightBadges: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   streakBadge: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     marginHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   streakEmoji: {
-    fontSize: 12,
-    marginRight: 2,
+    fontSize: 16,
+    marginRight: 4,
   },
   streakText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '900',
   },
   headerTokenBadge: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     marginHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTokenText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '900',
   },
   headerThemeBtn: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -399,9 +387,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   cardHeader: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '800',
-    padding: 14,
+    padding: 16,
     borderBottomWidth: 1,
     letterSpacing: 0.5,
   },
@@ -412,16 +400,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 10,
+    fontSize: 12.5,
     fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 14,
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   textArea: {
@@ -444,18 +432,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   vibeIcon: {
-    fontSize: 18,
+    fontSize: 22,
   },
   vibeInfo: {
     flex: 1,
   },
   vibeName: {
-    fontSize: 11,
+    fontSize: 13.5,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
   vibeDesc: {
-    fontSize: 8,
+    fontSize: 10.5,
     fontWeight: '600',
     marginTop: 2,
   },
@@ -472,7 +460,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   formatButtonText: {
-    fontSize: 11,
+    fontSize: 13.5,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
@@ -489,7 +477,7 @@ const styles = StyleSheet.create({
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
@@ -504,7 +492,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   issueBtnText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '800',
     letterSpacing: 0.5,
   },

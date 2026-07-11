@@ -79,23 +79,23 @@ export const FlyingPageBadge: React.FC<FlyingPageBadgeProps> = ({ achievement, i
             </View>
             {/* Red Hand-drawn Fire Emoji based on Tier */}
             <View style={styles.centerDoodle}>
-              {achievement.key === 'streak_3' && (
-                <Text style={[styles.doodleText, { fontSize: 24, opacity: isUnlocked ? 1 : 0.3 }]}>🔥</Text>
+            {achievement.key === 'streak_3' && (
+                <Text style={[styles.doodleText, { fontSize: 32, opacity: isUnlocked ? 1 : 0.3 }]}>🔥</Text>
               )}
               {achievement.key === 'streak_7' && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', opacity: isUnlocked ? 1 : 0.3 }}>
-                  <Text style={{ fontSize: 16 }}>🔥</Text>
-                  <Text style={{ fontSize: 14, color: '#fb923c', marginHorizontal: 1 }}>⚡</Text>
-                  <Text style={{ fontSize: 16 }}>🔥</Text>
+                  <Text style={{ fontSize: 22 }}>🔥</Text>
+                  <Text style={{ fontSize: 18, color: '#fb923c', marginHorizontal: 1 }}>⚡</Text>
+                  <Text style={{ fontSize: 22 }}>🔥</Text>
                 </View>
               )}
               {achievement.key === 'streak_30' && (
                 <View style={{ alignItems: 'center', opacity: isUnlocked ? 1 : 0.3 }}>
-                  <Text style={{ fontSize: 12, marginBottom: 1 }}>👑</Text>
+                  <Text style={{ fontSize: 16, marginBottom: 1 }}>👑</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 12 }}>✨</Text>
-                    <Text style={{ fontSize: 22, marginHorizontal: 2 }}>🔥</Text>
-                    <Text style={{ fontSize: 12 }}>✨</Text>
+                    <Text style={{ fontSize: 16 }}>✨</Text>
+                    <Text style={{ fontSize: 28, marginHorizontal: 2 }}>🔥</Text>
+                    <Text style={{ fontSize: 16 }}>✨</Text>
                   </View>
                 </View>
               )}
@@ -135,25 +135,25 @@ export const FlyingPageBadge: React.FC<FlyingPageBadgeProps> = ({ achievement, i
             <View style={[styles.centerDoodle, { marginTop: 4 }]}>
               {achievement.key === 'minutes_60' && (
                 <View style={{ alignItems: 'center', opacity: isUnlocked ? 1 : 0.3 }}>
-                  <Text style={{ fontSize: 24, marginBottom: 2 }}>⏳</Text>
-                  <Text style={{ fontSize: 7, fontFamily: 'monospace', color: isUnlocked ? '#3b82f6' : '#64748b' }}>60m</Text>
+                  <Text style={{ fontSize: 32, marginBottom: 2 }}>⏳</Text>
+                  <Text style={{ fontSize: 10, fontFamily: 'monospace', color: isUnlocked ? '#3b82f6' : '#64748b' }}>60m</Text>
                 </View>
               )}
               {achievement.key === 'minutes_300' && (
                 <View style={{ alignItems: 'center', opacity: isUnlocked ? 1 : 0.3 }}>
-                  <Text style={{ fontSize: 24, marginBottom: 2 }}>⏰</Text>
-                  <Text style={{ fontSize: 7, fontFamily: 'monospace', color: isUnlocked ? '#3b82f6' : '#64748b' }}>300m</Text>
+                  <Text style={{ fontSize: 32, marginBottom: 2 }}>⏰</Text>
+                  <Text style={{ fontSize: 10, fontFamily: 'monospace', color: isUnlocked ? '#3b82f6' : '#64748b' }}>300m</Text>
                 </View>
               )}
               {achievement.key === 'minutes_1200' && (
                 <View style={{ alignItems: 'center', opacity: isUnlocked ? 1 : 0.3 }}>
-                  <Text style={{ fontSize: 10, marginBottom: -2, color: isUnlocked ? '#22c55e' : '#64748b' }}>🌀</Text>
+                  <Text style={{ fontSize: 14, marginBottom: -2, color: isUnlocked ? '#22c55e' : '#64748b' }}>🌀</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 10, color: isUnlocked ? '#22c55e' : '#64748b' }}>✨</Text>
-                    <Text style={{ fontSize: 24, marginHorizontal: 2 }}>⏳</Text>
-                    <Text style={{ fontSize: 10, color: isUnlocked ? '#22c55e' : '#64748b' }}>✨</Text>
+                    <Text style={{ fontSize: 14, color: isUnlocked ? '#22c55e' : '#64748b' }}>✨</Text>
+                    <Text style={{ fontSize: 32, marginHorizontal: 2 }}>⏳</Text>
+                    <Text style={{ fontSize: 14, color: isUnlocked ? '#22c55e' : '#64748b' }}>✨</Text>
                   </View>
-                  <Text style={{ fontSize: 7, fontFamily: 'monospace', color: isUnlocked ? '#22c55e' : '#64748b', fontWeight: 'bold' }}>1200m</Text>
+                  <Text style={{ fontSize: 10, fontFamily: 'monospace', color: isUnlocked ? '#22c55e' : '#64748b', fontWeight: 'bold' }}>1200m</Text>
                 </View>
               )}
             </View>
@@ -180,7 +180,7 @@ export const FlyingPageBadge: React.FC<FlyingPageBadgeProps> = ({ achievement, i
             <View style={styles.checkmarkContainer}>
               <Ionicons 
                 name="checkmark" 
-                size={22} 
+                size={32} 
                 color={isUnlocked ? '#10b981' : '#64748b'} 
                 style={{ fontWeight: 'bold' }}
               />
@@ -197,7 +197,7 @@ export const FlyingPageBadge: React.FC<FlyingPageBadgeProps> = ({ achievement, i
             <View style={styles.centerDoodle}>
               <Ionicons 
                 name={achievement.key.startsWith('level') ? 'star' : 'diamond'} 
-                size={28} 
+                size={38} 
                 color={isUnlocked ? '#eab308' : '#64748b'} 
               />
             </View>
@@ -262,12 +262,12 @@ export const FlyingPageBadge: React.FC<FlyingPageBadgeProps> = ({ achievement, i
                 </Text>
                 {/* Lock badge in corner */}
                 <View style={styles.lockBadge}>
-                  <Ionicons name="lock-closed" size={8} color="#94a3b8" />
+                  <Ionicons name="lock-closed" size={12} color="#94a3b8" />
                 </View>
               </View>
             ) : (
               <View style={styles.unlockedBadge}>
-                <Ionicons name="checkmark-circle" size={10} color="#10b981" />
+                <Ionicons name="checkmark-circle" size={15} color="#10b981" />
               </View>
             )}
           </View>
@@ -279,8 +279,8 @@ export const FlyingPageBadge: React.FC<FlyingPageBadgeProps> = ({ achievement, i
 
 const styles = StyleSheet.create({
   container: {
-    width: 94,
-    height: 130,
+    width: 132,
+    height: 180,
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 8,
@@ -289,15 +289,15 @@ const styles = StyleSheet.create({
   outerSelectionRing: {
     borderWidth: 1.5,
     borderColor: 'transparent',
-    padding: 4,
+    padding: 6,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   glowBackdrop: {
     position: 'absolute',
-    width: 76,
-    height: 98,
+    width: 112,
+    height: 148,
     borderRadius: 8,
     backgroundColor: '#3b82f6',
     opacity: 0.18,
@@ -315,11 +315,11 @@ const styles = StyleSheet.create({
     })
   },
   paperSheet: {
-    width: 82,
-    height: 110,
+    width: 118,
+    height: 160,
     borderRadius: 6,
     borderWidth: 1,
-    padding: 6,
+    padding: 10,
     justifyContent: 'space-between',
     position: 'relative',
     ...Platform.select({
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   },
   marginLine: {
     position: 'absolute',
-    left: 10,
+    left: 14,
     top: 0,
     bottom: 0,
     width: 1,
@@ -357,8 +357,8 @@ const styles = StyleSheet.create({
   },
   sheetContent: {
     flex: 1,
-    paddingLeft: 8,
-    paddingTop: 4,
+    paddingLeft: 12,
+    paddingTop: 6,
   },
   checklistLine: {
     flexDirection: 'row',
@@ -366,11 +366,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   checkbox: {
-    width: 6,
-    height: 6,
+    width: 10,
+    height: 10,
     borderWidth: 1,
     borderColor: '#64748b',
-    borderRadius: 1,
+    borderRadius: 2,
     marginRight: 4,
   },
   checkboxChecked: {
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     borderColor: '#10b981',
   },
   doodleLine: {
-    height: 2,
+    height: 3.5,
     backgroundColor: '#cbd5e1',
     borderRadius: 1,
   },
@@ -393,17 +393,17 @@ const styles = StyleSheet.create({
   },
   gradeBadge: {
     position: 'absolute',
-    right: 2,
-    top: 10,
+    right: 6,
+    top: 14,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.4)',
     borderRadius: 12,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     transform: [{ rotate: '15deg' }],
   },
   gradeText: {
-    fontSize: 9,
+    fontSize: 13,
     fontWeight: '900',
   },
   gridLinesContainer: {
@@ -417,16 +417,16 @@ const styles = StyleSheet.create({
   horizontalGridLine: {
     height: 1,
     backgroundColor: '#64748b',
-    marginVertical: 6,
+    marginVertical: 9,
   },
   formulaText: {
-    fontSize: 9,
+    fontSize: 13,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     fontWeight: '700',
     marginTop: 6,
   },
   formulaSubText: {
-    fontSize: 8,
+    fontSize: 11,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     fontStyle: 'italic',
     marginTop: 2,
@@ -434,15 +434,15 @@ const styles = StyleSheet.create({
   quizLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 3,
+    marginBottom: 4,
   },
   quizNum: {
-    fontSize: 8,
+    fontSize: 11.5,
     color: '#64748b',
-    width: 10,
+    width: 14,
   },
   quizOption: {
-    fontSize: 8,
+    fontSize: 11.5,
     color: '#94a3b8',
     marginHorizontal: 1,
     paddingHorizontal: 2,
@@ -483,9 +483,9 @@ const styles = StyleSheet.create({
   },
   progressBarBg: {
     width: '100%',
-    height: 3,
+    height: 5,
     backgroundColor: '#334155',
-    borderRadius: 1.5,
+    borderRadius: 2.5,
     overflow: 'hidden',
   },
   progressBarFill: {
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#3b82f6',
   },
   progressText: {
-    fontSize: 7,
+    fontSize: 10,
     color: '#64748b',
     marginTop: 2,
     fontWeight: '600',

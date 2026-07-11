@@ -7,22 +7,22 @@ export function useTheme() {
   return {
     isDark,
     // Base colors
-    background: isDark ? '#09090b' : '#f8fafc',
-    bg: isDark ? '#09090b' : '#f8fafc',
+    background: isDark ? '#09090b' : '#f3f5fa',
+    bg: isDark ? '#09090b' : '#f3f5fa',
     text: isDark ? '#fafafa' : '#0f172a',
     textMuted: isDark ? '#a1a1aa' : '#64748b',
-    border: isDark ? 'rgba(56, 189, 248, 0.22)' : '#cbd5e1',
-    borderMuted: isDark ? 'rgba(56, 189, 248, 0.12)' : '#e2e8f0',
+    border: isDark ? 'rgba(56, 189, 248, 0.22)' : 'rgba(99, 102, 241, 0.15)',
+    borderMuted: isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(99, 102, 241, 0.08)',
     
     // Card and Container colors
-    cardBg: isDark ? '#18181b' : 'rgba(255, 255, 255, 0.85)',
-    cardBorder: isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(56, 189, 248, 0.15)',
-    inputBg: isDark ? 'rgba(24, 24, 27, 0.65)' : 'rgba(255, 255, 255, 0.9)',
+    cardBg: isDark ? '#18181b' : '#ffffff',
+    cardBorder: isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(99, 102, 241, 0.18)',
+    inputBg: isDark ? 'rgba(24, 24, 27, 0.65)' : '#ffffff',
     
     // Accents & Buttons (Impeccable Theme Accents)
-    primaryAccent: '#38bdf8', // Electric Sky Blue
-    secondaryAccent: '#4ade80', // Gentle Green
-    plasmaAccent: '#fb923c', // Soft Orange
+    primaryAccent: isDark ? '#38bdf8' : '#4f46e5', // Sky Blue in Dark, Indigo in Light
+    secondaryAccent: isDark ? '#4ade80' : '#10b981', // Gentle Green in Dark, Emerald in Light
+    plasmaAccent: isDark ? '#fb923c' : '#ea580c', // Orange in Dark, Vivid Orange in Light
     buttonTextActive: isDark ? '#09090b' : '#ffffff',
     
     // Format Badges/Tokens
