@@ -49,7 +49,7 @@ type PaymentHistoryItem = {
   paidAt?: string | null;
 };
 
-type TabKey = 'account' | 'lessons' | 'payments';
+type TabKey = 'account' | 'lessons' | 'payments' | 'feedback';
 
 const SHOW_LEGACY_LESSON_TABLE = false;
 
@@ -185,6 +185,13 @@ export default function Profile() {
     readJsonCache<PaymentHistoryItem[]>(getScopedCacheKey(MY_PAYMENTS_CACHE_PREFIX)) !== null
   );
   const [paymentsError, setPaymentsError] = useState<string | null>(null);
+
+  // Feedback state
+  const [fbRating, setFbRating] = useState(0);
+  const [fbComment, setFbComment] = useState('');
+  const [fbSubmitting, setFbSubmitting] = useState(false);
+  const [fbSubmitted, setFbSubmitted] = useState(false);
+  const [fbError, setFbError] = useState<string | null>(null);
 
 
 
@@ -382,6 +389,9 @@ export default function Profile() {
           </button>
           <button type="button" style={tabButtonStyle(activeTab === 'payments')} onClick={() => selectTab('payments')}>
             Thanh toán
+          </button>
+          <button type="button" style={tabButtonStyle(activeTab === 'feedback')} onClick={() => selectTab('feedback')}>
+            Đánh giá
           </button>
         </div>
 
@@ -657,6 +667,130 @@ export default function Profile() {
             )}
           </div>
         )}
+
+        {activeTab === 'feedback' && (
+          <div className="profile-content-card" style={{ maxWidth: 520 }}>
+            <h2 style={{ marginBottom: '6px', color: '#facc15' }}>Đánh giá MiniSeries</h2>
+            <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '24px' }}>Chia sẻ trải nghiệm của bạn để giúp chúng tôi cải thiện sản phẩm.</p>
+
+            {fbSubmitted ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <p style={{ fontSize: '40px', marginBottom: '12px' }}>🎉</p>
+                <h3 style={{ color: '#e2e8f0', marginBottom: '8px' }}>Cảm ơn bạn đã đánh giá!</h3>
+                <p style={{ color: '#94a3b8', fontSize: '13px' }}>Phản hồi của bạn giúp chúng tôi cải thiện sản phẩm tốt hơn.</p>
+                <button
+                  style={{ marginTop: '20px', padding: '10px 28px', borderRadius: '10px', border: 'none', background: '#06b6d4', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+                  onClick={() => { setFbSubmitted(false); setFbRating(0); setFbComment(''); }}
+                >
+                  Gửi đánh giá khác
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '11px', fontWeight: 800, letterSpacing: '1px', marginBottom: '10px' }}>MỨC ĐỘ HÀI LÒNG</label>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setFbRating(star)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '32px',
+                          color: star <= fbRating ? ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'][fbRating - 1] : '#475569',
+                          transition: 'transform 0.15s',
+                          transform: star <= fbRating ? 'scale(1.15)' : 'scale(1)',
+                        }}
+                      >
+                        {star <= fbRating ? '★' : '☆'}
+                      </button>
+                    ))}
+                  </div>
+                  {fbRating > 0 && (
+                    <p style={{ textAlign: 'center', fontSize: '13px', fontWeight: 700, marginTop: '6px', color: ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'][fbRating - 1] }}>
+                      {['Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Tuyệt vời'][fbRating - 1]}
+                    </p>
+                  )}
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '11px', fontWeight: 800, letterSpacing: '1px', marginBottom: '10px' }}>NỘI DUNG ĐÁNH GIÁ</label>
+                  <textarea
+                    value={fbComment}
+                    onChange={(e) => setFbComment(e.target.value)}
+                    placeholder="Chia sẻ trải nghiệm của bạn với MiniSeries..."
+                    maxLength={500}
+                    style={{
+                      width: '100%',
+                      minHeight: '120px',
+                      padding: '14px',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(148, 163, 184, 0.2)',
+                      background: 'rgba(15, 23, 42, 0.5)',
+                      color: '#e2e8f0',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                  <p style={{ textAlign: 'right', fontSize: '11px', color: '#64748b', marginTop: '4px' }}>{fbComment.length}/500</p>
+                </div>
+
+                {fbError && <p style={{ color: '#f87171', fontSize: '13px', marginBottom: '12px' }}>{fbError}</p>}
+
+                <button
+                  type="button"
+                  disabled={fbSubmitting}
+                  onClick={async () => {
+                    if (fbRating === 0) { setFbError('Vui lòng chọn số sao đánh giá.'); return; }
+                    if (!fbComment.trim()) { setFbError('Vui lòng nhập nội dung đánh giá.'); return; }
+                    setFbError(null);
+                    setFbSubmitting(true);
+                    try {
+                      const token = (localStorage.getItem('token') || '').trim();
+                      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5088/api'}/feedback/create`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ rating: fbRating, comment: fbComment.trim() }),
+                      });
+                      if (!res.ok) {
+                        const data = await res.json().catch(() => ({}));
+                        throw new Error(data.message || 'Gửi đánh giá thất bại.');
+                      }
+                      setFbSubmitted(true);
+                    } catch (err: any) {
+                      setFbError(err?.message || 'Gửi đánh giá thất bại.');
+                    } finally {
+                      setFbSubmitting(false);
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '14px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: fbSubmitting ? '#475569' : '#06b6d4',
+                    color: '#fff',
+                    fontSize: '14px',
+                    fontWeight: 900,
+                    letterSpacing: '0.5px',
+                    cursor: fbSubmitting ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {fbSubmitting ? 'Đang gửi...' : 'GỬI ĐÁNH GIÁ'}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
 
 
       </div>

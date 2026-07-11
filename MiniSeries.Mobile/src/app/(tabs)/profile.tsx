@@ -4,6 +4,7 @@ import { useRouter, useNavigation } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { InvoiceModal } from '../../components/InvoiceModal';
 import { PaymentHistoryModal } from '../../components/PaymentHistoryModal';
+import { FeedbackModal } from '../../components/FeedbackModal';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../services/apiClient';
 import { SpaceBackground } from '../../components/SpaceBackground';
@@ -31,6 +32,7 @@ export default function ProfileScreen() {
   const [selectedPlan, setSelectedPlan] = useState<string>('');
   const [selectedAmount, setSelectedAmount] = useState<string>('');
   const [historyVisible, setHistoryVisible] = useState<boolean>(false);
+  const [feedbackVisible, setFeedbackVisible] = useState<boolean>(false);
 
   const colors = useTheme();
   const isDark = colors.isDark;
@@ -311,6 +313,22 @@ export default function ProfileScreen() {
           </View>
         </TouchableOpacity>
 
+        {/* Feedback Button */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => setFeedbackVisible(true)}
+          style={[styles.supportShortcutCard, { borderColor: colors.border, backgroundColor: colors.cardBg, marginTop: 12 }]}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Ionicons name="star-outline" size={24} color="#eab308" />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.supportTitle, { color: colors.text }]}>GỬI ĐÁNH GIÁ</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 9, fontWeight: '700' }}>Chia sẻ trải nghiệm của bạn để giúp chúng tôi cải thiện</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.text} />
+          </View>
+        </TouchableOpacity>
+
         {/* Logout Button */}
         <TouchableOpacity
           activeOpacity={0.9}
@@ -325,6 +343,12 @@ export default function ProfileScreen() {
       <PaymentHistoryModal
         visible={historyVisible}
         onClose={() => setHistoryVisible(false)}
+      />
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        visible={feedbackVisible}
+        onClose={() => setFeedbackVisible(false)}
       />
 
       {/* Dynamic VietQR Invoice Payment Modal */}
