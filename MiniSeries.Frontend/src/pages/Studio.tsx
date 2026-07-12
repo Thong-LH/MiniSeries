@@ -262,7 +262,7 @@ export default function Studio() {
             }
         });
 
-        connection.onreconnected((connectionId) => {
+        connection.onreconnected(() => {
             if (isMounted) {
                 connection.invoke("JoinLessonGroup", lessonId)
                     .catch(err => console.error("Error rejoining group after reconnect on web:", err));
