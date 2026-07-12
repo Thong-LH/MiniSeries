@@ -8,8 +8,8 @@ namespace MiniSeries.Infrastructure.Services;
 public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
 {
     private static readonly PlanQuota FreePlan = new("Free", 3, 1);
-    private static readonly PlanQuota BasicPlan = new("Basic", 30, 10);
-    private static readonly PlanQuota PremiumPlan = new("Premium", 100, 50);
+    private static readonly PlanQuota BasicPlan = new("Basic", 20, 5);
+    private static readonly PlanQuota PremiumPlan = new("Premium", 45, 15);
 
     public static PlanQuota ResolvePlan(string? planName)
     {

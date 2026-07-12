@@ -421,8 +421,8 @@ public sealed class AdminController(
             {
                 var email = baseEmails[i % baseEmails.Count];
                 var plan = plans[i % plans.Length];
-                var amount = plan == "Basic" ? 10000m : 30000m;
-                var tokens = plan == "Basic" ? 30 : 10;
+                var amount = plan == "Basic" ? 150000m : 300000m;
+                var tokens = plan == "Basic" ? 25 : 60;
                 var daysAgo = random.Next(0, 30);
                 var paymentDate = now.AddDays(-daysAgo).AddHours(-random.Next(0, 24)).AddMinutes(-random.Next(0, 60));
 

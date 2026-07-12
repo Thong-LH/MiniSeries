@@ -11,15 +11,15 @@ import { SpaceBackground } from '../../components/SpaceBackground';
 import { useTheme } from '../../hooks/use-theme';
 import { LevelAvatar } from '../../components/LevelAvatar';
 export default function ProfileScreen() {
-  const { 
+  const {
     themeId,
     setThemeId,
     activePlan,
     userEmail,
     mangaTokens,
     videoTokens,
-    setIsAuthenticated, 
-    triggerToast, 
+    setIsAuthenticated,
+    triggerToast,
     refreshProfile,
     updateStatsFromData,
     globalStreak
@@ -56,7 +56,7 @@ export default function ProfileScreen() {
     const unsubscribe = navigation.addListener('focus', () => {
       refreshProfile();
       fetchDashboardStats();
-      apiClient.post('/analytics/track', { path: '/profile', deviceType: 'Mobile' }).catch(() => {});
+      apiClient.post('/analytics/track', { path: '/profile', deviceType: 'Mobile' }).catch(() => { });
     });
     return unsubscribe;
   }, [navigation]);
@@ -122,7 +122,7 @@ export default function ProfileScreen() {
       {/* Unified Header Bar */}
       <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.cardBg }]}>
         <Text style={[styles.brand, { color: colors.text }]}>MINISERIES</Text>
-        
+
         <View style={styles.headerRightBadges}>
           {/* Streak Flame Badge */}
           <View style={[styles.streakBadge, { borderColor: colors.border, backgroundColor: colors.bg, paddingLeft: 6, paddingRight: 8 }]}>
@@ -169,8 +169,8 @@ export default function ProfileScreen() {
             Phần lớn học viên cá nhân muốn trải nghiệm bài giảng trắc nghiệm truyện tranh và hoạt cảnh AI.
           </Text>
           <View style={styles.featuresList}>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +30 Manga Tokens tạo truyện</Text>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +10 Video Tokens hoạt cảnh AI</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +20 Manga Tokens tạo truyện</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +5 Video Tokens hoạt cảnh AI</Text>
             <Text style={[styles.featureItem, { color: colors.text }]}>✓ Lượt tạo cộng dồn vĩnh viễn, không hết hạn</Text>
             <Text style={[styles.featureItem, { color: colors.text }]}>✓ Quy đổi siêu tiết kiệm cho nhu cầu học tập</Text>
           </View>
@@ -204,9 +204,9 @@ export default function ProfileScreen() {
             Dành cho người sáng tạo và giảng viên muốn thiết kế khối lượng bài học lớn bằng cả video & manga.
           </Text>
           <View style={styles.featuresList}>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +100 Manga Tokens tạo truyện</Text>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +50 Video Tokens hoạt cảnh AI</Text>
-            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Tiết kiệm hơn 30% so với gói Basic</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +45 Manga Tokens tạo truyện</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Nhận ngay +15 Video Tokens hoạt cảnh AI</Text>
+            <Text style={[styles.featureItem, { color: colors.text }]}>✓ Tiết kiệm hơn 35% so với gói Basic</Text>
             <Text style={[styles.featureItem, { color: colors.text }]}>✓ Lượt tạo cộng dồn vĩnh viễn, không hết hạn</Text>
           </View>
           <TouchableOpacity
@@ -235,11 +235,11 @@ export default function ProfileScreen() {
             { flex: 1, borderColor: colors.primaryAccent, backgroundColor: colors.cardBg }
           ]}>
             <Text style={[styles.addonTitle, { color: colors.primaryAccent }]}>Manga lẻ</Text>
-            <Text style={[styles.addonPrice, { color: colors.text }]}>7.000đ</Text>
+            <Text style={[styles.addonPrice, { color: colors.text }]}>10.000đ</Text>
             <Text style={[styles.addonDesc, { color: colors.textMuted }]}>+1 lượt tạo Truyện</Text>
             <TouchableOpacity
               activeOpacity={0.9}
-              onPress={() => handleUpgradeClick('addon_manga_1', '7000')}
+              onPress={() => handleUpgradeClick('addon_manga_1', '10000')}
               style={[styles.addonBtn, { backgroundColor: colors.primaryAccent }]}
             >
               <Text style={[styles.addonBtnText, { color: '#ffffff' }]}>Mua Manga</Text>
@@ -252,11 +252,11 @@ export default function ProfileScreen() {
             { flex: 1, borderColor: '#38bdf8', backgroundColor: colors.cardBg }
           ]}>
             <Text style={[styles.addonTitle, { color: '#38bdf8' }]}>Video lẻ</Text>
-            <Text style={[styles.addonPrice, { color: colors.text }]}>20.000đ</Text>
+            <Text style={[styles.addonPrice, { color: colors.text }]}>30.000đ</Text>
             <Text style={[styles.addonDesc, { color: colors.textMuted }]}>+1 lượt tạo Video</Text>
             <TouchableOpacity
               activeOpacity={0.9}
-              onPress={() => handleUpgradeClick('addon_video_1', '20000')}
+              onPress={() => handleUpgradeClick('addon_video_1', '30000')}
               style={[styles.addonBtn, { backgroundColor: '#38bdf8' }]}
             >
               <Text style={[styles.addonBtnText, { color: '#000000' }]}>Mua Video</Text>

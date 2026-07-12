@@ -9,7 +9,7 @@ export default function Pricing() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -33,7 +33,7 @@ export default function Pricing() {
       }
 
       const baseOrbit = Math.min(canvas.width, canvas.height) * 0.35;
-      
+
       planets = [
         { radius: 7, orbitX: baseOrbit * 0.7, orbitY: baseOrbit * 0.22, speed: 0.009, angle: 0, color: '#60a5fa' },
         { radius: 11, orbitX: baseOrbit * 1.2, orbitY: baseOrbit * 0.38, speed: 0.005, angle: 2.3, color: '#a78bfa' },
@@ -53,7 +53,7 @@ export default function Pricing() {
         ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
         ctx.fill();
-        
+
         star.alpha += (Math.random() - 0.5) * 0.04;
         if (star.alpha < 0.1) star.alpha = 0.1;
         if (star.alpha > 0.9) star.alpha = 0.9;
@@ -137,9 +137,9 @@ export default function Pricing() {
           <div>
             <h3 className="plan-name" style={{ color: '#c084fc' }}>Basic Pack</h3>
             <div className="price">150.000đ</div>
-            <div className="quota" style={{ color: '#c084fc' }}>+30 truyện & +10 video</div>
+            <div className="quota" style={{ color: '#c084fc' }}>+20 truyện & +5 video</div>
             <ul className="features">
-              <li>Cộng thêm 30 lượt Manga và 10 lượt Video</li>
+              <li>Cộng thêm 20 lượt Manga và 5 lượt Video</li>
               <li>Token cộng dồn vĩnh viễn, không hết hạn</li>
               <li>Quy đổi siêu tiết kiệm cho nhu cầu học tập</li>
             </ul>
@@ -151,10 +151,10 @@ export default function Pricing() {
           <div>
             <h3 className="plan-name" style={{ color: '#fbbf24' }}>Premium Pack</h3>
             <div className="price">300.000đ</div>
-            <div className="quota" style={{ color: '#fbbf24' }}>+100 truyện & +50 video</div>
+            <div className="quota" style={{ color: '#fbbf24' }}>+45 truyện & +15 video</div>
             <ul className="features">
-              <li>Cộng thêm 100 lượt Manga và 50 lượt Video</li>
-              <li>Tiết kiệm hơn 30% so với gói Basic</li>
+              <li>Cộng thêm 45 lượt Manga và 15 lượt Video</li>
+              <li>Tiết kiệm hơn 35% so với gói Basic</li>
               <li>Token cộng dồn vĩnh viễn, không hết hạn</li>
             </ul>
           </div>
@@ -210,7 +210,7 @@ export default function Pricing() {
         <div className="pricing-card" style={{ border: '1px solid rgba(20, 184, 166, 0.25)', background: 'linear-gradient(180deg, rgba(20, 184, 166, 0.02) 0%, rgba(9, 9, 11, 0.3) 100%)' }}>
           <div>
             <h3 className="plan-name" style={{ color: '#14b8a6' }}>Manga lẻ</h3>
-            <div className="price" style={{ fontSize: '2rem' }}>7.000đ <span style={{ fontSize: '0.8rem' }}>/ 1 lượt</span></div>
+            <div className="price" style={{ fontSize: '2rem' }}>10.000đ <span style={{ fontSize: '0.8rem' }}>/ 1 lượt</span></div>
             <div className="quota" style={{ color: '#14b8a6' }}>+1 lượt tạo Truyện tranh</div>
             <ul className="features">
               <li>Cộng thêm 1 lượt tạo Manga & Quiz</li>
@@ -218,7 +218,7 @@ export default function Pricing() {
               <li>Tự động kích hoạt sau khi chuyển khoản</li>
             </ul>
           </div>
-          <button className="btn-buy" onClick={() => navigate('/checkout?plan=addon_manga_1&price=7000')} style={{ background: 'linear-gradient(90deg, #14b8a6, #0d9488)', border: 'none', color: '#09090b', fontWeight: 700 }}>
+          <button className="btn-buy" onClick={() => navigate('/checkout?plan=addon_manga_1&price=10000')} style={{ background: 'linear-gradient(90deg, #14b8a6, #0d9488)', border: 'none', color: '#09090b', fontWeight: 700 }}>
             Mua 1 lượt Manga
           </button>
         </div>
@@ -226,7 +226,7 @@ export default function Pricing() {
         <div className="pricing-card" style={{ border: '1px solid rgba(56, 189, 248, 0.25)', background: 'linear-gradient(180deg, rgba(56, 189, 248, 0.02) 0%, rgba(9, 9, 11, 0.3) 100%)' }}>
           <div>
             <h3 className="plan-name" style={{ color: '#38bdf8' }}>Video lẻ</h3>
-            <div className="price" style={{ fontSize: '2rem' }}>20.000đ <span style={{ fontSize: '0.8rem' }}>/ 1 lượt</span></div>
+            <div className="price" style={{ fontSize: '2rem' }}>30.000đ <span style={{ fontSize: '0.8rem' }}>/ 1 lượt</span></div>
             <div className="quota" style={{ color: '#38bdf8' }}>+1 lượt tạo Video</div>
             <ul className="features">
               <li>Cộng thêm 1 lượt tạo Video & Quiz</li>
@@ -234,7 +234,7 @@ export default function Pricing() {
               <li>Không giới hạn thời gian sử dụng</li>
             </ul>
           </div>
-          <button className="btn-buy" onClick={() => navigate('/checkout?plan=addon_video_1&price=20000')} style={{ background: 'linear-gradient(90deg, #38bdf8, #0284c7)', border: 'none', color: '#09090b', fontWeight: 700 }}>
+          <button className="btn-buy" onClick={() => navigate('/checkout?plan=addon_video_1&price=30000')} style={{ background: 'linear-gradient(90deg, #38bdf8, #0284c7)', border: 'none', color: '#09090b', fontWeight: 700 }}>
             Mua 1 lượt Video
           </button>
         </div>
