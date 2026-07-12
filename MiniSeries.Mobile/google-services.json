@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "126955656491-duofhuo9587n81cuhlgmivfjbs7t31k0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.miniseries.app",
+            "certificate_hash": "0a459add768ccf93b6a9a903fa7ee4d7775a014a"
+          }
+        },
+        {
           "client_id": "126955656491-lfu4ptko39ilrf4so15u83meop10qulm.apps.googleusercontent.com",
           "client_type": 3
         }

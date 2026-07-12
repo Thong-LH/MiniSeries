@@ -57,7 +57,7 @@ public static class PredefinedLessons
                 Summary = "Nam chào tạm biệt Minh để bước lên phi thuyền tiến vào không gian.",
                 FullPrompt = "A futuristic spaceship launching into cosmos, astronaut waving goodbye, sci-fi theme",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_1/Lesson1_Ch1.mp4", // Local Lesson 1 Ch 1
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson1_Ch1.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -79,7 +79,7 @@ public static class PredefinedLessons
                 Summary = "Nam trải nghiệm cuộc sống trên phi thuyền, ngắm nhìn các thiên hà trôi qua.",
                 FullPrompt = "Astronaut looking out of spaceship window at galaxies and stars, time dilation effect",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_1/Lesson1_Ch2.mp4", // Local Lesson 1 Ch 2
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson1_Ch2.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -101,7 +101,7 @@ public static class PredefinedLessons
                 Summary = "Nam trở về Trái Đất và ngỡ ngàng gặp lại Minh lúc này đã tóc bạc trắng.",
                 FullPrompt = "Astronaut meets elderly friend with gray hair on Earth, emotional reunion",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_1/Lesson1_Ch3.mp4", // Local Lesson 1 Ch 3
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson1_Ch3.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -130,7 +130,7 @@ public static class PredefinedLessons
                 Summary = "Alaric cân đo đong đếm lượng phốt pho đỏ cẩn thận trước khi cho vào bình thủy tinh.",
                 FullPrompt = "Old alchemist measuring red powder in a mysterious laboratory, retro style",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_2/Lesson2_Ch1.mp4", // Local Lesson 2 Ch 1
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson2_Ch1.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -152,7 +152,7 @@ public static class PredefinedLessons
                 Summary = "Phản ứng hóa học diễn ra dữ dội, ngọn lửa sáng bùng lên bên trong bình kín.",
                 FullPrompt = "Chemical reaction with bright light inside a sealed flask, magical alchemy",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_2/Lesson2_Ch2.mp4", // Local Lesson 2 Ch 2
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson2_Ch2.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -174,7 +174,7 @@ public static class PredefinedLessons
                 Summary = "Alaric đặt bình lên bàn cân, kim cân chỉ đúng vạch cũ, chứng minh định luật thành công.",
                 FullPrompt = "Alchemist weighing the flask on a balance scale, success and satisfaction",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_2/Lesson2_Ch3.mp4", // Local Lesson 2 Ch 3
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson2_Ch3.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -203,7 +203,7 @@ public static class PredefinedLessons
                 Summary = "Hai chiến binh mang cực Bắc (Leo) và cực Nam (Rex) bắt đầu trận chiến.",
                 FullPrompt = "Two warriors with red and blue armor facing each other, dynamic pose, anime style",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_3/Lesson3_Ch1.mp4", // Local Lesson 3 Ch 1
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson3_Ch1.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -225,7 +225,7 @@ public static class PredefinedLessons
                 Summary = "Khi hai chiến binh cùng mang cực Bắc cố tiến lại gần, lực cản đẩy văng họ ra.",
                 FullPrompt = "Two red warriors pushed apart by an invisible force field, sparks flying",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_3/Lesson3_Ch2.mp4", // Local Lesson 3 Ch 2
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson3_Ch2.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -247,7 +247,7 @@ public static class PredefinedLessons
                 Summary = "Leo và Rex bắt tay nhau, sức hút kéo hai người lại với nhau tạo nên năng lượng cộng hưởng.",
                 FullPrompt = "Red and blue warriors shake hands, bright energy joining them, epic ending",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_3/Lesson3_Ch3.mp4", // Local Lesson 3 Ch 3
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson3_Ch3.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -277,7 +277,7 @@ public static class PredefinedLessons
                 Summary = "Sâu bướm nở ra từ trứng bướm nhỏ bám trên mặt lá cây.",
                 FullPrompt = "A tiny green caterpillar hatching from an egg on a green leaf, macro, cute anime style",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_4/Lesson4_Ch1.mp4", // Local Lesson 4 Ch 1
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson4_Ch1.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -299,7 +299,7 @@ public static class PredefinedLessons
                 Summary = "Sâu bướm treo mình ngược, biến đổi hình dạng và cuốn kén thành nhộng.",
                 FullPrompt = "A caterpillar transforming into a cocoon hanging on a branch, nature science style",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_4/Lesson4_Ch2.mp4", // Local Lesson 4 Ch 2
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson4_Ch2.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
@@ -321,7 +321,7 @@ public static class PredefinedLessons
                 Summary = "Vỏ nhộng nứt ra, chú bướm vàng rực rỡ cất cánh bay cao.",
                 FullPrompt = "A beautiful golden butterfly emerging from cocoon and flying away in a garden, sunbeams",
                 Status = ChapterStatus.ReadyForGeneration,
-                VideoUrl = $"{baseUrl}/videos/Lesson_4/Lesson4_Ch3.mp4", // Local Lesson 4 Ch 3
+                VideoUrl = "https://res.cloudinary.com/doekn7cni/video/upload/Lesson4_Ch3.mp4",
                 Quiz = new ChapterQuiz
                 {
                     Id = Guid.NewGuid(),
