@@ -8,7 +8,7 @@ import { useTheme } from '../../hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import { signInWithGoogleNative } from '../../services/googleAuth';
+import { signInWithGoogleNative, signInWithGoogleWeb } from '../../services/googleAuth';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -36,6 +36,47 @@ export default function LoginScreen() {
 
   const colors = useTheme();
   const isDark = colors.isDark;
+
+  React.useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token=')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const supabaseAccessToken = params.get('access_token');
+        if (supabaseAccessToken) {
+          setLoading(true);
+          // Clean the hash from the browser URL history
+          window.history.replaceState(null, "", window.location.pathname);
+          
+          apiClient.post('/auth/google-signin', {
+            accessToken: supabaseAccessToken,
+          })
+          .then((backendRes) => {
+            const loginData = backendRes.data;
+            if (loginData && loginData.accessToken) {
+              setAuthToken(loginData.accessToken);
+              setIsAuthenticated(true);
+              if (loginData.planName) setActivePlan(loginData.planName);
+              if (loginData.remainingMangaCount !== undefined) setMangaTokens(loginData.remainingMangaCount);
+              if (loginData.remainingVideoCount !== undefined) setVideoTokens(loginData.remainingVideoCount);
+              setUserEmail(loginData.email || 'google-user@gmail.com');
+              triggerToast('Đăng nhập Google thành công! 🎉');
+              router.replace('/(tabs)/home');
+            } else {
+              triggerToast('Xác thực thất bại.');
+            }
+          })
+          .catch((err) => {
+            console.error('Lỗi đăng nhập Google Web:', err);
+            triggerToast('Xác thực tài khoản Google thất bại.');
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+        }
+      }
+    }
+  }, []);
 
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [customBaseUrl, setCustomBaseUrl] = useState(apiClient.defaults.baseURL || '');
@@ -231,6 +272,10 @@ export default function LoginScreen() {
   };
 
   const handleGoogleLogin = async () => {
+    if (Platform.OS === 'web') {
+      signInWithGoogleWeb();
+      return;
+    }
     setLoading(true);
     try {
       const data = await signInWithGoogleNative();
@@ -248,7 +293,8 @@ export default function LoginScreen() {
       }
     } catch (err: any) {
       console.log('Lỗi đăng nhập Google Native:', err);
-      triggerToast('Đang kết nối tài khoản test...');
+      triggerToast(`Lỗi Google: ${err.message || err}`);
+      // Fallback to test account
       try {
         const res = await apiClient.post('/auth/login-profile', {
           email: 'luonghoangthong@gmail.com',

@@ -10,7 +10,8 @@ namespace MiniSeries.Application.Lessons.Commands.ApproveLessonScript;
 
 public sealed class ApproveLessonScriptCommandHandler(
     IServiceScopeFactory scopeFactory,
-    ILessonRepository lessonRepository)
+    ILessonRepository lessonRepository,
+    ILessonStatusNotifier statusNotifier)
     : IRequestHandler<ApproveLessonScriptCommand, LessonDto>
 {
     public async Task<LessonDto> Handle(ApproveLessonScriptCommand request, CancellationToken cancellationToken)
@@ -62,6 +63,9 @@ public sealed class ApproveLessonScriptCommandHandler(
         AddLog(job, "CreateChapters", "Started creating chapters from approved script.");
         
         await lessonRepository.SaveAsync(lesson);
+
+        // Notify clients that the lesson has been approved
+        _ = statusNotifier.NotifyLessonStatusChangedAsync(lesson.Id, "Approved", "Script approved, media generation starting.");
 
         // Fire and forget the background media generation process
         _ = Task.Run(async () =>
@@ -176,11 +180,23 @@ public sealed class ApproveLessonScriptCommandHandler(
 
             CompleteJob(job, "Generated all media for lesson.");
             await backgroundLessonRepository.SaveAsync(lesson);
+
+            // Push real-time notification: job completed successfully
+            var notifier = sp.GetRequiredService<ILessonStatusNotifier>();
+            await notifier.NotifyJobCompletedAsync(lessonId, true);
         }
         catch (Exception ex)
         {
             FailJob(job, ex);
             await backgroundLessonRepository.SaveAsync(lesson);
+
+            // Push real-time notification: job failed
+            try
+            {
+                var notifier = sp.GetRequiredService<ILessonStatusNotifier>();
+                await notifier.NotifyJobCompletedAsync(lessonId, false, ex.Message);
+            }
+            catch { /* Don't let notification failure mask the original error */ }
         }
     }
 
@@ -218,6 +234,10 @@ public sealed class ApproveLessonScriptCommandHandler(
                 var uploadedUrl = await storageService.UploadAsync(mangaPageUrl, $"chapter_{chapterOrder}", subFolder);
                 await chapterRepo.UpdateChapterMediaAsync(chapterId, uploadedUrl, null);
             }
+
+            // Push real-time notification: chapter media ready
+            var notifier = sp.GetRequiredService<ILessonStatusNotifier>();
+            await notifier.NotifyChapterMediaReadyAsync(lessonId, chapterId, chapterOrder);
         }
         finally
         {

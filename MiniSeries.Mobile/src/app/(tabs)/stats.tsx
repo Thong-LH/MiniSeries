@@ -29,13 +29,13 @@ interface DashboardStats {
 }
 
 export default function StatsScreen() {
-  const { 
-    themeId, 
-    setThemeId, 
-    mangaTokens, 
-    videoTokens, 
-    weeklyTarget, 
-    setWeeklyTarget, 
+  const {
+    themeId,
+    setThemeId,
+    mangaTokens,
+    videoTokens,
+    weeklyTarget,
+    setWeeklyTarget,
     updateStatsFromData,
     globalStreak,
     isAuthenticated,
@@ -63,7 +63,7 @@ export default function StatsScreen() {
   const [loadingAchievements, setLoadingAchievements] = useState<boolean>(false);
   const [historyLessons, setHistoryLessons] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
-  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date(2026, 6, 11));
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [showTargetSelector, setShowTargetSelector] = useState<boolean>(false);
   const [showDetailedHistory, setShowDetailedHistory] = useState<boolean>(false);
   const [localStudyMinutes, setLocalStudyMinutes] = useState<number>(0);
@@ -94,7 +94,7 @@ export default function StatsScreen() {
 
   const getWeeklyCalendar = () => {
     const days = [];
-    const today = new Date(2026, 6, 11);
+    const today = new Date();
     const dayOfWeek = today.getDay();
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - dayOfWeek);
@@ -107,9 +107,9 @@ export default function StatsScreen() {
       const isActive = historyLessons.some(lesson => {
         if (!lesson.createdAt) return false;
         const ld = new Date(lesson.createdAt);
-        return ld.getDate() === d.getDate() && 
-               ld.getMonth() === d.getMonth() && 
-               ld.getFullYear() === d.getFullYear();
+        return ld.getDate() === d.getDate() &&
+          ld.getMonth() === d.getMonth() &&
+          ld.getFullYear() === d.getFullYear();
       });
       days.push({
         dayLabel,
@@ -190,12 +190,12 @@ export default function StatsScreen() {
 
   const fetchStatsData = async (force = false) => {
     if (!isAuthenticated) return;
-    if (!force && historyLessons.length > 0) {
-      return;
-    }
+    const hasData = stats.weeklyActivity.length > 0 || historyLessons.length > 0;
     try {
-      setLoading(true);
-      setLoadingHistory(true);
+      if (!hasData || force) {
+        setLoading(true);
+        setLoadingHistory(true);
+      }
       const [statsRes, achievementsRes, historyRes] = await Promise.all([
         apiClient.get('/progress/dashboard'),
         apiClient.get('/progress/achievements'),
@@ -224,12 +224,11 @@ export default function StatsScreen() {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       if (isAuthenticated) {
-        const force = shouldRefreshHome;
-        fetchStatsData(force);
+        fetchStatsData(true);
       }
     });
     return unsubscribe;
-  }, [navigation, isAuthenticated, shouldRefreshHome, historyLessons.length]);
+  }, [navigation, isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -246,7 +245,7 @@ export default function StatsScreen() {
     const firstDay = new Date(year, month, 1);
     const startDayOfWeek = firstDay.getDay(); // 0 = CN, 1 = T2...
     const totalDays = new Date(year, month + 1, 0).getDate();
-    
+
     const days = [];
     for (let i = 0; i < startDayOfWeek; i++) {
       days.push(null);
@@ -261,45 +260,45 @@ export default function StatsScreen() {
   const getLessonsGroupedByWeek = (lessonsList: any[], targetMonth: Date) => {
     const month = targetMonth.getMonth();
     const year = targetMonth.getFullYear();
-    
+
     // Lọc các bài học trong tháng này
     const monthLessons = lessonsList.filter(lesson => {
       if (!lesson.createdAt) return false;
       const d = new Date(lesson.createdAt);
       return d.getMonth() === month && d.getFullYear() === year;
     });
-    
+
     // Sắp xếp bài học mới nhất lên đầu
     monthLessons.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
     // Nhóm theo tuần
     const weeks: Record<string, { label: string; items: any[] }> = {};
-    
+
     monthLessons.forEach(lesson => {
       const d = new Date(lesson.createdAt);
       const currentDay = d.getDay();
       const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1;
-      
+
       const monday = new Date(d);
       monday.setDate(d.getDate() - distanceToMonday);
-      monday.setHours(0,0,0,0);
-      
+      monday.setHours(0, 0, 0, 0);
+
       const sunday = new Date(monday);
       sunday.setDate(monday.getDate() + 6);
-      sunday.setHours(23,59,59,999);
-      
+      sunday.setHours(23, 59, 59, 999);
+
       const key = `${monday.getFullYear()}-${monday.getMonth()}-${monday.getDate()}`;
-      
+
       const formattedMonday = `${monday.getDate()} Th${monday.getMonth() + 1}`;
       const formattedSunday = `${sunday.getDate()} Th${sunday.getMonth() + 1}`;
       const label = `${formattedMonday} - ${formattedSunday}, ${monday.getFullYear()}`;
-      
+
       if (!weeks[key]) {
         weeks[key] = { label, items: [] };
       }
       weeks[key].items.push(lesson);
     });
-    
+
     return Object.values(weeks);
   };
 
@@ -307,7 +306,7 @@ export default function StatsScreen() {
   const totalCreated = stats.mangaCount + stats.videoCount;
   // Score = average lessons per week scaled, let's say: 
   const focusScore = Math.min(40, Math.max(12, 15 + stats.completedLessons * 3 + stats.currentStreak * 1.5));
-  
+
   let scoreCategory = 'Trung bình';
   if (focusScore >= 35) scoreCategory = 'Xuất sắc';
   else if (focusScore >= 25) scoreCategory = 'Hiệu suất cao';
@@ -333,14 +332,14 @@ export default function StatsScreen() {
       displayPrevExp = 0;
       levelReq = 100;
     }
-    
+
     while (totalExp >= displayPrevExp + levelReq) {
       displayPrevExp += levelReq;
       displayLevel++;
       levelReq = 100 * (1 << (displayLevel - 1));
     }
     displayNextExp = displayPrevExp + levelReq;
-    
+
     if (displayLevel >= 6) {
       displayLevelLabel = `Khai sáng Lvl ${displayLevel}`;
     }
@@ -407,7 +406,7 @@ export default function StatsScreen() {
       {/* Header Bar */}
       <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.cardBg }]}>
         <Text style={[styles.brand, { color: colors.text }]}>MINISERIES</Text>
-        
+
         <View style={styles.headerRightBadges}>
           <View style={[styles.streakBadge, { borderColor: colors.border, backgroundColor: colors.bg, paddingLeft: 6, paddingRight: 8 }]}>
             {renderStreakFlame(globalStreak, 13)}
@@ -422,7 +421,7 @@ export default function StatsScreen() {
         <ActivityIndicator size="large" color={colors.primaryAccent} style={{ marginTop: 80 }} />
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
+
           <Text style={[styles.sectionTitle, { color: colors.text }]}>BÁO CÁO</Text>
           <View style={[styles.levelCard, { backgroundColor: colors.cardBg, borderColor: colors.border, marginBottom: 12 }]}>
             <View style={styles.levelHeaderRow}>
@@ -440,10 +439,10 @@ export default function StatsScreen() {
             </View>
             <View style={[styles.levelProgressBarBg, { backgroundColor: colors.border }]}>
               <View style={[
-                styles.levelProgressBarFill, 
-                { 
+                styles.levelProgressBarFill,
+                {
                   backgroundColor: colors.primaryAccent,
-                  width: `${expPercentage}%` 
+                  width: `${expPercentage}%`
                 }
               ]} />
             </View>
@@ -480,7 +479,7 @@ export default function StatsScreen() {
           {/* Section 2: Tuần này */}
           <View style={styles.sectionHeaderRow}>
             <Text style={[styles.sectionSubtitle, { color: colors.text }]}>Tuần này</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => router.push('/history')}
               style={styles.historyLinkBtn}
@@ -501,7 +500,7 @@ export default function StatsScreen() {
                     day.isActive && { backgroundColor: 'rgba(99, 102, 241, 0.15)' }
                   ]}>
                     <Text style={[
-                      styles.calendarDateText, 
+                      styles.calendarDateText,
                       { color: day.isToday ? colors.primaryAccent : colors.text, fontSize: 13, fontWeight: '700' },
                       day.isActive && { color: '#6366f1', fontWeight: '900' }
                     ]}>
@@ -562,13 +561,13 @@ export default function StatsScreen() {
                     return (
                       <View key={idx} style={styles.chartColContainer}>
                         <View style={[
-                          styles.barFillVisual, 
-                          { 
-                            height: `${heightVal}%`, 
-                            backgroundColor: isToday 
-                              ? 'rgba(99, 102, 241, 0.45)' 
-                              : count > 0 
-                                ? 'rgba(99, 102, 241, 0.25)' 
+                          styles.barFillVisual,
+                          {
+                            height: `${heightVal}%`,
+                            backgroundColor: isToday
+                              ? 'rgba(99, 102, 241, 0.45)'
+                              : count > 0
+                                ? 'rgba(99, 102, 241, 0.25)'
                                 : 'rgba(148, 163, 184, 0.12)',
                             borderColor: isToday ? '#6366f1' : count > 0 ? 'rgba(99, 102, 241, 0.4)' : 'rgba(148, 163, 184, 0.2)',
                             borderWidth: 1,
@@ -576,9 +575,9 @@ export default function StatsScreen() {
                           }
                         ]}>
                           {count > 0 && (
-                            <Text style={{ 
-                              fontSize: 8, 
-                              fontWeight: '900', 
+                            <Text style={{
+                              fontSize: 8,
+                              fontWeight: '900',
                               color: isToday ? '#6366f1' : colors.textMuted,
                               position: 'absolute',
                               top: -14,
@@ -641,8 +640,8 @@ export default function StatsScreen() {
       )}
 
 
-        </View>
-      );
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

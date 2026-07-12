@@ -1,6 +1,8 @@
  using Microsoft.EntityFrameworkCore;
 using MiniSeries.WebAPI.Extensions;
 using MiniSeries.WebAPI.Middleware;
+using MiniSeries.WebAPI.Hubs;
+using MiniSeries.Application.Common.Interfaces;
 using MiniSeries.Infrastructure.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,11 +14,16 @@ builder.Configuration.AddJsonFile(
 
 builder.Services.AddMiniSeriesServices(builder.Configuration);
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<ILessonStatusNotifier, SignalRLessonStatusNotifier>();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        policy.SetIsOriginAllowed(_ => true) // Allow all origins while supporting credentials
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials(); // Required for SignalR WebSocket connections
     });
 });
 
@@ -129,5 +136,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<LessonHub>("/hubs/lessons");
 
 app.Run();

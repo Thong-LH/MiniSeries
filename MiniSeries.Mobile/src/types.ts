@@ -46,7 +46,7 @@ export interface Lesson {
   title: string;
   type: 'manga' | 'video';
   duration: string;
-  status: 'Hoàn thành' | 'Đang học' | 'Đang tạo';
+  status: 'Hoàn thành' | 'Đang học' | 'Đang tạo' | 'Đang vẽ tranh...';
   progress?: number;
   coverUrl: string;
   description?: string;

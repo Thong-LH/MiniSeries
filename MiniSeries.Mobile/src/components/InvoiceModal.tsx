@@ -20,6 +20,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
   const [bankBin, setBankBin] = useState<string>('970422');
   const [accountNumber, setAccountNumber] = useState<string>('0909090909');
   const [accountName, setAccountName] = useState<string>('MINISERIES STUDIO');
+  const [qrImageLoading, setQrImageLoading] = useState<boolean>(true);
 
   const theme = useTheme();
   const isDark = theme.isDark;
@@ -178,10 +179,19 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
               {/* QR Mock Image */}
               <View style={styles.qrContainer}>
                 <View style={[styles.qrBorder, { borderColor: colors.border, backgroundColor: colors.qrBg }]}>
+                  {qrImageLoading && (
+                    <ActivityIndicator size="small" color={colors.primaryAccent} style={{ position: 'absolute' }} />
+                  )}
                   <Image
                     source={{ uri: `https://api.vietqr.io/image/${bankBin}-${accountNumber}-compact.jpg?accountName=${encodeURIComponent(accountName)}&amount=${amount}&addInfo=${paymentCode}` }}
                     style={styles.qrImage}
                     resizeMode="contain"
+                    onLoadStart={() => setQrImageLoading(true)}
+                    onLoadEnd={() => setQrImageLoading(false)}
+                    onError={(e) => {
+                      console.log('VietQR Image Load Error:', e.nativeEvent.error);
+                      setQrImageLoading(false);
+                    }}
                   />
                 </View>
                 <Text style={[styles.qrCaption, { color: colors.textMuted }]}>
@@ -194,11 +204,12 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
           {/* Action Buttons */}
           {!loading && (
             <View style={[styles.actionsContainer, { borderTopColor: colors.border }]}>
-
+              <View style={{ paddingVertical: 12, alignItems: 'center', marginBottom: 10 }}>
+              </View>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={onClose}
-                style={[styles.actionBtn, { backgroundColor: 'transparent', borderColor: colors.border }]}
+                style={[styles.actionBtn, { borderColor: colors.border }]}
               >
                 <Text style={[styles.actionBtnText, { color: colors.text }]}>HỦY GIAO DỊCH</Text>
               </TouchableOpacity>
@@ -226,12 +237,12 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   header: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '900',
-    padding: 14,
+    letterSpacing: 0.5,
+    padding: 16,
     borderBottomWidth: 1,
     textAlign: 'center',
-    letterSpacing: 0.5,
   },
   scrollContent: {
     padding: 16,
@@ -288,8 +299,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   qrImage: {
-    width: '100%',
-    height: '100%',
+    width: 200,
+    height: 200,
   },
   qrCaption: {
     fontSize: 11,

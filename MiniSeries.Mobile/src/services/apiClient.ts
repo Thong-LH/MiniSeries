@@ -10,10 +10,10 @@ const getBaseUrl = () => {
   return 'https://miniseries.onrender.com/api';
 };
 
-const BASE_URL = getBaseUrl();
+export const BASE_URL = getBaseUrl();
 console.log('Mobile API Base URL:', BASE_URL);
 
-let authToken: string | null = (Platform.OS === 'web' && typeof window !== 'undefined')
+export let authToken: string | null = (Platform.OS === 'web' && typeof window !== 'undefined')
   ? localStorage.getItem('authToken')
   : null;
 
@@ -91,8 +91,8 @@ apiClient.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       const requestUrl = error.config?.url || '';
       if (
-        requestUrl.includes('/auth/login') || 
-        requestUrl.includes('/auth/login-profile') || 
+        requestUrl.includes('/auth/login') ||
+        requestUrl.includes('/auth/login-profile') ||
         requestUrl.includes('/auth/register')
       ) {
         return Promise.reject(error);
@@ -100,7 +100,7 @@ apiClient.interceptors.response.use(
 
       if (!isAlerting) {
         isAlerting = true;
-        
+
         const logout = () => {
           isAlerting = false;
           if (onUnauthorizedCallback) {

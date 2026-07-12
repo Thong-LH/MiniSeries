@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { DesignThemeId, DesignTheme, Lesson } from '../types';
 import { designThemes } from '../data';
 import { apiClient, initializeAuthToken, setUnauthorizedCallback } from '../services/apiClient';
@@ -46,6 +46,7 @@ interface AppContextType {
   // Toast notifications
   toastMessage: string | null;
   triggerToast: (msg: string) => void;
+  closeToast: () => void;
   
   // Weekly Target
   weeklyTarget: number;
@@ -164,11 +165,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const toastTimeoutRef = useRef<any>(null);
+
   const triggerToast = (msg: string) => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
     setToastMessage(msg);
-    setTimeout(() => {
+    toastTimeoutRef.current = setTimeout(() => {
       setToastMessage(null);
+      toastTimeoutRef.current = null;
     }, 3500);
+  };
+
+  const closeToast = () => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = null;
+    }
+    setToastMessage(null);
   };
 
   const refreshProfile = async () => {
@@ -283,6 +298,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setViewerPage,
         toastMessage,
         triggerToast,
+        closeToast,
         userEmail,
         setUserEmail,
         refreshProfile,

@@ -1,4 +1,8 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5088/api";
+export const getHubUrl = (path: string) => {
+    const base = API_BASE.replace(/\/api$/, "");
+    return `${base}${path}`;
+};
 export const PROFILE_CACHE_KEY = "profile_snapshot";
 export const PROFILE_DETAILS_CACHE_KEY = "profile_details_snapshot";
 export const MY_LESSONS_CACHE_PREFIX = "my_lessons_snapshot";

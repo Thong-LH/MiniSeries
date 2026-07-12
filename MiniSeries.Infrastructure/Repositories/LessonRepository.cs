@@ -173,34 +173,55 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
                 FirstMangaUrl = x.Chapters
                     .OrderBy(c => c.Order)
                     .Select(c => c.MangaUrl)
-                    .FirstOrDefault(url => url != null && url != "")
+                    .FirstOrDefault(url => url != null && url != ""),
+                FirstVideoUrl = x.Chapters
+                    .OrderBy(c => c.Order)
+                    .Select(c => c.VideoUrl)
+                    .FirstOrDefault(url => url != null && url != ""),
+                HasCompletedMediaJob = x.GenerationJobs.Any(j => j.Type == GenerationJobType.MediaGeneration && j.Status == GenerationJobStatus.Completed)
             })
             .ToListAsync();
 
         return data.Select(x => {
             var resolvedAnchor = !string.IsNullOrWhiteSpace(x.AnchorImageUrl)
                 ? x.AnchorImageUrl
-                : x.FirstMangaUrl;
-
+                : (!string.IsNullOrWhiteSpace(x.FirstMangaUrl) ? x.FirstMangaUrl : x.FirstVideoUrl);
+ 
             var mockChapters = new List<Chapter>();
             for (int i = 0; i < x.ChapterCount; i++)
             {
-                mockChapters.Add(new Chapter { Order = i + 1, MangaUrl = (i == 0 ? x.FirstMangaUrl : null) });
+                mockChapters.Add(new Chapter 
+                { 
+                    Order = i + 1, 
+                    MangaUrl = (i == 0 ? x.FirstMangaUrl : null),
+                    VideoUrl = (i == 0 ? x.FirstVideoUrl : null)
+                });
             }
 
-             return new Lesson
+            var mockJobs = new List<GenerationJob>();
+            if (x.HasCompletedMediaJob)
+            {
+                mockJobs.Add(new GenerationJob
+                {
+                    Type = GenerationJobType.MediaGeneration,
+                    Status = GenerationJobStatus.Completed
+                });
+            }
+ 
+            return new Lesson
             {
                 Id = x.Id,
                 UserId = x.UserId,
                 UserEmail = x.UserEmail,
                 Title = x.Title,
-                AnchorImageUrl = resolvedAnchor,
+                AnchorImageUrl = resolvedAnchor ?? string.Empty,
                 OutputMode = x.OutputMode,
                 ScriptStatus = x.ScriptStatus,
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt,
                 ApprovedAt = x.ApprovedAt,
-                Chapters = mockChapters
+                Chapters = mockChapters,
+                GenerationJobs = mockJobs
             };
         }).ToList();
     }

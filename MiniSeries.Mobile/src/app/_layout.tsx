@@ -2,15 +2,16 @@ import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { AppProvider, useApp } from '../context/AppContext';
 import { useTheme } from '../hooks/use-theme';
+import { Ionicons } from '@expo/vector-icons';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
-  const { toastMessage, themeId } = useApp();
+  const { toastMessage, closeToast, themeId } = useApp();
   const theme = useTheme();
   const isDark = theme.isDark;
 
@@ -45,6 +46,9 @@ function RootLayoutNav() {
           <Text style={[styles.toastText, { color: theme.text }]}>
             {toastMessage}
           </Text>
+          <TouchableOpacity onPress={closeToast} style={styles.toastCloseBtn} activeOpacity={0.7}>
+            <Ionicons name="close-circle" size={18} color={theme.textMuted} />
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -67,7 +71,7 @@ const styles = StyleSheet.create({
   },
   toastContainer: {
     position: 'absolute',
-    top: 60,
+    bottom: 90,
     right: 16,
     left: 16,
     borderWidth: 1,
@@ -93,5 +97,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
     flex: 1,
+  },
+  toastCloseBtn: {
+    padding: 2,
+    marginLeft: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

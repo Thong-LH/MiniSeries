@@ -32,6 +32,7 @@ export default function HomeScreen() {
     globalStreak,
     shouldRefreshHome,
     setShouldRefreshHome,
+    triggerToast,
   } = useApp();
   const router = useRouter();
   const navigation = useNavigation();
@@ -44,7 +45,7 @@ export default function HomeScreen() {
   const [weekDays, setWeekDays] = useState<any[]>([]);
   const [showTargetSelector, setShowTargetSelector] = useState<boolean>(false);
   const [dashboardStats, setDashboardStats] = useState<any>(null);
-  
+
   // Pager / Carousel state
   const [carouselLessons, setCarouselLessons] = useState<Lesson[]>([]);
   const [carouselLoading, setCarouselLoading] = useState<boolean>(false);
@@ -187,13 +188,25 @@ export default function HomeScreen() {
   const mapDtoToLesson = (dto: any): Lesson => {
     const isVideo = dto.outputMode === 1 || dto.outputMode === 'Video';
     const isApproved = dto.scriptStatus === 3 || dto.scriptStatus === 'Approved';
+    const isMediaReady = dto.isMediaReady === true;
+
+    let status: Lesson['status'] = 'Đang tạo';
+    let progress = 45;
+    if (isMediaReady) {
+      status = 'Hoàn thành';
+      progress = 100;
+    } else if (isApproved) {
+      status = 'Đang vẽ tranh...';
+      progress = 85;
+    }
+
     return {
       id: dto.id,
       title: dto.title,
       type: isVideo ? 'video' : 'manga',
       duration: '',
-      status: isApproved ? 'Hoàn thành' : 'Đang tạo',
-      progress: isApproved ? 100 : 45,
+      status,
+      progress,
       coverUrl: dto.thumbnailUrl || (isVideo
         ? 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600'
         : 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600'),
@@ -209,7 +222,7 @@ export default function HomeScreen() {
         setStreak(res.data.currentStreak);
         setDashboardStats(res.data);
         updateStatsFromData(res.data);
-        
+
         if (res.data.weeklyActivity && Array.isArray(res.data.weeklyActivity)) {
           const todayDate = new Date();
           const currentDayOfWeek = todayDate.getDay();
@@ -295,7 +308,7 @@ export default function HomeScreen() {
     const distanceToMonday = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
     const monday = new Date(todayDate);
     monday.setDate(todayDate.getDate() - distanceToMonday);
-    
+
     const days = [];
     for (let i = 0; i < 7; i++) {
       const day = new Date(monday);
@@ -310,8 +323,13 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (showAllLessons) {
-      setAllLessonsPage(1);
-      fetchAllLessons(1);
+      if (allLessonsPage !== 1) {
+        // Changing page to 1 will trigger the allLessonsPage effect below — avoid double fetch
+        setAllLessonsPage(1);
+      } else {
+        // Page is already 1: fetch directly since allLessonsPage won't change
+        fetchAllLessons(1);
+      }
     }
   }, [allLessonsSearch, allLessonsFilter, showAllLessons]);
 
@@ -323,12 +341,10 @@ export default function HomeScreen() {
 
   const fetchHomeData = async (force = false) => {
     if (!isAuthenticated) return;
-    if (!force && carouselLessons.length > 0) {
-      return;
-    }
     try {
+      const silent = carouselLessons.length > 0 && !force;
       await Promise.all([
-        fetchHomeLessons(true),
+        fetchHomeLessons(silent),
         fetchDashboardStats(),
         refreshProfile()
       ]);
@@ -337,22 +353,34 @@ export default function HomeScreen() {
     }
   };
 
+  // Consume shouldRefreshHome flag set by other tabs (e.g. create tab after lesson generated)
+  useEffect(() => {
+    if (shouldRefreshHome && isAuthenticated) {
+      fetchHomeData(true);
+      setShouldRefreshHome(false);
+    }
+  }, [shouldRefreshHome]);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       if (isAuthenticated) {
-        const force = shouldRefreshHome;
-        fetchHomeData(force);
-        if (shouldRefreshHome) {
-          setShouldRefreshHome(false);
+        // Throttle: skip focus-triggered fetch if an isAuthenticated-triggered fetch
+        // already ran within the last 3 seconds (prevents double-fetch on mount)
+        const now = Date.now();
+        if (now - lastFetchTimeRef.current > 3000) {
+          lastFetchTimeRef.current = now;
+          fetchHomeData(false);
         }
-        apiClient.post('/analytics/track', { path: '/home', deviceType: 'Mobile' }).catch(() => {});
+        apiClient.post('/analytics/track', { path: '/home', deviceType: 'Mobile' }).catch(() => { });
       }
     });
     return unsubscribe;
-  }, [navigation, isAuthenticated, shouldRefreshHome, carouselLessons.length]);
+  }, [navigation, isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
+      // Record time so the concurrent focus event (fires on mount) is throttled out
+      lastFetchTimeRef.current = Date.now();
       fetchHomeData(true);
     }
   }, [isAuthenticated]);
@@ -402,7 +430,7 @@ export default function HomeScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.bg }]}>
         <SpaceBackground plain={true} />
-        
+
         {/* Back Header */}
         <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.cardBg }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -411,7 +439,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <Text style={[styles.brand, { color: colors.text }]}>TẤT CẢ BÀI HỌC</Text>
           </View>
-          
+
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={toggleTheme}
@@ -617,11 +645,11 @@ export default function HomeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <SpaceBackground plain={true} />
-      
+
       {/* Top Header */}
       <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.cardBg }]}>
         <Text style={[styles.brand, { color: colors.text }]}>MINISERIES</Text>
-        
+
         <View style={styles.headerRightBadges}>
           {/* Streak Flame Badge */}
           <View style={[styles.streakBadge, { borderColor: colors.border, backgroundColor: colors.bg, paddingLeft: 6, paddingRight: 8 }]}>
@@ -639,14 +667,14 @@ export default function HomeScreen() {
 
         {/* Weekly Goal Calendar Card (Redesigned for Depth & Value) */}
         <View style={[styles.weeklyGoalCard, { backgroundColor: colors.cardBg, borderColor: colors.border, position: 'relative' }]}>
-          
+
           {/* Logo wrapper at top-left corner */}
           <View style={styles.logoWrapper}>
             {/* Smooth Glowing Radial Gradient Aura (Fades out beautifully as one smooth circle like on web) */}
-            <Animated.View 
+            <Animated.View
               style={[
                 styles.goalLogoCircle,
-                { 
+                {
                   transform: [{ scale: scaleOuter }],
                   opacity: opacityOuter
                 }
@@ -656,18 +684,18 @@ export default function HomeScreen() {
             {/* The White Rectangular Flying Paper Page spinning in 3D with 3D tilt and floating (Independent sibling) */}
             <Animated.View style={[
               styles.flyingPaperPage,
-              { 
+              {
                 transform: [
                   { translateY: floatInterpolate },
                   { rotateY: rotateInterpolate },
                   { rotateX: '12deg' },
                   { rotateZ: '-6deg' }
-                ] 
+                ]
               }
             ]}>
-              <Image 
-                source={require('../../../assets/images/project-logo-v2.png')} 
-                style={styles.goalLogoImage} 
+              <Image
+                source={require('../../../assets/images/project-logo-v2.png')}
+                style={styles.goalLogoImage}
               />
             </Animated.View>
           </View>
@@ -685,9 +713,9 @@ export default function HomeScreen() {
 
           {/* Tokens Row */}
           <View style={{ paddingLeft: 68, flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-            <View style={{ 
-              flexDirection: 'row', 
-              alignItems: 'center', 
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
               backgroundColor: isDark ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)',
               borderColor: 'rgba(99, 102, 241, 0.2)',
               borderWidth: 1,
@@ -702,9 +730,9 @@ export default function HomeScreen() {
               </Text>
             </View>
 
-            <View style={{ 
-              flexDirection: 'row', 
-              alignItems: 'center', 
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
               backgroundColor: isDark ? 'rgba(251, 146, 60, 0.1)' : 'rgba(251, 146, 60, 0.05)',
               borderColor: 'rgba(251, 146, 60, 0.2)',
               borderWidth: 1,
@@ -756,7 +784,7 @@ export default function HomeScreen() {
             <Text style={styles.challengeSub}>
               Hoàn thành bài học nhận +15 EXP mỗi ngày. Đã nhận: {streak * 15} EXP.
             </Text>
-            
+
             {/* Interactive Step Progress Circles */}
             <View style={styles.challengeProgressRow}>
               {Array.from({ length: 7 }).map((_, idx) => {
@@ -788,9 +816,9 @@ export default function HomeScreen() {
                 <Text style={styles.challengeSuccessText}>ĐÃ HOÀN THÀNH HÔM NAY! 🎉</Text>
               </View>
             ) : (
-              <TouchableOpacity 
+              <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={handleCreateNew} 
+                onPress={handleCreateNew}
                 style={styles.challengeBtn}
               >
                 <Text style={[styles.challengeBtnText, { color: isDark ? '#1e1b4b' : '#3b82f6' }]}>HỌC NGAY HÔM NAY (+15 EXP)</Text>
@@ -845,9 +873,9 @@ export default function HomeScreen() {
           decelerationRate="fast"
           scrollEventThrottle={16}
           onScroll={handleScroll}
-          contentContainerStyle={{ 
-            paddingLeft: 16, 
-            paddingRight: width - CARD_WIDTH - 16 
+          contentContainerStyle={{
+            paddingLeft: 16,
+            paddingRight: width - CARD_WIDTH - 16
           }}
           style={{ marginHorizontal: -16 }}
         >
@@ -861,17 +889,17 @@ export default function HomeScreen() {
             const sliced = filtered.slice(0, 3);
 
             return (
-              <View 
-                key={cat} 
-                style={{ 
-                  width: CARD_WIDTH, 
+              <View
+                key={cat}
+                style={{
+                  width: CARD_WIDTH,
                   marginRight: CARD_GAP
                 }}
               >
                 <View style={[
-                  styles.carouselCard, 
-                  { 
-                    backgroundColor: colors.cardBg, 
+                  styles.carouselCard,
+                  {
+                    backgroundColor: colors.cardBg,
                     borderColor: colors.border,
                   }
                 ]}>
@@ -905,7 +933,7 @@ export default function HomeScreen() {
                             <Text style={[styles.carouselRowDesc, { color: colors.textMuted }]} numberOfLines={1}>
                               {lesson.type.toUpperCase()} • {lesson.status} • Chương 1/1
                             </Text>
-                            
+
                             {/* Larger Inline Progress Bar */}
                             <View style={styles.rowProgressContainer}>
                               <View style={[styles.rowProgressBarBg, { backgroundColor: isDark ? '#27272a' : '#e4e4e7' }]}>
@@ -928,7 +956,7 @@ export default function HomeScreen() {
                   )}
 
                   {filtered.length > 3 && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => {
                         setAllLessonsFilter(cat);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { api } from '../services/api';
+import { api, getHubUrl } from '../services/api';
+import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import Toast from '../components/Toast';
 import './Studio.css';
 
@@ -178,24 +179,37 @@ export default function Studio() {
         }
     }, [step]);
 
-    // Polling effect for background media generation status
+    // SignalR connection for background media generation status
     useEffect(() => {
         if (step !== 'generating_media' || !lessonId) {
             return;
         }
 
         let isMounted = true;
-        let pollTimer: any;
+        const hubUrl = getHubUrl('/hubs/lessons');
 
-        const pollStatus = async () => {
+        const connection = new HubConnectionBuilder()
+            .withUrl(hubUrl)
+            .withAutomaticReconnect()
+            .build();
+
+        const startConnection = async () => {
             try {
-                const lesson = await api.getLesson(lessonId);
+                await connection.start();
+                if (!isMounted) {
+                    await connection.stop();
+                    return;
+                }
+
+                // Join group for this lesson
+                await connection.invoke("JoinLessonGroup", lessonId);
+
+                // Fetch status immediately in case it completed before connecting
+                const currentLesson = await api.getLesson(lessonId);
                 if (!isMounted) return;
+                setLessonData(currentLesson);
 
-                setLessonData(lesson);
-
-                const jobs = lesson.generationJobs || [];
-                // Only pick the newest job of type MediaGeneration during this phase
+                const jobs = currentLesson.generationJobs || [];
                 const mediaJobs = jobs.filter((j: any) => j.type === 2 || j.type === 'MediaGeneration');
                 const activeJob = [...mediaJobs]
                     .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
@@ -203,7 +217,6 @@ export default function Studio() {
                 if (activeJob) {
                     const status = activeJob.status;
                     if (status === 'Completed' || status === 2) {
-                        // Job completed! Set progress to 100% and wait 2 seconds before finishing
                         setProgress(100);
                         setTimeout(async () => {
                             if (isMounted) {
@@ -219,25 +232,56 @@ export default function Studio() {
                     } else if (status === 'Failed' || status === 3) {
                         setError(activeJob.errorMessage || "Đã xảy ra lỗi khi tạo media từ server.");
                         setStep('draft_review');
-                    } else {
-                        pollTimer = setTimeout(pollStatus, 2000);
                     }
-                } else {
-                    pollTimer = setTimeout(pollStatus, 2000);
                 }
-            } catch (err: any) {
-                console.error("Lỗi khi poll trạng thái bài học:", err);
-                if (isMounted) {
-                    pollTimer = setTimeout(pollStatus, 3000);
-                }
+            } catch (err) {
+                console.error("Lỗi kết nối SignalR:", err);
             }
         };
 
-        pollTimer = setTimeout(pollStatus, 1000);
+        connection.on("StatusChanged", (data: { lessonId: string; status: string; errorMessage?: string }) => {
+            if (!isMounted) return;
+            if (data.lessonId !== lessonId) return;
+
+            if (data.status === 'Completed') {
+                setProgress(100);
+                setTimeout(async () => {
+                    if (isMounted) {
+                        try {
+                            const finalLesson = await api.getLesson(lessonId);
+                            setLessonData(finalLesson);
+                        } catch (err) {
+                            console.error("Lỗi khi tải lại dữ liệu hoàn tất của bài học:", err);
+                        }
+                        setStep('finished');
+                    }
+                }, 2000);
+            } else if (data.status === 'Failed') {
+                setError(data.errorMessage || "Đã xảy ra lỗi khi tạo media từ server.");
+                setStep('draft_review');
+            }
+        });
+
+        connection.onreconnected((connectionId) => {
+            if (isMounted) {
+                connection.invoke("JoinLessonGroup", lessonId)
+                    .catch(err => console.error("Error rejoining group after reconnect on web:", err));
+            }
+        });
+
+        startConnection();
 
         return () => {
             isMounted = false;
-            if (pollTimer) clearTimeout(pollTimer);
+            if (connection.state === HubConnectionState.Connected) {
+                connection.invoke("LeaveLessonGroup", lessonId)
+                    .catch(err => console.error("Lỗi rời nhóm SignalR:", err))
+                    .finally(() => {
+                        connection.stop().catch(err => console.error("Lỗi đóng kết nối SignalR:", err));
+                    });
+            } else {
+                connection.stop().catch(err => console.error("Lỗi đóng kết nối SignalR:", err));
+            }
         };
     }, [step, lessonId]);
 
@@ -284,10 +328,10 @@ export default function Studio() {
         const hasReachedGenerate = currentStep === "GenerateChapters" || logs.some((l: any) => l.step === "GenerateChapters");
 
         const chapters = lessonData?.chapters || [];
-        const generatedCount = chapters.filter((c: any) => 
-            c.status === 'Generated' || 
-            c.status === 2 || 
-            c.mangaUrl || 
+        const generatedCount = chapters.filter((c: any) =>
+            c.status === 'Generated' ||
+            c.status === 2 ||
+            c.mangaUrl ||
             c.videoUrl
         ).length;
 
@@ -530,28 +574,28 @@ export default function Studio() {
                                         </svg>
                                     </button>
                                 </label>
-                                
+
                                 <div className="inline-suggestions">
                                     <span className="suggestion-label">💡 Gợi ý nhanh:</span>
                                     <div className="suggestion-pills">
                                         {[
-                                            { 
-                                                name: 'Tương đối 🌌', 
-                                                title: 'Thuyết tương đối & Giãn nở thời gian', 
+                                            {
+                                                name: 'Tương đối 🌌',
+                                                title: 'Thuyết tương đối & Giãn nở thời gian',
                                                 content: 'Theo thuyết tương đối của Einstein, thời gian trôi chậm hơn đối với vật thể di chuyển ở tốc độ cận ánh sáng. Hãy kể câu chuyện về phi hành gia Nam bay vào vũ trụ và khi trở về Trái Đất, anh vẫn trẻ trong khi người bạn Minh đã già đi.',
-                                                vibe: 'scifi' 
+                                                vibe: 'scifi'
                                             },
-                                            { 
-                                                name: 'Bảo toàn 🧪', 
-                                                title: 'Nguyên lý bảo toàn khối lượng', 
+                                            {
+                                                name: 'Bảo toàn 🧪',
+                                                title: 'Nguyên lý bảo toàn khối lượng',
                                                 content: 'Trong hóa học, tổng khối lượng của các chất tham gia phản ứng luôn bằng tổng khối lượng của các sản phẩm tạo thành. Hãy biến định luật này thành một công thức pha chế tiên dược của một giả kim thuật sư cổ xưa.',
-                                                vibe: 'medieval' 
+                                                vibe: 'medieval'
                                             },
-                                            { 
-                                                name: 'Nam châm 🎨', 
-                                                title: 'Nguyên lý hoạt động của nam châm', 
+                                            {
+                                                name: 'Nam châm 🎨',
+                                                title: 'Nguyên lý hoạt động của nam châm',
                                                 content: 'Nam châm có hai cực: cực Bắc và cực Nam. Các cực cùng tên thì đẩy nhau, các cực khác tên thì hút nhau. Hãy minh họa định luật này thông qua cuộc chạm trán kịch tính giữa hai chiến binh mang năng lượng đối nghịch.',
-                                                vibe: 'manga' 
+                                                vibe: 'manga'
                                             }
                                         ].map((s, idx) => (
                                             <button
@@ -638,8 +682,8 @@ export default function Studio() {
                             </div>
 
                             {step === 'input' ? (
-                                <button 
-                                    id="generateBtn" 
+                                <button
+                                    id="generateBtn"
                                     className="btn-primary"
                                     onClick={handleGenerateDraft}
                                 >
@@ -651,9 +695,9 @@ export default function Studio() {
                                         <div className="inline-spinner"></div>
                                         <span>Đang tạo kịch bản... {progress}%</span>
                                     </div>
-                                     <div className="inline-progress-bg">
-                                         <div className="inline-progress-bar" style={{ transform: `scaleX(${progress / 100})` }}></div>
-                                     </div>
+                                    <div className="inline-progress-bg">
+                                        <div className="inline-progress-bar" style={{ transform: `scaleX(${progress / 100})` }}></div>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -662,8 +706,8 @@ export default function Studio() {
                         {showGuide && (
                             <div className="guide-modal-overlay" onClick={() => setShowGuide(false)}>
                                 <div className="guide-modal-content" onClick={e => e.stopPropagation()}>
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         className="guide-modal-close"
                                         onClick={() => setShowGuide(false)}
                                     >
@@ -697,9 +741,9 @@ export default function Studio() {
                     <section id="resultContainer" className="result-container">
                         <div id="loadingState" className="loading-state">
                             <div className="loader"></div>
-                             <div className="generation-progress" aria-hidden="true">
-                                 <div className="generation-progress-bar" style={{ transform: `scaleX(${progress / 100})` }}></div>
-                             </div>
+                            <div className="generation-progress" aria-hidden="true">
+                                <div className="generation-progress-bar" style={{ transform: `scaleX(${progress / 100})` }}></div>
+                            </div>
                             <div className="media-loading-copy">
                                 <span className="media-loading-eyebrow">Đã chạy {elapsedLabel}</span>
                                 <h2>Đang tạo series của bạn</h2>
@@ -727,7 +771,7 @@ export default function Studio() {
                                                 <small className="step-detail">{stage.detail}</small>
                                             </div>
                                             {placeholderHeight > 0 && (
-                                                <div 
+                                                <div
                                                     className={`media-loading-placeholder ${status}`}
                                                     style={{ height: `${placeholderHeight}px` }}
                                                 />
@@ -758,7 +802,7 @@ export default function Studio() {
                                 </button>
                                 <h2>Kịch bản bài học (Draft Script)</h2>
                                 <div className="review-script-main">
-                                    <textarea 
+                                    <textarea
                                         className="script-editor"
                                         value={draftScript}
                                         onChange={e => setDraftScript(e.target.value)}
@@ -809,8 +853,8 @@ export default function Studio() {
                                         <div className="chapter-reader-header">
                                             <div></div>
                                             <div className="chapter-nav" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <button 
-                                                    type="button" 
+                                                <button
+                                                    type="button"
                                                     className="chapter-nav-btn"
                                                     onClick={() => {
                                                         setStep('input');

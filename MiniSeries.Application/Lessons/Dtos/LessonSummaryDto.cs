@@ -14,10 +14,14 @@ public sealed record LessonSummaryDto(
     int ChapterCount,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    DateTime? ApprovedAt)
+    DateTime? ApprovedAt,
+    bool IsMediaReady)
 {
     public static LessonSummaryDto FromEntity(Lesson lesson)
     {
+        bool isMediaReady = lesson.ScriptStatus == ScriptStatus.Approved && 
+            lesson.GenerationJobs.Any(j => j.Type == GenerationJobType.MediaGeneration && j.Status == GenerationJobStatus.Completed);
+
         return new LessonSummaryDto(
             lesson.Id,
             lesson.UserId,
@@ -29,7 +33,8 @@ public sealed record LessonSummaryDto(
             lesson.Chapters.Count,
             lesson.CreatedAt,
             lesson.UpdatedAt,
-            lesson.ApprovedAt);
+            lesson.ApprovedAt,
+            isMediaReady);
     }
 
     private static string? ResolveThumbnailUrl(Lesson lesson)
