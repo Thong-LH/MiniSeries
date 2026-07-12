@@ -32,6 +32,19 @@ public sealed class CreateLessonDraftCommandHandler(
         try
         {
             AddLog(job, "CreateScriptDraft", "Bắt đầu tạo kịch bản tổng thể.");
+            
+            if (PredefinedLessons.IsPredefined(request.Title))
+            {
+                lesson.CharacterProfile = PredefinedLessons.GetCharacterProfile(request.Title);
+                lesson.OverallScript = PredefinedLessons.GetOverallScript(request.Title);
+                lesson.ScriptStatus = ScriptStatus.AwaitingReview;
+                lesson.UpdatedAt = DateTime.UtcNow;
+                
+                CompleteJob(job, "Kịch bản tổng thể đã sẵn sàng để review.");
+                await lessonRepository.SaveAsync(lesson);
+                return LessonDto.FromEntity(lesson);
+            }
+
             var draft = await llmService.CreateScriptDraftAsync(request.RawContent, request.CreativeBrief);
 
             lesson.CharacterProfile = draft.CharacterProfile;

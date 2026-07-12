@@ -9,7 +9,7 @@
   position: relative;
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 110px 20px 60px;
+  padding: 60px 20px 40px;
   font-family: 'Inter', sans-serif;
 }
 
@@ -24,9 +24,9 @@
 
 .pricing-header {
   text-align: center;
-  margin-bottom: 42px;
+  margin-bottom: 24px;
   max-width: 720px;
-  margin-top: 10px;
+  margin-top: -10px;
 }
 
 .pricing-header h1 {
@@ -181,4 +181,106 @@
   background-color: #ffffff;
   box-shadow: 0 12px 30px rgba(255, 255, 255, 0.2);
   transform: translateY(-1.5px);
+}
+
+.pricing-scroll-hint-wrapper {
+  text-align: center;
+  margin-top: 36px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.pricing-scroll-hint-btn {
+  background: rgba(56, 189, 248, 0.04);
+  color: #38bdf8;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 1px dashed rgba(56, 189, 248, 0.25);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.pricing-scroll-hint-btn:hover {
+  background-color: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(56, 189, 248, 0.15);
+}
+
+.hint-arrow {
+  display: inline-block;
+  font-weight: 800;
+  animation: bounceHint 1.6s infinite ease-in-out;
+}
+
+@keyframes bounceHint {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+.pricing-floating-hint {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #38bdf8;
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.15);
+  animation: fadeInFloating 0.4s ease, bounceFloating 1.6s infinite ease-in-out;
+  transition: all 0.3s ease;
+}
+
+.pricing-floating-hint:hover {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(56, 189, 248, 0.75);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.35);
+  color: #ffffff;
+}
+
+.pricing-floating-hint .hint-arrow {
+  display: inline-block;
+  font-weight: 800;
+  animation: bounceHint 1.6s infinite ease-in-out;
+}
+
+@keyframes fadeInFloating {
+  from { 
+    opacity: 0; 
+    transform: translate(-50%, 20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translate(-50%, 0); 
+  }
+}
+
+@keyframes bounceFloating {
+  0%, 100% {
+    bottom: 24px;
+  }
+  50% {
+    bottom: 28px;
+  }
 }

@@ -382,6 +382,50 @@ public sealed class AdminController(
         }
     }
 
+    [HttpPost("clear-base64-chapters")]
+    public async Task<IActionResult> ClearBase64Chapters([FromQuery] string? secret)
+    {
+        if (secret != "miniseries-kpi-seeding")
+        {
+            return Unauthorized(new { message = "Sai ma bao mat." });
+        }
+
+        try
+        {
+            var oldLessons = await dbContext.Lessons
+                .Where(l => !l.Title.Contains("tương đối", StringComparison.OrdinalIgnoreCase) &&
+                            !l.Title.Contains("khối lượng", StringComparison.OrdinalIgnoreCase) &&
+                            !l.Title.Contains("bảo toàn", StringComparison.OrdinalIgnoreCase) &&
+                            !l.Title.Contains("nam châm", StringComparison.OrdinalIgnoreCase) &&
+                            !l.Title.Contains("vòng đời", StringComparison.OrdinalIgnoreCase) &&
+                            !l.Title.Contains("bướm", StringComparison.OrdinalIgnoreCase))
+                .ToListAsync();
+
+            dbContext.Lessons.RemoveRange(oldLessons);
+            await dbContext.SaveChangesAsync();
+
+            var chapters = await dbContext.Chapters
+                .Where(c => c.MangaUrl != null && c.MangaUrl.StartsWith("data:image"))
+                .ToListAsync();
+
+            foreach (var c in chapters)
+            {
+                c.MangaUrl = "https://res.cloudinary.com/demo/image/upload/sample.jpg";
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            return Ok(new { 
+                success = true, 
+                message = $"Deleted {oldLessons.Count} old lessons. Cleared base64 for {chapters.Count} chapters." 
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("seed-kpi-data")]
     public async Task<IActionResult> SeedKpiData([FromQuery] string? secret)
     {
@@ -439,7 +483,7 @@ public sealed class AdminController(
                     PlanName = plan,
                     TokensReceived = tokens,
                     Status = "Paid",
-                    Content = code, // VietQR transfer remarks is simply the payment code
+                    Content = $"SePay: Chuyển khoản {code} thanh toán gói {plan}",
                     CreatedAt = paymentDate,
                     PaidAt = paymentDate
                 };

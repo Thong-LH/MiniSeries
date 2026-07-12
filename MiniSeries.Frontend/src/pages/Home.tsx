@@ -415,7 +415,11 @@ export default function Home() {
       <section className="final-section">
         <div className="final-content">
           <h2 className="final-title">Bạn đã sẵn sàng?</h2>
-          <Link to="/studio" onClick={handleProtectedNavigation} className="cta-btn">Tạo Mini Series của riêng bạn</Link>
+          <div className="cta-group" style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '30px' }}>
+            <Link to="/studio" onClick={handleProtectedNavigation} className="cta-btn">Tạo Mini Series của riêng bạn</Link>
+            <a href="https://drive.google.com/drive/folders/1-Pr-07rFCbfUqI5Lxkpm6bHmhxdvPGPf?usp=drive_link" target="_blank" rel="noopener noreferrer" className="cta-btn apk-btn" style={{ background: 'transparent', border: '2px solid #fafafa', color: '#fafafa' }}>Tải App Android (APK)</a>
+          </div>
+
         </div>
         <div className="book-container">
           <div className="css-book-wrapper">

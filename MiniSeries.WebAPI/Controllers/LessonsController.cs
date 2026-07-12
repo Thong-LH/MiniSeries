@@ -118,7 +118,8 @@ public sealed class LessonsController(
 
         try
         {
-            var result = await mediator.Send(new ApproveLessonScriptCommand(lessonId, request.OverallScript));
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var result = await mediator.Send(new ApproveLessonScriptCommand(lessonId, request.OverallScript, baseUrl));
             var quota = await quotaService.GetSnapshotAsync(currentUserId.Value);
             return Ok(new
             {

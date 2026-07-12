@@ -530,6 +530,23 @@ export const api = {
         return await readJsonResponse(response);
     },
 
+    async trackTraffic(path: string, deviceType: string = "Web") {
+        try {
+            // Do NOT send Authorization header when token is empty — ASP.NET JWT middleware
+            // rejects malformed "Bearer " (empty) tokens with 401 for anonymous endpoints.
+            const token = localStorage.getItem("token");
+            const headers: Record<string, string> = { "Content-Type": "application/json" };
+            if (token) headers["Authorization"] = `Bearer ${token}`;
+            await fetch(`${API_BASE}/analytics/track`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({ path, deviceType })
+            });
+        } catch (e) {
+            // fire-and-forget — silently ignore tracking errors
+        }
+    },
+
     async adminSeedKpiData() {
         const response = await fetch(`${API_BASE}/admin/seed-kpi-data?secret=miniseries-kpi-seeding`, {
             method: "POST",

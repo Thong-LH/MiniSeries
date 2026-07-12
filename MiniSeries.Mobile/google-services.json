@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "126955656491",
+    "project_id": "miniseries-500018",
+    "storage_bucket": "miniseries-500018.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:126955656491:android:c9b76412bc04670e5d216e",
+        "android_client_info": {
+          "package_name": "com.miniseries.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "126955656491-lfu4ptko39ilrf4so15u83meop10qulm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBP1H_p0CnAVRcCorcWEHfZODA6BISyXkE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "126955656491-lfu4ptko39ilrf4so15u83meop10qulm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "126955656491-vddeqf0bguj9g5gpah91m5u9sl3d0bbu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.miniseries.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

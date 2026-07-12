@@ -81,9 +81,20 @@ public sealed class PendingRegistration
     public string? SupabaseUserId { get; init; }
 }
 
-public record SupportCreateRequest(string CustomerEmail, string Content);
-public record FeedbackCreateRequest(string Email, int Rating, string Comment);
-public record ReportCreateRequest(string StaffName, string Content);
+public record SupportCreateRequest(
+    [property: JsonPropertyName("customerEmail")] string CustomerEmail,
+    [property: JsonPropertyName("content")] string Content
+);
+
+public record FeedbackCreateRequest(
+    [property: JsonPropertyName("rating")] int Rating,
+    [property: JsonPropertyName("comment")] string Comment
+);
+
+public record ReportCreateRequest(
+    [property: JsonPropertyName("staffName")] string StaffName,
+    [property: JsonPropertyName("content")] string Content
+);
 
 public sealed class SupportReplyRequest
 {

@@ -1,10 +1,23 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Pricing.css';
 
 export default function Pricing() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const navigate = useNavigate();
+  const [showFloatHint, setShowFloatHint] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 80) {
+        setShowFloatHint(false);
+      } else {
+        setShowFloatHint(true);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -162,40 +175,14 @@ export default function Pricing() {
         </div>
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: '36px' }}>
+      <div className="pricing-scroll-hint-wrapper">
         <button
+          className="pricing-scroll-hint-btn"
           onClick={() => document.getElementById('single-tokens-section')?.scrollIntoView({ behavior: 'smooth' })}
-          style={{
-            background: 'transparent',
-            color: '#38bdf8',
-            fontSize: '0.88rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 20px',
-            borderRadius: '999px',
-            backgroundColor: 'rgba(56, 189, 248, 0.04)',
-            border: '1px dashed rgba(56, 189, 248, 0.25)',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(56, 189, 248, 0.1)';
-            e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.4)';
-            e.currentTarget.style.transform = 'translateY(-1px)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(56, 189, 248, 0.04)';
-            e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.25)';
-            e.currentTarget.style.transform = 'translateY(0)';
-          }}
         >
-          <span>💡 Chỉ cần nạp một vài lượt lẻ? Xem bảng mua lẻ tại đây</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <polyline points="19 12 12 19 5 12"></polyline>
-          </svg>
+          <span className="hint-icon">💡</span>
+          <span>Chỉ cần nạp vài lượt lẻ? Cuộn xuống để xem bảng mua lẻ</span>
+          <span className="hint-arrow">↓</span>
         </button>
       </div>
 
@@ -239,6 +226,17 @@ export default function Pricing() {
           </button>
         </div>
       </div>
+
+      {showFloatHint && (
+        <div 
+          className="pricing-floating-hint"
+          onClick={() => document.getElementById('single-tokens-section')?.scrollIntoView({ behavior: 'smooth' })}
+        >
+          <span className="hint-icon">💡</span>
+          <span>Cuộn xuống để xem bảng mua lẻ</span>
+          <span className="hint-arrow">↓</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -96,9 +96,10 @@ export default function StatsScreen() {
     const days = [];
     const today = new Date();
     const dayOfWeek = today.getDay();
+    const distanceToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - dayOfWeek);
-    const dayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    startOfWeek.setDate(today.getDate() - distanceToMonday);
+    const dayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
     for (let i = 0; i < 7; i++) {
       const d = new Date(startOfWeek);
       d.setDate(startOfWeek.getDate() + i);
@@ -554,8 +555,14 @@ export default function StatsScreen() {
               ) : (
                 <View style={styles.chartPointsRow}>
                   {getWeeklyCalendar().map((day, idx) => {
-                    const activity = stats.weeklyActivity.find(a => a.dayLabel === day.dayLabel);
-                    const count = activity ? (activity.activityCount ?? 0) : 0;
+                    // Count lessons from historyLessons for this day (more accurate than API weeklyActivity)
+                    const count = historyLessons.filter(lesson => {
+                      if (!lesson.createdAt) return false;
+                      const ld = new Date(lesson.createdAt);
+                      return ld.getDate() === day.dateObj.getDate() &&
+                        ld.getMonth() === day.dateObj.getMonth() &&
+                        ld.getFullYear() === day.dateObj.getFullYear();
+                    }).length;
                     const heightVal = count === 0 ? 10 : Math.min(90, 15 + count * 25);
                     const isToday = day.isToday;
                     return (

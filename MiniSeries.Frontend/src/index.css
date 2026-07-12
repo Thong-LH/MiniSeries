@@ -9,23 +9,51 @@
 
 /* Custom space sci-fi animations */
 @keyframes portal-spin-cw {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes portal-spin-ccw {
-  0% { transform: rotate(360deg); }
-  100% { transform: rotate(0deg); }
+  0% {
+    transform: rotate(360deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 @keyframes portal-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.85; filter: drop-shadow(0 0 35px var(--glow-color, rgba(249,115,22,0.5))); }
-  50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 70px var(--glow-color, rgba(249,115,22,0.9))); }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+    filter: drop-shadow(0 0 35px var(--glow-color, rgba(249, 115, 22, 0.5)));
+  }
+
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+    filter: drop-shadow(0 0 70px var(--glow-color, rgba(249, 115, 22, 0.9)));
+  }
 }
 
 @keyframes float-gentle {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-12px) rotate(1.5deg); }
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-12px) rotate(1.5deg);
+  }
 }
 
 /* 3D Flying Sheets Animation along a curved path from bottom-left Open Book to top-right Open Book */
@@ -34,46 +62,57 @@
     transform: translate3d(8.0vw, 80.0vh, -200px) rotateX(55deg) rotateY(-45deg) rotateZ(15deg) scale(0.05);
     opacity: 0;
   }
+
   10% {
     transform: translate3d(15.8vw, 73.5vh, -180px) rotateX(46.6deg) rotateY(-35.4deg) rotateZ(11.8deg) scale(0.7);
     opacity: 0.95;
   }
+
   20% {
     transform: translate3d(23.6vw, 70.8vh, -160px) rotateX(31.2deg) rotateY(-22.8deg) rotateZ(5.1deg) scale(0.71);
     opacity: 0.95;
   }
+
   30% {
     transform: translate3d(31.4vw, 67.2vh, -140px) rotateX(15.8deg) rotateY(-10.2deg) rotateZ(-1.6deg) scale(0.72);
     opacity: 0.95;
   }
+
   40% {
     transform: translate3d(39.2vw, 61.5vh, -120px) rotateX(0.4deg) rotateY(2.4deg) rotateZ(-8.3deg) scale(0.73);
     opacity: 0.95;
   }
+
   50% {
     transform: translate3d(47.0vw, 54.5vh, -100px) rotateX(-15deg) rotateY(15deg) rotateZ(-12deg) scale(0.75);
     opacity: 0.95;
   }
+
   60% {
     transform: translate3d(54.8vw, 38.5vh, -120px) rotateX(-20deg) rotateY(20deg) rotateZ(-2deg) scale(0.74);
     opacity: 0.95;
   }
+
   70% {
     transform: translate3d(62.6vw, 25.5vh, -140px) rotateX(-25deg) rotateY(25deg) rotateZ(8deg) scale(0.73);
     opacity: 0.95;
   }
+
   80% {
     transform: translate3d(70.4vw, 14.2vh, -160px) rotateX(-30deg) rotateY(30deg) rotateZ(18deg) scale(0.72);
     opacity: 0.95;
   }
+
   90% {
     transform: translate3d(78.2vw, 11.8vh, -180px) rotateX(-35deg) rotateY(35deg) rotateZ(25deg) scale(0.7);
     opacity: 0.95;
   }
+
   96% {
     transform: translate3d(82.9vw, 11.5vh, -192px) rotateX(-44deg) rotateY(47deg) rotateZ(37deg) scale(0.4);
     opacity: 0.6;
   }
+
   100% {
     transform: translate3d(86.0vw, 12.0vh, -200px) rotateX(-50deg) rotateY(55deg) rotateZ(45deg) scale(0.05);
     opacity: 0;
@@ -85,46 +124,57 @@
     transform: translate3d(8.0vw, 80.0vh, -240px) rotateX(45deg) rotateY(-35deg) rotateZ(5deg) scale(0.05);
     opacity: 0;
   }
+
   10% {
     transform: translate3d(15.8vw, 72.8vh, -216px) rotateX(35deg) rotateY(-25deg) rotateZ(2deg) scale(0.7);
     opacity: 0.9;
   }
+
   20% {
     transform: translate3d(23.6vw, 69.2vh, -192px) rotateX(25deg) rotateY(-15deg) rotateZ(-4deg) scale(0.7);
     opacity: 0.9;
   }
+
   30% {
     transform: translate3d(31.4vw, 65.5vh, -168px) rotateX(15deg) rotateY(-5deg) rotateZ(-10deg) scale(0.71);
     opacity: 0.9;
   }
+
   40% {
     transform: translate3d(39.2vw, 59.8vh, -144px) rotateX(5deg) rotateY(0deg) rotateZ(-15deg) scale(0.71);
     opacity: 0.9;
   }
+
   50% {
     transform: translate3d(47.0vw, 52.5vh, -120px) rotateX(-5deg) rotateY(5deg) rotateZ(-20deg) scale(0.72);
     opacity: 0.9;
   }
+
   60% {
     transform: translate3d(54.8vw, 38.5vh, -144px) rotateX(-10deg) rotateY(10deg) rotateZ(-12deg) scale(0.71);
     opacity: 0.9;
   }
+
   70% {
     transform: translate3d(62.6vw, 25.2vh, -168px) rotateX(-17deg) rotateY(17deg) rotateZ(-2deg) scale(0.71);
     opacity: 0.9;
   }
+
   80% {
     transform: translate3d(70.4vw, 15.2vh, -192px) rotateX(-23deg) rotateY(23deg) rotateZ(6deg) scale(0.7);
     opacity: 0.9;
   }
+
   90% {
     transform: translate3d(78.2vw, 12.2vh, -216px) rotateX(-30deg) rotateY(30deg) rotateZ(15deg) scale(0.7);
     opacity: 0.9;
   }
+
   96% {
     transform: translate3d(82.9vw, 11.6vh, -230px) rotateX(-39deg) rotateY(39deg) rotateZ(21deg) scale(0.4);
     opacity: 0.55;
   }
+
   100% {
     transform: translate3d(86.0vw, 12.0vh, -240px) rotateX(-45deg) rotateY(45deg) rotateZ(25deg) scale(0.05);
     opacity: 0;
@@ -136,46 +186,57 @@
     transform: translate3d(8.0vw, 80.0vh, -180px) rotateX(60deg) rotateY(-50deg) rotateZ(25deg) scale(0.05);
     opacity: 0;
   }
+
   10% {
     transform: translate3d(15.8vw, 73.5vh, -162px) rotateX(50deg) rotateY(-40deg) rotateZ(20deg) scale(0.78);
     opacity: 0.95;
   }
+
   20% {
     transform: translate3d(23.6vw, 70.8vh, -144px) rotateX(35deg) rotateY(-26deg) rotateZ(12deg) scale(0.78);
     opacity: 0.95;
   }
+
   30% {
     transform: translate3d(31.4vw, 67.2vh, -126px) rotateX(18deg) rotateY(-11deg) rotateZ(4deg) scale(0.79);
     opacity: 0.95;
   }
+
   40% {
     transform: translate3d(39.2vw, 61.5vh, -108px) rotateX(2deg) rotateY(4deg) rotateZ(-3deg) scale(0.79);
     opacity: 0.95;
   }
+
   50% {
     transform: translate3d(47.0vw, 54.5vh, -90px) rotateX(-25deg) rotateY(25deg) rotateZ(-5deg) scale(0.8);
     opacity: 0.95;
   }
+
   60% {
     transform: translate3d(54.8vw, 40.5vh, -108px) rotateX(-27deg) rotateY(27deg) rotateZ(5deg) scale(0.79);
     opacity: 0.95;
   }
+
   70% {
     transform: translate3d(62.6vw, 25.5vh, -126px) rotateX(-29deg) rotateY(29deg) rotateZ(14deg) scale(0.79);
     opacity: 0.95;
   }
+
   80% {
     transform: translate3d(70.4vw, 14.2vh, -144px) rotateX(-30deg) rotateY(30deg) rotateZ(22deg) scale(0.78);
     opacity: 0.95;
   }
+
   90% {
     transform: translate3d(78.2vw, 11.8vh, -162px) rotateX(-32deg) rotateY(32deg) rotateZ(28deg) scale(0.78);
     opacity: 0.95;
   }
+
   96% {
     transform: translate3d(82.9vw, 11.5vh, -172px) rotateX(-46deg) rotateY(49deg) rotateZ(44deg) scale(0.4);
     opacity: 0.6;
   }
+
   100% {
     transform: translate3d(86.0vw, 12.0vh, -180px) rotateX(-55deg) rotateY(60deg) rotateZ(55deg) scale(0.05);
     opacity: 0;
@@ -187,46 +248,57 @@
     transform: translate3d(8.0vw, 80.0vh, -220px) rotateX(50deg) rotateY(-40deg) rotateZ(10deg) scale(0.05);
     opacity: 0;
   }
+
   10% {
     transform: translate3d(15.8vw, 72.8vh, -198px) rotateX(40deg) rotateY(-30deg) rotateZ(8deg) scale(0.72);
     opacity: 0.95;
   }
+
   20% {
     transform: translate3d(23.6vw, 69.2vh, -176px) rotateX(28deg) rotateY(-18deg) rotateZ(1deg) scale(0.72);
     opacity: 0.95;
   }
+
   30% {
     transform: translate3d(31.4vw, 65.5vh, -154px) rotateX(15deg) rotateY(-8deg) rotateZ(-5deg) scale(0.73);
     opacity: 0.95;
   }
+
   40% {
     transform: translate3d(39.2vw, 59.8vh, -132px) rotateX(3deg) rotateY(1deg) rotateZ(-10deg) scale(0.74);
     opacity: 0.95;
   }
+
   50% {
     transform: translate3d(47.0vw, 52.5vh, -110px) rotateX(-10deg) rotateY(10deg) rotateZ(-15deg) scale(0.75);
     opacity: 0.95;
   }
+
   60% {
     transform: translate3d(54.8vw, 38.5vh, -132px) rotateX(-14deg) rotateY(14deg) rotateZ(-8deg) scale(0.74);
     opacity: 0.95;
   }
+
   70% {
     transform: translate3d(62.6vw, 25.2vh, -154px) rotateX(-19deg) rotateY(19deg) rotateZ(1deg) scale(0.73);
     opacity: 0.95;
   }
+
   80% {
     transform: translate3d(70.4vw, 15.2vh, -176px) rotateX(-23deg) rotateY(23deg) rotateZ(9deg) scale(0.73);
     opacity: 0.95;
   }
+
   90% {
     transform: translate3d(78.2vw, 12.2vh, -198px) rotateX(-28deg) rotateY(28deg) rotateZ(22deg) scale(0.72);
     opacity: 0.95;
   }
+
   96% {
     transform: translate3d(82.9vw, 11.6vh, -210px) rotateX(-40deg) rotateY(41deg) rotateZ(30deg) scale(0.4);
     opacity: 0.6;
   }
+
   100% {
     transform: translate3d(86.0vw, 12.0vh, -220px) rotateX(-48deg) rotateY(50deg) rotateZ(35deg) scale(0.05);
     opacity: 0;
@@ -238,46 +310,57 @@
     transform: translate3d(8.0vw, 80.0vh, -250px) rotateX(58deg) rotateY(-48deg) rotateZ(20deg) scale(0.05);
     opacity: 0;
   }
+
   10% {
     transform: translate3d(15.8vw, 73.5vh, -226px) rotateX(48deg) rotateY(-38deg) rotateZ(15deg) scale(0.75);
     opacity: 0.9;
   }
+
   20% {
     transform: translate3d(23.6vw, 70.8vh, -202px) rotateX(34deg) rotateY(-24deg) rotateZ(8deg) scale(0.76);
     opacity: 0.9;
   }
+
   30% {
     transform: translate3d(31.4vw, 67.2vh, -178px) rotateX(19deg) rotateY(-11deg) rotateZ(1deg) scale(0.76);
     opacity: 0.9;
   }
+
   40% {
     transform: translate3d(39.2vw, 61.5vh, -154px) rotateX(2deg) rotateY(4deg) rotateZ(-5deg) scale(0.77);
     opacity: 0.9;
   }
+
   50% {
     transform: translate3d(47.0vw, 54.5vh, -130px) rotateX(-20deg) rotateY(20deg) rotateZ(-8deg) scale(0.78);
     opacity: 0.9;
   }
+
   60% {
     transform: translate3d(54.8vw, 40.5vh, -154px) rotateX(-24deg) rotateY(24deg) rotateZ(2deg) scale(0.77);
     opacity: 0.9;
   }
+
   70% {
     transform: translate3d(62.6vw, 25.5vh, -178px) rotateX(-28deg) rotateY(28deg) rotateZ(12deg) scale(0.77);
     opacity: 0.9;
   }
+
   80% {
     transform: translate3d(70.4vw, 14.2vh, -202px) rotateX(-31deg) rotateY(31deg) rotateZ(21deg) scale(0.76);
     opacity: 0.9;
   }
+
   90% {
     transform: translate3d(78.2vw, 11.8vh, -226px) rotateX(-35deg) rotateY(35deg) rotateZ(30deg) scale(0.75);
     opacity: 0.9;
   }
+
   96% {
     transform: translate3d(82.9vw, 11.5vh, -238px) rotateX(-45deg) rotateY(49deg) rotateZ(41deg) scale(0.4);
     opacity: 0.55;
   }
+
   100% {
     transform: translate3d(86.0vw, 12.0vh, -250px) rotateX(-52deg) rotateY(58deg) rotateZ(48deg) scale(0.05);
     opacity: 0;
@@ -294,12 +377,12 @@
 }
 
 .animate-portal-pulse-orange {
-  --glow-color: rgba(249,115,22,0.85);
+  --glow-color: rgba(249, 115, 22, 0.85);
   animation: portal-pulse 8s ease-in-out infinite;
 }
 
 .animate-portal-pulse-blue {
-  --glow-color: rgba(59,130,246,0.85);
+  --glow-color: rgba(59, 130, 246, 0.85);
   animation: portal-pulse 7s ease-in-out infinite;
 }
 
@@ -319,13 +402,16 @@ body {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: rgba(9, 9, 11, 0.5);
 }
+
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
@@ -362,12 +448,15 @@ body {
     transform: translateY(105vh) translateX(0) scale(0.6);
     opacity: 0;
   }
+
   15% {
     opacity: var(--spark-opacity, 0.4);
   }
+
   85% {
     opacity: var(--spark-opacity, 0.4);
   }
+
   100% {
     transform: translateY(-5vh) translateX(var(--spark-drift-x, 25px)) scale(1.1);
     opacity: 0;
@@ -379,12 +468,12 @@ body {
   border-radius: 50%;
   pointer-events: none;
   animation: spark-drift infinite linear;
-  box-shadow: 0 0 10px var(--spark-glow, rgba(255,255,255,0.4));
+  box-shadow: 0 0 10px var(--spark-glow, rgba(255, 255, 255, 0.4));
 }
 
 /* Custom radial background glows */
 .bg-obsidian-glow {
-  background: 
+  background:
     radial-gradient(circle at 10% 90%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
     radial-gradient(circle at 90% 10%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
     #060b18;
@@ -435,18 +524,24 @@ body {
 }
 
 @keyframes auto-tilt-orange {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: rotateX(42deg) rotateY(22deg) rotateZ(-10deg) scale(0.8) translateY(0);
   }
+
   50% {
     transform: rotateX(48deg) rotateY(28deg) rotateZ(-6deg) scale(0.8) translateY(-8px);
   }
 }
 
 @keyframes auto-tilt-blue {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: rotateX(-34deg) rotateY(-22deg) rotateZ(6deg) scale(0.8) translateY(0);
   }
+
   50% {
     transform: rotateX(-40deg) rotateY(-28deg) rotateZ(2deg) scale(0.8) translateY(-8px);
   }
@@ -461,7 +556,7 @@ body {
   top: 2%;
   background: #111113;
   transform: translateZ(24px);
-  box-shadow: 0 0 10px rgba(0,0,0,0.7);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
   z-index: 20;
 }
 
@@ -520,7 +615,7 @@ body {
   transform-origin: right center;
   transform: translateZ(11px) rotateY(18deg);
   border-radius: 3px 0 0 3px;
-  box-shadow: -3px 6px 12px rgba(0,0,0,0.25);
+  box-shadow: -3px 6px 12px rgba(0, 0, 0, 0.25);
 }
 
 .portal-book-edge-block.right {
@@ -528,7 +623,7 @@ body {
   transform-origin: left center;
   transform: translateZ(11px) rotateY(-18deg);
   border-radius: 0 3px 3px 0;
-  box-shadow: 3px 6px 12px rgba(0,0,0,0.25);
+  box-shadow: 3px 6px 12px rgba(0, 0, 0, 0.25);
 }
 
 .portal-book-top {
@@ -539,13 +634,13 @@ body {
   z-index: 10;
 }
 
-.portal-book-left-page, 
+.portal-book-left-page,
 .portal-book-right-page {
   position: absolute;
   width: 47%;
   height: 94%;
   top: 3%;
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.12), 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.12), 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
@@ -648,6 +743,7 @@ body {
   from {
     stroke-dashoffset: 0;
   }
+
   to {
     stroke-dashoffset: -100;
   }
@@ -662,13 +758,23 @@ body {
 }
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes spin-reverse-slow {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
 }
 
 .animate-spin-slow {
@@ -679,29 +785,102 @@ body {
   animation: spin-reverse-slow 180s linear infinite;
 }
 
-/* Responsive navbar and layout styles for mobile devices */
+/* ── Hamburger button (desktop: hidden) ── */
+.mobile-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: rgba(250, 250, 250, 0.85);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+
+.mobile-hamburger:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Mobile nav drop-down menu (desktop: hidden) ── */
+.mobile-nav-menu {
+  display: none;
+}
+
+/* ── Responsive navbar ── */
 @media (max-width: 768px) {
+
   /* Override inline style padding of studio navbar */
   .studio-nav {
     padding: 0 16px !important;
+    /* Allow menu panel to sit below */
+    position: fixed !important;
+    flex-wrap: wrap !important;
+    height: auto !important;
+    align-items: center !important;
   }
-  
+
   /* Shrink gap of navigation links container */
   .studio-nav-right {
-    gap: 12px !important;
+    gap: 10px !important;
+    height: 70px;
   }
-  
-  /* Make navbar links smaller */
-  .cyber-nav-link {
-    font-size: 0.8rem !important;
+
+  /* Hide desktop nav links on mobile — they live in the slide-down menu */
+  .mobile-hidden {
+    display: none !important;
   }
-  
+
+  /* Show hamburger on mobile */
+  .mobile-hamburger {
+    display: flex !important;
+  }
+
+  /* Mobile slide-down menu panel */
+  .mobile-nav-menu {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: rgba(9, 9, 11, 0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 6px 0;
+    z-index: 998;
+  }
+
+  .mobile-nav-link {
+    padding: 14px 20px;
+    color: rgba(250, 250, 250, 0.8);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: color 0.15s, background 0.15s;
+    display: block;
+  }
+
+  .mobile-nav-link:last-child {
+    border-bottom: none;
+  }
+
+  .mobile-nav-link:hover,
+  .mobile-nav-link:active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
   /* Hide quota pills and user name in the navbar badge to fit on one line */
   .studio-user-badge .quota-pill,
   .studio-user-badge .user-badge-name {
     display: none !important;
   }
-  
+
   /* Make the badge a compact circle for the avatar */
   .studio-user-badge {
     padding: 3px !important;
@@ -710,13 +889,13 @@ body {
     width: 34px !important;
     height: 34px !important;
   }
-  
+
   .studio-user-badge .user-badge-avatar {
     width: 28px !important;
     height: 28px !important;
     margin: 0 !important;
   }
-  
+
   /* Dropdown layout adjustments on small screens */
   .cyber-profile-dropdown.premium-dropdown-card {
     width: calc(100vw - 32px) !important;
@@ -728,8 +907,7 @@ body {
 }
 
 @media (max-width: 480px) {
-  /* Hide text navigation links on very small mobile screens (except Studio) to prevent wrapping */
-  .studio-nav-right a.cyber-nav-link:not([href="/studio"]) {
-    display: none !important;
+  .studio-nav-right {
+    gap: 8px !important;
   }
 }

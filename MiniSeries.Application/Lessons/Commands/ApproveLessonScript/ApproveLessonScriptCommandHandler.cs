@@ -67,16 +67,18 @@ public sealed class ApproveLessonScriptCommandHandler(
         // Notify clients that the lesson has been approved
         _ = statusNotifier.NotifyLessonStatusChangedAsync(lesson.Id, "Approved", "Script approved, media generation starting.");
 
+        var baseUrl = request.BaseUrl ?? "http://localhost:5137";
+
         // Fire and forget the background media generation process
         _ = Task.Run(async () =>
         {
-            await GenerateMediaInBackgroundAsync(lesson.Id, job.Id);
+            await GenerateMediaInBackgroundAsync(lesson.Id, job.Id, baseUrl);
         });
 
         return LessonDto.FromEntity(lesson);
     }
 
-    private async Task GenerateMediaInBackgroundAsync(Guid lessonId, Guid jobId)
+    private async Task GenerateMediaInBackgroundAsync(Guid lessonId, Guid jobId, string baseUrl)
     {
         using var scope = scopeFactory.CreateScope();
         var sp = scope.ServiceProvider;
@@ -94,6 +96,74 @@ public sealed class ApproveLessonScriptCommandHandler(
 
         try
         {
+            if (PredefinedLessons.IsPredefined(lesson.Title))
+            {
+                var localNotifier = sp.GetRequiredService<ILessonStatusNotifier>();
+
+                // --- STATE 1: CreateChapters (Phân tích kịch bản) - 5 seconds ---
+                job.CurrentStep = "CreateChapters";
+                AddLog(job, "CreateChapters", "Bắt đầu phân tích kịch bản và tạo các chương học.");
+                await backgroundLessonRepository.SaveAsync(lesson);
+                await localNotifier.NotifyLessonStatusChangedAsync(lesson.Id, "CreateChapters", "Bắt đầu tạo khung sườn bài học.");
+                await Task.Delay(5000);
+
+                if (!lesson.Chapters.Any())
+                {
+                    lesson.Chapters = PredefinedLessons.GetChapters(lesson.Id, lesson.Title, baseUrl);
+                    foreach (var c in lesson.Chapters)
+                    {
+                        c.Status = ChapterStatus.ReadyForGeneration;
+                    }
+                    await backgroundLessonRepository.SaveAsync(lesson);
+                }
+
+                // --- STATE 2: GenerateAnchorImage (Tạo hình nhân vật) - 10 seconds ---
+                job.CurrentStep = "GenerateAnchorImage";
+                AddLog(job, "GenerateAnchorImage", "Bắt đầu phác thảo tạo hình nhân vật chính bằng AI.");
+                await backgroundLessonRepository.SaveAsync(lesson);
+                await localNotifier.NotifyLessonStatusChangedAsync(lesson.Id, "GenerateAnchorImage", "Đang tạo ảnh nhân vật đại diện.");
+                await Task.Delay(10000);
+
+                if (string.IsNullOrWhiteSpace(lesson.AnchorImageUrl))
+                {
+                    lesson.AnchorImageUrl = "https://res.cloudinary.com/demo/image/upload/sample.jpg";
+                    await backgroundLessonRepository.SaveAsync(lesson);
+                }
+
+                // --- STATE 3: GenerateChapters (Tạo video minh họa) - 10 seconds ---
+                job.CurrentStep = "GenerateChapters";
+                AddLog(job, "GenerateChapters", "Bắt đầu sinh video AI cho từng chương học song song.");
+                await backgroundLessonRepository.SaveAsync(lesson);
+                await localNotifier.NotifyLessonStatusChangedAsync(lesson.Id, "GenerateChapters", "Đang sinh hoạt cảnh cho các chương học.");
+                await Task.Delay(10000);
+
+                // Set chapter media status to generated so UI knows they are complete
+                foreach (var c in lesson.Chapters)
+                {
+                    c.Status = ChapterStatus.Generated;
+                }
+                await backgroundLessonRepository.SaveAsync(lesson);
+
+                // --- STATE 4: Finalizing (Hoàn tất bài học) - 5 seconds ---
+                job.CurrentStep = "Finalizing";
+                AddLog(job, "Finalizing", "Đang nén video, tối ưu tài nguyên và chuẩn bị các bộ câu hỏi Quiz học tập.");
+                await backgroundLessonRepository.SaveAsync(lesson);
+                await localNotifier.NotifyLessonStatusChangedAsync(lesson.Id, "Finalizing", "Đang chuẩn bị câu hỏi trắc nghiệm và đóng gói bài học.");
+                await Task.Delay(5000);
+
+                // --- FINISHED ---
+                CompleteJob(job, "Đã tải dữ liệu và video từ Cloudinary thành công.");
+                await backgroundLessonRepository.SaveAsync(lesson);
+                
+                await localNotifier.NotifyJobCompletedAsync(lesson.Id, true);
+                
+                foreach (var chapter in lesson.Chapters)
+                {
+                    await localNotifier.NotifyChapterMediaReadyAsync(lesson.Id, chapter.Id, chapter.Order);
+                }
+                return;
+            }
+
             // Step 1: Create chapters via LLM
             var chapterDraft = await llmService.CreateChaptersAsync(
                 lesson.RawContent,

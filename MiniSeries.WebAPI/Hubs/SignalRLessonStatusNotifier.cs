@@ -21,17 +21,23 @@ public class SignalRLessonStatusNotifier : ILessonStatusNotifier
     {
         await _hub.Clients.Group($"lesson-{lessonId}")
             .SendAsync("LessonStatusChanged", new { lessonId, status, message });
+        await _hub.Clients.Group($"lesson-{lessonId}")
+            .SendAsync("StatusChanged", new { lessonId, status, errorMessage = message });
     }
 
     public async Task NotifyChapterMediaReadyAsync(Guid lessonId, Guid chapterId, int chapterOrder)
     {
         await _hub.Clients.Group($"lesson-{lessonId}")
             .SendAsync("ChapterMediaReady", new { lessonId, chapterId, chapterOrder });
+        await _hub.Clients.Group($"lesson-{lessonId}")
+            .SendAsync("StatusChanged", new { lessonId, status = "ChapterReady", chapterId, chapterOrder });
     }
 
     public async Task NotifyJobCompletedAsync(Guid lessonId, bool success, string? errorMessage = null)
     {
         await _hub.Clients.Group($"lesson-{lessonId}")
             .SendAsync("JobCompleted", new { lessonId, success, errorMessage });
+        await _hub.Clients.Group($"lesson-{lessonId}")
+            .SendAsync("StatusChanged", new { lessonId, status = success ? "Completed" : "Failed", errorMessage });
     }
 }

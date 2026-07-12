@@ -601,7 +601,6 @@ export default function Dashboard() {
           <RevenueTab
             activeSubTab={activeTab === 'payments' ? 'payments' : activeTab === 'revenue' ? 'revenue' : 'traffic'}
             showToast={showToast}
-            showConfirm={showConfirm}
           />
         )}
 

@@ -71,40 +71,49 @@ export const PaymentHistoryModal: React.FC<PaymentHistoryModalProps> = ({ visibl
             </View>
           ) : (
             <ScrollView contentContainerStyle={styles.scrollContent}>
-              {history.map((item, index) => (
-                <View
-                  key={item.id || index}
-                  style={[
-                    styles.historyItem,
-                    { borderBottomColor: index === history.length - 1 ? 'transparent' : colors.border }
-                  ]}
-                >
-                  <View style={{ flex: 1, gap: 4 }}>
-                    <Text style={[styles.amountText, { color: item.isPaid ? '#22c55e' : colors.primaryAccent }]}>
-                      {item.amount.toLocaleString('vi-VN')}đ
-                    </Text>
-                    <Text style={[styles.planNameText, { color: colors.text }]}>
-                      Gói: {item.planName || 'Tokens'}
-                    </Text>
-                    <Text style={[styles.codeText, { color: colors.textMuted }]}>
-                      Mã: {item.paymentCode}
-                    </Text>
-                    <Text style={[styles.dateText, { color: colors.textMuted }]}>
-                      Tạo: {new Date(item.createdAt).toLocaleString('vi-VN')}
-                    </Text>
-                  </View>
+              {history.map((item, index) => {
+                // Support both isCompleted boolean and status string from different API versions
+                const isPaid =
+                  item.isCompleted === true ||
+                  item.status === 'Paid' ||
+                  item.status === 'Completed' ||
+                  item.status === 'paid' ||
+                  item.status === 'completed';
+                return (
                   <View
+                    key={item.id || index}
                     style={[
-                      styles.statusBadge,
-                      { backgroundColor: item.isPaid ? 'rgba(34, 197, 94, 0.1)' : 'rgba(234, 179, 8, 0.1)' }
+                      styles.historyItem,
+                      { borderBottomColor: index === history.length - 1 ? 'transparent' : colors.border }
                     ]}
                   >
-                    <Text style={[styles.statusText, { color: item.isPaid ? '#22c55e' : '#eab308' }]}>
-                      {item.isPaid ? 'Thành công' : 'Chờ xử lý'}
-                    </Text>
+                    <View style={{ flex: 1, gap: 4 }}>
+                      <Text style={[styles.amountText, { color: isPaid ? '#22c55e' : colors.primaryAccent }]}>
+                        {item.amount.toLocaleString('vi-VN')}đ
+                      </Text>
+                      <Text style={[styles.planNameText, { color: colors.text }]}>
+                        Gói: {item.planName || 'Tokens'}
+                      </Text>
+                      <Text style={[styles.codeText, { color: colors.textMuted }]}>
+                        Mã: {item.paymentCode}
+                      </Text>
+                      <Text style={[styles.dateText, { color: colors.textMuted }]}>
+                        Tạo: {new Date(item.createdAt).toLocaleString('vi-VN')}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        { backgroundColor: isPaid ? 'rgba(34, 197, 94, 0.1)' : 'rgba(234, 179, 8, 0.1)' }
+                      ]}
+                    >
+                      <Text style={[styles.statusText, { color: isPaid ? '#22c55e' : '#eab308' }]}>
+                        {isPaid ? 'Thành công' : 'Chờ xử lý'}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </ScrollView>
           )}
         </View>

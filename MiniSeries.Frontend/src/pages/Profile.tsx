@@ -669,27 +669,57 @@ export default function Profile() {
         )}
 
         {activeTab === 'feedback' && (
-          <div className="profile-content-card" style={{ maxWidth: 520 }}>
-            <h2 style={{ marginBottom: '6px', color: '#facc15' }}>Đánh giá MiniSeries</h2>
-            <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '24px' }}>Chia sẻ trải nghiệm của bạn để giúp chúng tôi cải thiện sản phẩm.</p>
+          <div className="profile-content-card" style={{ 
+            maxWidth: 560, 
+            background: 'rgba(15, 23, 42, 0.75)', 
+            backdropFilter: 'blur(24px)', 
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 24px 48px -12px rgba(0, 0, 0, 0.5)',
+            borderRadius: '24px',
+            padding: '40px 32px'
+          }}>
+            <h2 style={{ marginBottom: '8px', color: '#facc15', fontFamily: "'Cinzel', serif", fontSize: '1.6rem', fontWeight: 700, letterSpacing: '0.05em' }}>Đánh giá MiniSeries</h2>
+            <p style={{ color: 'rgba(250, 250, 250, 0.55)', fontSize: '0.85rem', marginBottom: '28px', lineHeight: '1.5' }}>Chia sẻ trải nghiệm của bạn để giúp chúng tôi cải thiện sản phẩm tốt hơn.</p>
 
             {fbSubmitted ? (
-              <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                <p style={{ fontSize: '40px', marginBottom: '12px' }}>🎉</p>
-                <h3 style={{ color: '#e2e8f0', marginBottom: '8px' }}>Cảm ơn bạn đã đánh giá!</h3>
-                <p style={{ color: '#94a3b8', fontSize: '13px' }}>Phản hồi của bạn giúp chúng tôi cải thiện sản phẩm tốt hơn.</p>
+              <div style={{ textAlign: 'center', padding: '30px 0' }}>
+                <p style={{ fontSize: '48px', marginBottom: '16px', filter: 'drop-shadow(0 0 10px rgba(6, 182, 212, 0.3))' }}>🎉</p>
+                <h3 style={{ color: '#fafafa', marginBottom: '8px', fontFamily: "'Inter', sans-serif", fontSize: '1.25rem', fontWeight: 700 }}>Cảm ơn bạn đã đánh giá!</h3>
+                <p style={{ color: 'rgba(250, 250, 250, 0.55)', fontSize: '0.85rem' }}>Phản hồi quý giá của bạn giúp chúng tôi cải thiện sản phẩm tốt hơn.</p>
                 <button
-                  style={{ marginTop: '20px', padding: '10px 28px', borderRadius: '10px', border: 'none', background: '#06b6d4', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+                  style={{ 
+                    marginTop: '24px', 
+                    padding: '12px 32px', 
+                    borderRadius: '999px', 
+                    border: 'none', 
+                    background: 'linear-gradient(135deg, #06b6d4, #0891b2)', 
+                    color: '#fff', 
+                    fontWeight: 800, 
+                    fontSize: '0.85rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    boxShadow: '0 8px 24px rgba(6, 182, 212, 0.25)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
                   onClick={() => { setFbSubmitted(false); setFbRating(0); setFbComment(''); }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1.5px)';
+                    e.currentTarget.style.boxShadow = '0 12px 30px rgba(6, 182, 212, 0.35)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(6, 182, 212, 0.25)';
+                  }}
                 >
                   Gửi đánh giá khác
                 </button>
               </div>
             ) : (
               <>
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '11px', fontWeight: 800, letterSpacing: '1px', marginBottom: '10px' }}>MỨC ĐỘ HÀI LÒNG</label>
-                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                <div style={{ marginBottom: '24px', textAlign: 'center' }}>
+                  <label style={{ display: 'block', color: 'rgba(250, 250, 250, 0.45)', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Mức độ hài lòng của bạn</label>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', margin: '12px 0' }}>
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
@@ -699,55 +729,95 @@ export default function Profile() {
                           background: 'none',
                           border: 'none',
                           cursor: 'pointer',
-                          fontSize: '32px',
-                          color: star <= fbRating ? ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'][fbRating - 1] : '#475569',
-                          transition: 'transform 0.15s',
-                          transform: star <= fbRating ? 'scale(1.15)' : 'scale(1)',
+                          fontSize: '38px',
+                          color: star <= fbRating ? ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'][fbRating - 1] : 'rgba(255,255,255,0.15)',
+                          transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                          transform: star <= fbRating ? 'scale(1.2)' : 'scale(1)',
+                          filter: star <= fbRating ? 'drop-shadow(0 0 8px rgba(250,204,21,0.25))' : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.25)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = star <= fbRating ? 'scale(1.2)' : 'scale(1)';
                         }}
                       >
-                        {star <= fbRating ? '★' : '☆'}
+                        ★
                       </button>
                     ))}
                   </div>
                   {fbRating > 0 && (
-                    <p style={{ textAlign: 'center', fontSize: '13px', fontWeight: 700, marginTop: '6px', color: ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'][fbRating - 1] }}>
-                      {['Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Tuyệt vời'][fbRating - 1]}
-                    </p>
+                    <div style={{ 
+                      display: 'inline-flex',
+                      padding: '4px 14px',
+                      borderRadius: '999px',
+                      backgroundColor: ['rgba(239, 68, 68, 0.08)', 'rgba(249, 115, 22, 0.08)', 'rgba(234, 179, 8, 0.08)', 'rgba(132, 204, 22, 0.08)', 'rgba(34, 197, 94, 0.08)'][fbRating - 1],
+                      border: `1px solid ${['rgba(239, 68, 68, 0.15)', 'rgba(249, 115, 22, 0.15)', 'rgba(234, 179, 8, 0.15)', 'rgba(132, 204, 22, 0.15)', 'rgba(34, 197, 94, 0.15)'][fbRating - 1]}`,
+                      marginTop: '6px'
+                    }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'][fbRating - 1] }}>
+                        {['Rất tệ 😡', 'Tệ 😞', 'Bình thường 😐', 'Tốt 🙂', 'Tuyệt vời 😍'][fbRating - 1]}
+                      </span>
+                    </div>
                   )}
                 </div>
 
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '11px', fontWeight: 800, letterSpacing: '1px', marginBottom: '10px' }}>NỘI DUNG ĐÁNH GIÁ</label>
+                <div style={{ marginBottom: '28px' }}>
+                  <label style={{ display: 'block', color: 'rgba(250, 250, 250, 0.45)', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>Nội dung đánh giá</label>
                   <textarea
                     value={fbComment}
                     onChange={(e) => setFbComment(e.target.value)}
-                    placeholder="Chia sẻ trải nghiệm của bạn với MiniSeries..."
+                    placeholder="Hãy chia sẻ trải nghiệm học tập và cảm nhận của bạn về các nội dung truyện tranh, video AI..."
                     maxLength={500}
                     style={{
                       width: '100%',
-                      minHeight: '120px',
-                      padding: '14px',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(148, 163, 184, 0.2)',
-                      background: 'rgba(15, 23, 42, 0.5)',
-                      color: '#e2e8f0',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      resize: 'vertical',
+                      minHeight: '130px',
+                      padding: '16px',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      background: 'rgba(9, 9, 11, 0.5)',
+                      color: '#fafafa',
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      lineHeight: '1.5',
+                      resize: 'none',
+                      outline: 'none',
+                      boxSizing: 'border-box',
                       fontFamily: 'inherit',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.4)';
+                      e.currentTarget.style.boxShadow = '0 0 15px rgba(6, 182, 212, 0.1)';
+                      e.currentTarget.style.backgroundColor = 'rgba(9, 9, 11, 0.8)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'rgba(9, 9, 11, 0.5)';
                     }}
                   />
-                  <p style={{ textAlign: 'right', fontSize: '11px', color: '#64748b', marginTop: '4px' }}>{fbComment.length}/500</p>
+                  <p style={{ textAlign: 'right', fontSize: '11px', color: 'rgba(250, 250, 250, 0.3)', marginTop: '6px' }}>{fbComment.length}/500 ký tự</p>
                 </div>
 
-                {fbError && <p style={{ color: '#f87171', fontSize: '13px', marginBottom: '12px' }}>{fbError}</p>}
+                {fbError && (
+                  <div style={{ 
+                    padding: '10px 16px', 
+                    borderRadius: '8px', 
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)', 
+                    border: '1px solid rgba(239, 68, 68, 0.15)',
+                    marginBottom: '16px' 
+                  }}>
+                    <p style={{ color: '#f87171', fontSize: '0.8rem', fontWeight: 600, margin: 0 }}>⚠️ {fbError}</p>
+                  </div>
+                )}
 
                 <button
                   type="button"
                   disabled={fbSubmitting}
                   onClick={async () => {
-                    if (fbRating === 0) { setFbError('Vui lòng chọn số sao đánh giá.'); return; }
-                    if (!fbComment.trim()) { setFbError('Vui lòng nhập nội dung đánh giá.'); return; }
+                    if (fbRating === 0) { setFbError('Vui lòng chọn mức độ hài lòng.'); return; }
+                    if (!fbComment.trim()) { setFbError('Vui lòng nhập nội dung đánh giá của bạn.'); return; }
                     setFbError(null);
                     setFbSubmitting(true);
                     try {
@@ -774,26 +844,39 @@ export default function Profile() {
                   style={{
                     width: '100%',
                     padding: '14px',
-                    borderRadius: '12px',
+                    borderRadius: '999px',
                     border: 'none',
-                    background: fbSubmitting ? '#475569' : '#06b6d4',
-                    color: '#fff',
-                    fontSize: '14px',
-                    fontWeight: 900,
-                    letterSpacing: '0.5px',
+                    background: fbSubmitting ? 'rgba(255, 255, 255, 0.15)' : 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                    color: fbSubmitting ? 'rgba(255, 255, 255, 0.35)' : '#fff',
+                    fontSize: '0.85rem',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    boxShadow: fbSubmitting ? 'none' : '0 8px 24px rgba(6, 182, 212, 0.25)',
                     cursor: fbSubmitting ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!fbSubmitting) {
+                      e.currentTarget.style.transform = 'translateY(-1.5px)';
+                      e.currentTarget.style.boxShadow = '0 12px 30px rgba(6, 182, 212, 0.35)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!fbSubmitting) {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(6, 182, 212, 0.25)';
+                    }
                   }}
                 >
-                  {fbSubmitting ? 'Đang gửi...' : 'GỬI ĐÁNH GIÁ'}
+                  {fbSubmitting ? 'ĐANG GỬI ĐÁNH GIÁ...' : 'GỬI ĐÁNH GIÁ NGAY'}
                 </button>
               </>
             )}
           </div>
         )}
-
-
-
       </div>
     </section>
   );
 }
+

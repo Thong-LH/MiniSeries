@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import Layout from './components/Layout';
 import AuthGuard from './components/AuthGuard';
 import Home from './pages/Home';
@@ -9,8 +10,15 @@ import Checkout from './pages/Checkout';
 import Profile from './pages/Profile';
 import TuVan from './pages/TuVan';
 import Studio from './pages/Studio';
+import { api } from './services/api';
 
 function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    api.trackTraffic(location.pathname, 'Web');
+  }, [location.pathname]);
+
   return (
     <Routes>
       <Route path="/" element={<Layout />}>

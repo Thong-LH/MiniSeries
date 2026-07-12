@@ -109,6 +109,7 @@ export default function Layout() {
 
   const [profile, setProfile] = useState<HeaderProfile | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -168,6 +169,11 @@ export default function Layout() {
     return () => window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
   }, [useStudioNavbar]);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -202,9 +208,10 @@ export default function Layout() {
           </Link>
 
           <div className="studio-nav-right">
-            <Link to="/studio" className="cyber-nav-link">Studio</Link>
-            <Link to="/tu-van" className="cyber-nav-link">Tư vấn</Link>
-            <Link to="/pricing" className="cyber-nav-link">Bảng giá</Link>
+            {/* Desktop links — hidden on mobile via CSS */}
+            <Link to="/studio" className="cyber-nav-link mobile-hidden">Studio</Link>
+            <Link to="/tu-van" className="cyber-nav-link mobile-hidden">Tư vấn</Link>
+            <Link to="/pricing" className="cyber-nav-link mobile-hidden">Bảng giá</Link>
 
             {profile ? (
               <div style={{ position: 'relative' }} ref={dropdownRef}>
@@ -234,9 +241,9 @@ export default function Layout() {
                     </div>
 
                     {/* Button to go to Profile Page directly */}
-                    <button 
-                      type="button" 
-                      onClick={() => { navigate('/profile'); setIsDropdownOpen(false); }} 
+                    <button
+                      type="button"
+                      onClick={() => { navigate('/profile'); setIsDropdownOpen(false); }}
                       className="dropdown-profile-link-btn"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle', display: 'inline-block' }}>
@@ -322,7 +329,37 @@ export default function Layout() {
             ) : (
               <Link to="/login" className="cyber-nav-link">Đăng nhập</Link>
             )}
+
+            {/* Hamburger button — visible only on mobile */}
+            <button
+              type="button"
+              className="mobile-hamburger"
+              onClick={() => setIsMobileMenuOpen((o) => !o)}
+              aria-label="Mở menu"
+            >
+              {isMobileMenuOpen ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              )}
+            </button>
           </div>
+
+          {/* Mobile slide-down menu */}
+          {isMobileMenuOpen && (
+            <div className="mobile-nav-menu">
+              <Link to="/studio" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>Studio</Link>
+              <Link to="/tu-van" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>Tư vấn</Link>
+              <Link to="/pricing" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>Bảng giá</Link>
+            </div>
+          )}
         </header>
       ) : (
         <header className="nav">
@@ -334,12 +371,14 @@ export default function Layout() {
             <a href="#flow" onClick={(e) => handleNavClick(e, 'flow')}>Tính năng</a>
             <a href="#comparison" onClick={(e) => handleNavClick(e, 'comparison')}>Trải nghiệm</a>
             <a href="#feedback" onClick={(e) => handleNavClick(e, 'feedback')}>Phản hồi</a>
+            <a href="https://drive.google.com/drive/folders/1-Pr-07rFCbfUqI5Lxkpm6bHmhxdvPGPf?usp=drive_link" target="_blank" rel="noopener noreferrer" className="apk-nav-link" style={{ color: '#fb923c', fontWeight: 'bold' }}>Tải APK</a>
           </div>
+
           <Link to="/login" onClick={handleProtectedNavigation} className="nav-login">Bắt đầu</Link>
         </header>
       )}
 
-      <main>
+      <main style={useStudioNavbar ? { paddingTop: '70px' } : undefined}>
         <Outlet />
       </main>
 

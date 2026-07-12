@@ -80,7 +80,9 @@ public sealed class AnalyticsController(MiniSeriesDbContext dbContext) : Control
                 pageViews = grouped.Select(x => x.PageViews).ToList(),
                 uniqueVisitors = grouped.Select(x => x.UniqueVisitors).ToList(),
                 totalPageViews = logs.Count,
-                totalUniqueVisitors = logs.Select(x => x.IpAddress).Distinct().Count()
+                totalUniqueVisitors = logs.Select(x => x.IpAddress).Distinct().Count(),
+                totalViews = logs.Count,
+                totalUnique = logs.Select(x => x.IpAddress).Distinct().Count()
             });
         }
         catch (Exception ex)

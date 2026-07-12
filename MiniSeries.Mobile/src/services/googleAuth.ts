@@ -13,10 +13,12 @@ const IOS_CLIENT_ID = '126955656491-vddeqf0bguj9g5gpah91m5u9sl3d0bbu.apps.google
 if (Platform.OS !== 'web') {
   GoogleSignin.configure({
     webClientId: WEB_CLIENT_ID,
-    androidClientId: ANDROID_CLIENT_ID,
     iosClientId: IOS_CLIENT_ID,
+    // androidClientId is read automatically from google-services.json by the native SDK.
+    // If google-services.json is missing or SHA-1 is not registered, DEVELOPER_ERROR occurs.
     offlineAccess: true,
-  } as any);
+    scopes: ['email', 'profile'],
+  });
 }
 
 export const signInWithGoogleNative = async () => {
@@ -70,6 +72,19 @@ export const signInWithGoogleNative = async () => {
     return loginData;
   } catch (error: any) {
     console.error('Lỗi khi đăng nhập Google Native:', error);
+    if (error?.message?.includes('DEVELOPER_ERROR') || String(error).includes('DEVELOPER_ERROR')) {
+      // Full troubleshooting info logged to console for the developer
+      console.warn(
+        '[Google Sign-In] DEVELOPER_ERROR — Checklist:\n' +
+        '1. SHA-1 fingerprint of debug.keystore must be registered in Firebase Console for package "com.miniseries.app".\n' +
+        '2. Download the updated google-services.json and place it in MiniSeries.Mobile/.\n' +
+        '3. Ensure app.json android.googleServicesFile points to that file.\n' +
+        '4. Run "npx expo prebuild --clean" then rebuild.\n' +
+        '5. Web Client ID in googleAuth.ts must match the OAuth 2.0 Web client in Firebase Console.'
+      );
+      // Short, user-friendly message for the UI toast
+      throw new Error('Đăng nhập Google thất bại: Cấu hình Android chưa đúng. Vui lòng thử lại sau.');
+    }
     throw error;
   }
 };
