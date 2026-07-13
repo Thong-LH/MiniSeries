@@ -1,108 +1,72 @@
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { Platform } from 'react-native';
 import { apiClient, setAuthToken } from './apiClient';
 
-import { Platform } from 'react-native';
-
 const SUPABASE_URL = 'https://devnyzwnvyzgulqroyqa.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRldm55endudnl6Z3VscXJveXFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzk5MzIsImV4cCI6MjA5NDc1NTkzMn0.qh_mO172FKssq0QYJctScUKdeHJU6ESg4cbR-B0APwY';
-const WEB_CLIENT_ID = '126955656491-lfu4ptko39ilrf4so15u83meop10qulm.apps.googleusercontent.com';
-const ANDROID_CLIENT_ID = '126955656491-duofhuo9587n81cuhlgmivfjbs7t31k0.apps.googleusercontent.com';
-const IOS_CLIENT_ID = '126955656491-vddeqf0bguj9g5gpah91m5u9sl3d0bbu.apps.googleusercontent.com';
 
-// Configure Google Sign-in only on Native platforms to avoid Web platform warnings
-if (Platform.OS !== 'web') {
-  GoogleSignin.configure({
-    webClientId: WEB_CLIENT_ID,
-    iosClientId: IOS_CLIENT_ID,
-    // androidClientId is read automatically from google-services.json by the native SDK.
-    // If google-services.json is missing or SHA-1 is not registered, DEVELOPER_ERROR occurs.
-    offlineAccess: true,
-    scopes: ['email', 'profile'],
+/**
+ * Google Sign-In for MOBILE (Android/iOS) — opens Supabase OAuth in an in-app browser.
+ * No native SDK configuration (SHA-1, google-services.json) needed.
+ * Returns the backend login data (accessToken, planName, etc.) on success.
+ */
+export const signInWithGoogleBrowser = async (): Promise<any> => {
+  // Build the redirect URI that the browser will return to after OAuth
+  const redirectUri = Linking.createURL('auth/callback');
+
+  // Supabase OAuth authorize URL
+  const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUri)}`;
+
+  // Open the browser for OAuth
+  const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+
+  if (result.type !== 'success' || !result.url) {
+    throw new Error('Đăng nhập Google đã bị hủy.');
+  }
+
+  // Parse the returned URL to extract access_token from hash fragment
+  // Supabase redirects with: redirect_uri#access_token=...&refresh_token=...&...
+  const returnedUrl = result.url;
+  let supabaseAccessToken: string | null = null;
+
+  // Try hash fragment first (standard Supabase redirect)
+  const hashIndex = returnedUrl.indexOf('#');
+  if (hashIndex !== -1) {
+    const hashParams = new URLSearchParams(returnedUrl.substring(hashIndex + 1));
+    supabaseAccessToken = hashParams.get('access_token');
+  }
+
+  // Fallback: try query params
+  if (!supabaseAccessToken) {
+    const urlObj = new URL(returnedUrl);
+    supabaseAccessToken = urlObj.searchParams.get('access_token');
+  }
+
+  if (!supabaseAccessToken) {
+    throw new Error('Không nhận được Access Token từ Google/Supabase.');
+  }
+
+  // Exchange Supabase access token with our backend
+  const backendRes = await apiClient.post('/auth/google-signin', {
+    accessToken: supabaseAccessToken,
   });
-}
 
-export const signInWithGoogleNative = async () => {
-  try {
-    // 1. Check Play Services availability and trigger native login popup
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-    const signInResult = await GoogleSignin.signIn();
-    const idToken = signInResult.data?.idToken;
+  const loginData = backendRes.data;
 
-    if (!idToken) {
-      throw new Error('Không nhận được ID Token từ Google.');
-    }
-
-    // 2. Exchange Google ID Token with Supabase OAuth REST API
-    const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=id_token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        provider: 'google',
-        token: idToken,
-      }),
-    });
-
-    if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData?.error_description || errData?.message || 'Xác thực Supabase thất bại.');
-    }
-
-    const supabaseSession = await response.json();
-    const supabaseAccessToken = supabaseSession.access_token;
-
-    if (!supabaseAccessToken) {
-      throw new Error('Không nhận được Access Token từ Supabase.');
-    }
-
-    // 3. Authenticate with our ASP.NET Core Backend using the Supabase Access Token
-    const backendRes = await apiClient.post('/auth/google-signin', {
-      accessToken: supabaseAccessToken,
-    });
-
-    const loginData = backendRes.data;
-
-    // Save authentication token to apiClient state
-    if (loginData && loginData.accessToken) {
-      setAuthToken(loginData.accessToken);
-    }
-
-    return loginData;
-  } catch (error: any) {
-    console.error('Lỗi khi đăng nhập Google Native:', error);
-    if (error?.message?.includes('DEVELOPER_ERROR') || String(error).includes('DEVELOPER_ERROR')) {
-      // Full troubleshooting info logged to console for the developer
-      console.warn(
-        '[Google Sign-In] DEVELOPER_ERROR — Checklist:\n' +
-        '1. SHA-1 fingerprint of debug.keystore must be registered in Firebase Console for package "com.miniseries.app".\n' +
-        '2. Download the updated google-services.json and place it in MiniSeries.Mobile/.\n' +
-        '3. Ensure app.json android.googleServicesFile points to that file.\n' +
-        '4. Run "npx expo prebuild --clean" then rebuild.\n' +
-        '5. Web Client ID in googleAuth.ts must match the OAuth 2.0 Web client in Firebase Console.'
-      );
-      // Short, user-friendly message for the UI toast
-      throw new Error('Đăng nhập Google thất bại: Cấu hình Android chưa đúng. Vui lòng thử lại sau.');
-    }
-    throw error;
+  if (loginData && loginData.accessToken) {
+    setAuthToken(loginData.accessToken);
   }
+
+  return loginData;
 };
 
-export const signOutGoogleNative = async () => {
-  try {
-    if (Platform.OS !== 'web') {
-      await GoogleSignin.signOut();
-    }
-  } catch (e) {
-    console.log('Lỗi đăng xuất Google Native:', e);
-  }
-};
-
+/**
+ * Google Sign-In for WEB — redirects the entire page to Supabase OAuth.
+ * After OAuth, the page reloads with #access_token=... in the URL hash.
+ */
 export const signInWithGoogleWeb = () => {
-  const supabaseUrl = 'https://devnyzwnvyzgulqroyqa.supabase.co';
   if (typeof window !== 'undefined') {
     const redirectUrl = window.location.origin + window.location.pathname;
-    window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
+    window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
   }
 };

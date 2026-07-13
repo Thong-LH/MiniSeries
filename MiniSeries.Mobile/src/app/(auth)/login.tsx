@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  ScrollView,
+  Modal,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { apiClient, setAuthToken } from '../../services/apiClient';
@@ -7,36 +18,41 @@ import { SpaceBackground } from '../../components/SpaceBackground';
 import { useTheme } from '../../hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
-import { signInWithGoogleNative, signInWithGoogleWeb } from '../../services/googleAuth';
+import { signInWithGoogleBrowser, signInWithGoogleWeb } from '../../services/googleAuth';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
-  const { 
-    themeId, 
-    setIsAuthenticated, 
-    setMangaTokens, 
-    setVideoTokens, 
-    setActivePlan, 
-    setUserEmail, 
-    triggerToast 
+  const {
+    themeId,
+    setIsAuthenticated,
+    setMangaTokens,
+    setVideoTokens,
+    setActivePlan,
+    setUserEmail,
+    triggerToast,
   } = useApp();
   const router = useRouter();
 
   // Modes: 'login' | 'register' | 'otp' | 'forgot_password' | 'reset_password'
   const [viewMode, setViewMode] = useState<'login' | 'register' | 'otp' | 'forgot_password' | 'reset_password'>('login');
 
-  const [fullName, setFullName] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [otpCode, setOtpCode] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Show/hide password states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const colors = useTheme();
   const isDark = colors.isDark;
 
+  // Web OAuth hash callback handler
   React.useEffect(() => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const hash = window.location.hash;
@@ -45,47 +61,46 @@ export default function LoginScreen() {
         const supabaseAccessToken = params.get('access_token');
         if (supabaseAccessToken) {
           setLoading(true);
-          // Clean the hash from the browser URL history
-          window.history.replaceState(null, "", window.location.pathname);
-          
-          apiClient.post('/auth/google-signin', {
-            accessToken: supabaseAccessToken,
-          })
-          .then((backendRes) => {
-            const loginData = backendRes.data;
-            if (loginData && loginData.accessToken) {
-              setAuthToken(loginData.accessToken);
-              setIsAuthenticated(true);
-              if (loginData.planName) setActivePlan(loginData.planName);
-              if (loginData.remainingMangaCount !== undefined) setMangaTokens(loginData.remainingMangaCount);
-              if (loginData.remainingVideoCount !== undefined) setVideoTokens(loginData.remainingVideoCount);
-              setUserEmail(loginData.email || 'google-user@gmail.com');
-              triggerToast('Đăng nhập Google thành công! 🎉');
-              router.replace('/(tabs)/home');
-            } else {
-              triggerToast('Xác thực thất bại.');
-            }
-          })
-          .catch((err) => {
-            console.error('Lỗi đăng nhập Google Web:', err);
-            triggerToast('Xác thực tài khoản Google thất bại.');
-          })
-          .finally(() => {
-            setLoading(false);
-          });
+          window.history.replaceState(null, '', window.location.pathname);
+
+          apiClient
+            .post('/auth/google-signin', { accessToken: supabaseAccessToken })
+            .then((backendRes) => {
+              const loginData = backendRes.data;
+              if (loginData && loginData.accessToken) {
+                setAuthToken(loginData.accessToken);
+                setIsAuthenticated(true);
+                if (loginData.planName) setActivePlan(loginData.planName);
+                if (loginData.remainingMangaCount !== undefined) setMangaTokens(loginData.remainingMangaCount);
+                if (loginData.remainingVideoCount !== undefined) setVideoTokens(loginData.remainingVideoCount);
+                setUserEmail(loginData.email || 'google-user@gmail.com');
+                triggerToast('Đăng nhập Google thành công! 🎉');
+                router.replace('/(tabs)/home');
+              } else {
+                triggerToast('Xác thực thất bại.');
+              }
+            })
+            .catch((err) => {
+              console.error('Lỗi đăng nhập Google Web:', err);
+              triggerToast('Xác thực tài khoản Google thất bại.');
+            })
+            .finally(() => {
+              setLoading(false);
+            });
         }
       }
     }
   }, []);
 
+  // Developer diagnostics modal
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [customBaseUrl, setCustomBaseUrl] = useState(apiClient.defaults.baseURL || '');
   const [testing, setTesting] = useState(false);
   const [diagnosticLogs, setDiagnosticLogs] = useState<Array<{ name: string; status: 'idle' | 'testing' | 'success' | 'failed'; detail: string }>>([
-    { name: '1. Kết nối WAN (Internet qua Google)', status: 'idle', detail: 'Chưa kiểm tra' },
-    { name: '2. Máy chủ LAN (IP cục bộ của máy tính)', status: 'idle', detail: 'Chưa kiểm tra' },
-    { name: '3. Đường dẫn API được thiết lập', status: 'idle', detail: 'Chưa kiểm tra' },
-    { name: '4. Kết nối Cloud DB (Supabase)', status: 'idle', detail: 'Chưa kiểm tra' },
+    { name: '1. Kết nối WAN (Internet)', status: 'idle', detail: 'Chưa kiểm tra' },
+    { name: '2. Máy chủ LAN (IP cục bộ)', status: 'idle', detail: 'Chưa kiểm tra' },
+    { name: '3. Đường dẫn API', status: 'idle', detail: 'Chưa kiểm tra' },
+    { name: '4. Cloud DB (Supabase)', status: 'idle', detail: 'Chưa kiểm tra' },
   ]);
 
   const runDiagnosticTests = async () => {
@@ -96,65 +111,65 @@ export default function LoginScreen() {
       setDiagnosticLogs([...logs]);
     };
 
-    // Test 1: WAN Connection
-    updateLog(0, 'testing', 'Đang kết nối tới https://www.google.com...');
+    // Test 1: WAN
+    updateLog(0, 'testing', 'Đang kết nối tới google.com...');
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
-      await fetch('https://www.google.com', { method: 'HEAD', signal: controller.signal });
-      clearTimeout(timeoutId);
-      updateLog(0, 'success', 'Thành công! Điện thoại có kết nối internet ngoại mạng (WAN OK).');
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 4000);
+      await fetch('https://www.google.com', { method: 'HEAD', signal: ctrl.signal });
+      clearTimeout(tid);
+      updateLog(0, 'success', 'Thành công! Kết nối internet hoạt động.');
     } catch (e: any) {
-      updateLog(0, 'failed', `Lỗi: ${e.message || 'Mất kết nối mạng hoặc timeout'}`);
+      updateLog(0, 'failed', `Lỗi: ${e.message || 'Timeout'}`);
     }
 
-    // Test 2: Local Computer (LAN IP)
+    // Test 2: LAN
     const localIp = 'http://192.168.100.249:5088/api';
     updateLog(1, 'testing', `Đang kết nối tới ${localIp}...`);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
-      const res = await fetch(localIp + '/auth/login-profile', { 
-        method: 'POST', 
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 4000);
+      const res = await fetch(localIp + '/auth/login-profile', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'test@test.com', password: '123' }),
-        signal: controller.signal 
+        signal: ctrl.signal,
       });
-      clearTimeout(timeoutId);
-      updateLog(1, 'success', `Thành công! Phản hồi HTTP ${res.status}. Kết nối nội mạng LAN hoạt động.`);
+      clearTimeout(tid);
+      updateLog(1, 'success', `HTTP ${res.status}. Kết nối LAN hoạt động.`);
     } catch (e: any) {
-      updateLog(1, 'failed', `Lỗi: ${e.message}. Không thể kết nối tới IP máy tính. Vui lòng kiểm tra:\n1) Điện thoại và Máy tính cùng Wi-Fi?\n2) Backend đã chạy?\n3) Cổng tường lửa 5088 đã mở?`);
+      updateLog(1, 'failed', `Lỗi: ${e.message}. Kiểm tra Wi-Fi, backend và firewall.`);
     }
 
-    // Test 3: Đường dẫn API được thiết lập (Cấu hình ở trên)
+    // Test 3: API URL
     const testApiUrl = customBaseUrl.trim();
     updateLog(2, 'testing', `Đang kết nối tới ${testApiUrl}...`);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      const res = await fetch(testApiUrl + '/auth/login-profile', { 
-        method: 'POST', 
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 5000);
+      const res = await fetch(testApiUrl + '/auth/login-profile', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'test@test.com', password: '123' }),
-        signal: controller.signal 
+        signal: ctrl.signal,
       });
-      clearTimeout(timeoutId);
-      updateLog(2, 'success', `Thành công! Phản hồi HTTP ${res.status}. Đường dẫn API này đang kết nối tốt.`);
+      clearTimeout(tid);
+      updateLog(2, 'success', `HTTP ${res.status}. Đường dẫn API hoạt động.`);
     } catch (e: any) {
-      updateLog(2, 'failed', `Lỗi: ${e.message}. Không thể kết nối tới đường dẫn API này. Vui lòng kiểm tra lại tính chính xác.`);
+      updateLog(2, 'failed', `Lỗi: ${e.message}. Kiểm tra lại đường dẫn API.`);
     }
 
-    // Test 4: Supabase Cloud
+    // Test 4: Supabase
     const supabaseUrl = 'https://devnyzwnvyzgulqroyqa.supabase.co';
-    updateLog(3, 'testing', `Đang kết nối tới ${supabaseUrl}...`);
+    updateLog(3, 'testing', `Đang kết nối Supabase...`);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
-      const res = await fetch(supabaseUrl + '/auth/v1/health', { signal: controller.signal });
-      clearTimeout(timeoutId);
-      updateLog(3, 'success', `Thành công! Phản hồi HTTP ${res.status}. Dịch vụ Supabase Cloud kết nối tốt.`);
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 4000);
+      const res = await fetch(supabaseUrl + '/auth/v1/health', { signal: ctrl.signal });
+      clearTimeout(tid);
+      updateLog(3, 'success', `HTTP ${res.status}. Supabase hoạt động.`);
     } catch (e: any) {
-      updateLog(3, 'failed', `Lỗi: ${e.message}. Supabase Cloud bị chặn hoặc gặp sự cố mạng.`);
+      updateLog(3, 'failed', `Lỗi: ${e.message}. Supabase bị chặn hoặc lỗi mạng.`);
     }
 
     setTesting(false);
@@ -170,6 +185,151 @@ export default function LoginScreen() {
     setShowDiagnostics(false);
   };
 
+  // ─── AUTH HANDLERS ───────────────────────────────────────
+
+  const handleEmailLogin = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !password) {
+      triggerToast('Vui lòng nhập Email và Mật khẩu!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await apiClient.post('/auth/login-profile', {
+        email: cleanEmail,
+        password: password,
+      });
+
+      const data = res.data;
+      if (data && data.accessToken) {
+        setAuthToken(data.accessToken);
+        setIsAuthenticated(true);
+        if (data.planName) setActivePlan(data.planName);
+        if (data.remainingMangaCount !== undefined) setMangaTokens(data.remainingMangaCount);
+        if (data.remainingVideoCount !== undefined) setVideoTokens(data.remainingVideoCount);
+        setUserEmail(cleanEmail);
+        triggerToast('Đăng nhập thành công!');
+        router.replace('/(tabs)/home');
+      } else {
+        triggerToast('Đăng nhập thất bại. Vui lòng kiểm tra lại!');
+      }
+    } catch (err: any) {
+      const errMsg =
+        err.response?.data?.message ||
+        (err.message === 'Network Error' || !err.response
+          ? 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng!'
+          : 'Email hoặc mật khẩu không chính xác!');
+      triggerToast(errMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    if (Platform.OS === 'web') {
+      signInWithGoogleWeb();
+      return;
+    }
+
+    // Mobile: open browser-based Google OAuth
+    setLoading(true);
+    try {
+      const data = await signInWithGoogleBrowser();
+      if (data && data.accessToken) {
+        setIsAuthenticated(true);
+        if (data.planName) setActivePlan(data.planName);
+        if (data.remainingMangaCount !== undefined) setMangaTokens(data.remainingMangaCount);
+        if (data.remainingVideoCount !== undefined) setVideoTokens(data.remainingVideoCount);
+        setUserEmail(data.email || 'google-user@gmail.com');
+        triggerToast('Đăng nhập Google thành công! 🎉');
+        router.replace('/(tabs)/home');
+      } else {
+        triggerToast('Đăng nhập Google thất bại.');
+      }
+    } catch (err: any) {
+      console.log('Lỗi đăng nhập Google:', err);
+      const msg = err.message || 'Đăng nhập Google thất bại!';
+      triggerToast(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    const cleanFullName = fullName.trim();
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanFullName || !cleanEmail || !password) {
+      triggerToast('Vui lòng nhập đầy đủ thông tin!');
+      return;
+    }
+    if (password.length < 6) {
+      triggerToast('Mật khẩu phải chứa ít nhất 6 ký tự!');
+      return;
+    }
+    if (password !== confirmPassword) {
+      triggerToast('Mật khẩu xác nhận không trùng khớp!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await apiClient.post('/auth/register-profile', {
+        email: cleanEmail,
+        password: password,
+        fullName: cleanFullName,
+        supabaseUserId: '',
+      });
+      triggerToast('Mã OTP xác thực đã được gửi tới email của bạn!');
+      setViewMode('otp');
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại!';
+      triggerToast(errMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanOtp = otpCode.trim();
+
+    if (!cleanOtp) {
+      triggerToast('Vui lòng nhập mã xác thực OTP!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await apiClient.post('/auth/verify-otp', {
+        email: cleanEmail,
+        otpCode: cleanOtp,
+        fullName: fullName.trim(),
+        supabaseUserId: '',
+      });
+
+      const data = res.data;
+      if (data && data.accessToken) {
+        setAuthToken(data.accessToken);
+        setIsAuthenticated(true);
+        if (data.planName) setActivePlan(data.planName);
+        if (data.remainingMangaCount !== undefined) setMangaTokens(data.remainingMangaCount);
+        if (data.remainingVideoCount !== undefined) setVideoTokens(data.remainingVideoCount);
+        setUserEmail(cleanEmail);
+        triggerToast('Đăng ký tài khoản thành công!');
+        router.replace('/(tabs)/home');
+      } else {
+        triggerToast('Xác thực thất bại. Vui lòng thử lại!');
+      }
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Mã OTP không chính xác hoặc đã hết hạn!';
+      triggerToast(errMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleForgotPassword = async () => {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
@@ -182,15 +342,9 @@ export default function LoginScreen() {
       const res = await apiClient.post('/auth/forgot-password', {
         email: cleanEmail,
       });
-      triggerToast(res.data.message || 'Mã OTP đã được gửi!');
-      if (res.data.otpCode) {
-        console.log('OTP quên mật khẩu (Dev Mode):', res.data.otpCode);
-        triggerToast(`Mã OTP (Dev): ${res.data.otpCode}`);
-        setOtpCode(res.data.otpCode);
-      }
+      triggerToast(res.data.message || 'Mã OTP đã được gửi tới email của bạn!');
       setViewMode('reset_password');
     } catch (err: any) {
-      console.log('Lỗi quên mật khẩu:', err);
       const errMsg = err.response?.data?.message || 'Không thể gửi yêu cầu lấy lại mật khẩu.';
       triggerToast(errMsg);
     } finally {
@@ -226,7 +380,6 @@ export default function LoginScreen() {
       setOtpCode('');
       setViewMode('login');
     } catch (err: any) {
-      console.log('Lỗi đặt lại mật khẩu:', err);
       const errMsg = err.response?.data?.message || 'Không thể đặt lại mật khẩu.';
       triggerToast(errMsg);
     } finally {
@@ -234,202 +387,41 @@ export default function LoginScreen() {
     }
   };
 
-  const handleEmailLogin = async () => {
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail || !password) {
-      triggerToast('Vui lòng nhập Email và Mật khẩu!');
-      return;
-    }
+  // ─── PASSWORD INPUT WITH TOGGLE ──────────────────────────
 
-    setLoading(true);
-    try {
-      const res = await apiClient.post('/auth/login-profile', {
-        email: cleanEmail,
-        password: password,
-      });
+  const PasswordInput = ({
+    value,
+    onChangeText,
+    placeholder,
+    secureVisible,
+    onToggleSecure,
+  }: {
+    value: string;
+    onChangeText: (text: string) => void;
+    placeholder: string;
+    secureVisible: boolean;
+    onToggleSecure: () => void;
+  }) => (
+    <View style={[styles.passwordContainer, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
+      <TextInput
+        secureTextEntry={!secureVisible}
+        placeholder={placeholder}
+        placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+        value={value}
+        onChangeText={onChangeText}
+        style={[styles.passwordInput, { color: colors.text }]}
+      />
+      <TouchableOpacity onPress={onToggleSecure} style={styles.eyeButton} activeOpacity={0.7}>
+        <Ionicons
+          name={secureVisible ? 'eye-off-outline' : 'eye-outline'}
+          size={20}
+          color={colors.textMuted}
+        />
+      </TouchableOpacity>
+    </View>
+  );
 
-      const data = res.data;
-      if (data && data.accessToken) {
-        setAuthToken(data.accessToken);
-        setIsAuthenticated(true);
-        if (data.planName) setActivePlan(data.planName);
-        if (data.remainingMangaCount !== undefined) setMangaTokens(data.remainingMangaCount);
-        if (data.remainingVideoCount !== undefined) setVideoTokens(data.remainingVideoCount);
-        setUserEmail(cleanEmail);
-
-        triggerToast('Đăng nhập thành công!');
-        router.replace('/(tabs)/home');
-      } else {
-        triggerToast('Đăng nhập thất bại. Vui lòng kiểm tra lại!');
-      }
-    } catch (err: any) {
-      console.log('Lỗi đăng nhập:', err);
-      const errMsg = err.response?.data?.message || (err.message === 'Network Error' || !err.response ? 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra Wi-Fi và bật backend!' : 'Email hoặc mật khẩu không chính xác!');
-      triggerToast(errMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    if (Platform.OS === 'web') {
-      signInWithGoogleWeb();
-      return;
-    }
-    setLoading(true);
-    try {
-      const data = await signInWithGoogleNative();
-      if (data && data.accessToken) {
-        setIsAuthenticated(true);
-        if (data.planName) setActivePlan(data.planName);
-        if (data.remainingMangaCount !== undefined) setMangaTokens(data.remainingMangaCount);
-        if (data.remainingVideoCount !== undefined) setVideoTokens(data.remainingVideoCount);
-        setUserEmail(data.email || 'google-user@gmail.com');
-
-        triggerToast('Đăng nhập Google thành công! 🎉');
-        router.replace('/(tabs)/home');
-      } else {
-        triggerToast('Đăng nhập Google thất bại.');
-      }
-    } catch (err: any) {
-      console.log('Lỗi đăng nhập Google Native:', err);
-      triggerToast(`Lỗi Google: ${err.message || err}`);
-      // Fallback to test account
-      try {
-        const res = await apiClient.post('/auth/login-profile', {
-          email: 'luonghoangthong@gmail.com',
-          password: 'password123',
-        });
-        const data = res.data;
-        if (data && data.accessToken) {
-          setAuthToken(data.accessToken);
-          setIsAuthenticated(true);
-          if (data.planName) setActivePlan(data.planName);
-          if (data.remainingMangaCount !== undefined) setMangaTokens(data.remainingMangaCount);
-          if (data.remainingVideoCount !== undefined) setVideoTokens(data.remainingVideoCount);
-          setUserEmail('luonghoangthong@gmail.com');
-          triggerToast('Đăng nhập tài khoản test thành công! 🎉');
-          router.replace('/(tabs)/home');
-        }
-      } catch (mockErr: any) {
-        console.log('Lỗi đăng nhập test profile:', mockErr);
-        if (mockErr.response && mockErr.response.status === 401) {
-          try {
-            triggerToast('Đang đăng ký tài khoản test mới...');
-            await apiClient.post('/auth/register', {
-              email: 'luonghoangthong@gmail.com',
-              password: 'password123',
-              fullName: 'Lương Hoàng Thông',
-            });
-            const resRetry = await apiClient.post('/auth/login-profile', {
-              email: 'luonghoangthong@gmail.com',
-              password: 'password123',
-            });
-            const data = resRetry.data;
-            if (data && data.accessToken) {
-              setAuthToken(data.accessToken);
-              setIsAuthenticated(true);
-              if (data.planName) setActivePlan(data.planName);
-              if (data.remainingMangaCount !== undefined) setMangaTokens(data.remainingMangaCount);
-              if (data.remainingVideoCount !== undefined) setVideoTokens(data.remainingVideoCount);
-              setUserEmail('luonghoangthong@gmail.com');
-              triggerToast('Đăng nhập tài khoản test thành công! 🎉');
-              router.replace('/(tabs)/home');
-              return;
-            }
-          } catch (regErr) {
-            console.log('Lỗi đăng ký tài khoản test tự động:', regErr);
-          }
-        }
-        triggerToast('Đăng nhập Google thất bại!');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegister = async () => {
-    const cleanFullName = fullName.trim();
-    const cleanEmail = email.trim().toLowerCase();
-
-    if (!cleanFullName || !cleanEmail || !password) {
-      triggerToast('Vui lòng nhập đầy đủ thông tin!');
-      return;
-    }
-    if (password.length < 6) {
-      triggerToast('Mật khẩu phải chứa ít nhất 6 ký tự!');
-      return;
-    }
-    if (password !== confirmPassword) {
-      triggerToast('Mật khẩu xác nhận không trùng khớp!');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await apiClient.post('/auth/register-profile', {
-        email: cleanEmail,
-        password: password,
-        fullName: cleanFullName,
-        supabaseUserId: '',
-      });
-      const data = res.data;
-      if (data && data.otpCode) {
-        triggerToast(`Đăng ký thành công! Mã OTP (Test): ${data.otpCode}`);
-        setOtpCode(data.otpCode);
-      } else {
-        triggerToast('Mã OTP xác thực đã được gửi tới email của bạn!');
-      }
-      setViewMode('otp');
-    } catch (err: any) {
-      console.log('Lỗi đăng ký:', err);
-      const errMsg = err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại!';
-      triggerToast(errMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanOtp = otpCode.trim();
-
-    if (!cleanOtp) {
-      triggerToast('Vui lòng nhập mã xác thực OTP!');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await apiClient.post('/auth/verify-otp', {
-        email: cleanEmail,
-        otpCode: cleanOtp,
-        fullName: fullName.trim(),
-        supabaseUserId: '',
-      });
-
-      const data = res.data;
-      if (data && data.accessToken) {
-        setAuthToken(data.accessToken);
-        setIsAuthenticated(true);
-        if (data.planName) setActivePlan(data.planName);
-        if (data.remainingMangaCount !== undefined) setMangaTokens(data.remainingMangaCount);
-        if (data.remainingVideoCount !== undefined) setVideoTokens(data.remainingVideoCount);
-        setUserEmail(cleanEmail);
-
-        triggerToast('Đăng ký tài khoản thành công!');
-        router.replace('/(tabs)/home');
-      } else {
-        triggerToast('Xác thực thất bại. Vui lòng thử lại!');
-      }
-    } catch (err: any) {
-      console.log('Lỗi xác thực OTP:', err);
-      const errMsg = err.response?.data?.message || 'Mã OTP không chính xác hoặc đã hết hạn!';
-      triggerToast(errMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ─── RENDER ──────────────────────────────────────────────
 
   return (
     <KeyboardAvoidingView
@@ -438,50 +430,52 @@ export default function LoginScreen() {
     >
       <SpaceBackground />
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-        <View style={[
-          styles.card, 
-          { 
-            borderColor: colors.border, 
-            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.8)', 
-            shadowColor: isDark ? '#000000' : '#0f172a' 
-          }
-        ]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 12 }}>
-            <Text style={[styles.brand, { color: colors.primaryAccent, marginBottom: 0 }]}>
-              MINISERIES
-            </Text>
-            <TouchableOpacity 
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: colors.border,
+              backgroundColor: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.92)',
+              shadowColor: isDark ? '#000000' : '#0f172a',
+            },
+          ]}
+        >
+          {/* Header */}
+          <View style={styles.headerRow}>
+            <Text style={[styles.brand, { color: colors.primaryAccent }]}>MINISERIES</Text>
+            <TouchableOpacity
               onPress={() => {
                 setCustomBaseUrl(apiClient.defaults.baseURL || '');
                 setShowDiagnostics(true);
               }}
-              style={{ padding: 8 }}
+              style={styles.settingsBtn}
             >
-              <Ionicons name="construct-outline" size={20} color={colors.primaryAccent} />
+              <Ionicons name="construct-outline" size={18} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
+
           <Text style={[styles.title, { color: colors.text }]}>
-            {viewMode === 'login' 
-              ? 'ĐĂNG NHẬP HỆ THỐNG' 
-              : viewMode === 'register' 
-              ? 'ĐĂNG KÝ TÀI KHOẢN' 
-              : viewMode === 'otp'
-              ? 'XÁC THỰC MÃ OTP'
-              : viewMode === 'forgot_password'
-              ? 'QUÊN MẬT KHẨU'
-              : 'ĐẶT LẠI MẬT KHẨU'}
+            {viewMode === 'login'
+              ? 'ĐĂNG NHẬP HỆ THỐNG'
+              : viewMode === 'register'
+                ? 'ĐĂNG KÝ TÀI KHOẢN'
+                : viewMode === 'otp'
+                  ? 'XÁC THỰC MÃ OTP'
+                  : viewMode === 'forgot_password'
+                    ? 'QUÊN MẬT KHẨU'
+                    : 'ĐẶT LẠI MẬT KHẨU'}
           </Text>
 
-          {loading && (
-            <ActivityIndicator size="small" color={colors.primaryAccent} style={{ marginBottom: 16 }} />
-          )}
+          {loading && <ActivityIndicator size="small" color={colors.primaryAccent} style={{ marginBottom: 16 }} />}
 
+          {/* ───── LOGIN VIEW ───── */}
           {viewMode === 'login' && (
             <View style={styles.form}>
               <Text style={[styles.label, { color: colors.textMuted }]}>EMAIL</Text>
               <TextInput
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoComplete="email"
                 placeholder="Nhập địa chỉ email..."
                 placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={email}
@@ -490,13 +484,12 @@ export default function LoginScreen() {
               />
 
               <Text style={[styles.label, { color: colors.textMuted }]}>MẬT KHẨU</Text>
-              <TextInput
-                secureTextEntry
-                placeholder="Nhập mật khẩu..."
-                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+              <PasswordInput
                 value={password}
                 onChangeText={setPassword}
-                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+                placeholder="Nhập mật khẩu..."
+                secureVisible={showPassword}
+                onToggleSecure={() => setShowPassword(!showPassword)}
               />
 
               <TouchableOpacity
@@ -506,40 +499,45 @@ export default function LoginScreen() {
                   setPassword('');
                   setViewMode('forgot_password');
                 }}
-                style={{ alignSelf: 'flex-end', marginBottom: 16 }}
+                style={styles.forgotBtn}
               >
-                <Text style={{ color: colors.plasmaAccent, fontSize: 11, fontWeight: '800' }}>
-                  QUÊN MẬT KHẨU?
-                </Text>
+                <Text style={{ color: colors.plasmaAccent, fontSize: 11, fontWeight: '800' }}>QUÊN MẬT KHẨU?</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={handleEmailLogin}
-                style={[styles.button, { backgroundColor: colors.primaryAccent }]}
+                disabled={loading}
+                style={[styles.button, { backgroundColor: colors.primaryAccent, opacity: loading ? 0.6 : 1 }]}
               >
+                <Ionicons name="log-in-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
                 <Text style={styles.buttonText}>ĐĂNG NHẬP</Text>
               </TouchableOpacity>
+
+              {/* Divider */}
+              <View style={styles.dividerRow}>
+                <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+                <Text style={[styles.dividerText, { color: colors.textMuted }]}>HOẶC</Text>
+                <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+              </View>
 
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={handleGoogleLogin}
-                style={[styles.googleButton, { backgroundColor: '#ffffff', borderColor: '#dadce0' }]}
+                disabled={loading}
+                style={[styles.googleButton, { borderColor: isDark ? '#334155' : '#dadce0', backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : '#ffffff' }]}
               >
-                <Ionicons name="logo-google" size={15} color="#3c4043" style={{ marginRight: 8 }} />
-                <Text style={styles.googleButtonText}>ĐĂNG NHẬP VỚI GOOGLE</Text>
+                <Ionicons name="logo-google" size={16} color={isDark ? '#93c5fd' : '#4285f4'} style={{ marginRight: 8 }} />
+                <Text style={[styles.googleButtonText, { color: isDark ? '#e2e8f0' : '#3c4043' }]}>ĐĂNG NHẬP VỚI GOOGLE</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setViewMode('register')}
-                style={[styles.linkButton]}
-              >
+              <TouchableOpacity activeOpacity={0.8} onPress={() => setViewMode('register')} style={styles.linkButton}>
                 <Text style={[styles.linkButtonText, { color: colors.plasmaAccent }]}>CHƯA CÓ TÀI KHOẢN? ĐĂNG KÝ NGAY</Text>
               </TouchableOpacity>
             </View>
           )}
 
+          {/* ───── REGISTER VIEW ───── */}
           {viewMode === 'register' && (
             <View style={styles.form}>
               <Text style={[styles.label, { color: colors.textMuted }]}>HỌ VÀ TÊN</Text>
@@ -555,6 +553,7 @@ export default function LoginScreen() {
               <TextInput
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoComplete="email"
                 placeholder="Nhập địa chỉ email..."
                 placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={email}
@@ -563,46 +562,85 @@ export default function LoginScreen() {
               />
 
               <Text style={[styles.label, { color: colors.textMuted }]}>MẬT KHẨU</Text>
-              <TextInput
-                secureTextEntry
-                placeholder="Nhập mật khẩu..."
-                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+              <PasswordInput
                 value={password}
                 onChangeText={setPassword}
-                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+                placeholder="Tối thiểu 6 ký tự..."
+                secureVisible={showPassword}
+                onToggleSecure={() => setShowPassword(!showPassword)}
               />
 
               <Text style={[styles.label, { color: colors.textMuted }]}>XÁC NHẬN MẬT KHẨU</Text>
-              <TextInput
-                secureTextEntry
-                placeholder="Nhập lại mật khẩu..."
-                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+              <PasswordInput
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+                placeholder="Nhập lại mật khẩu..."
+                secureVisible={showConfirmPassword}
+                onToggleSecure={() => setShowConfirmPassword(!showConfirmPassword)}
               />
 
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={handleRegister}
-                style={[styles.button, { backgroundColor: colors.primaryAccent }]}
+                disabled={loading}
+                style={[styles.button, { backgroundColor: colors.primaryAccent, opacity: loading ? 0.6 : 1 }]}
               >
+                <Ionicons name="person-add-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
                 <Text style={styles.buttonText}>ĐĂNG KÝ</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setViewMode('login')}
-                style={[styles.linkButton]}
-              >
+              <TouchableOpacity activeOpacity={0.8} onPress={() => setViewMode('login')} style={styles.linkButton}>
                 <Text style={[styles.linkButtonText, { color: colors.plasmaAccent }]}>ĐÃ CÓ TÀI KHOẢN? ĐĂNG NHẬP</Text>
               </TouchableOpacity>
             </View>
           )}
 
+          {/* ───── OTP VERIFICATION VIEW ───── */}
+          {viewMode === 'otp' && (
+            <View style={styles.form}>
+              <Text style={[styles.otpHint, { color: colors.textMuted }]}>
+                Mã OTP 6 chữ số đã được gửi tới email {email || 'của bạn'}. Vui lòng kiểm tra hộp thư (bao gồm thư rác).
+              </Text>
+
+              <Text style={[styles.label, { color: colors.textMuted }]}>MÃ XÁC THỰC OTP</Text>
+              <TextInput
+                keyboardType="number-pad"
+                maxLength={6}
+                placeholder="Nhập 6 chữ số OTP..."
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+                value={otpCode}
+                onChangeText={setOtpCode}
+                style={[styles.input, styles.otpInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+              />
+
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={handleVerifyOtp}
+                disabled={loading}
+                style={[styles.button, { backgroundColor: colors.primaryAccent, opacity: loading ? 0.6 : 1 }]}
+              >
+                <Ionicons name="checkmark-circle-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.buttonText}>XÁC MINH OTP</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setViewMode('register')}
+                style={[styles.backButton, { borderColor: colors.border }]}
+              >
+                <Text style={[styles.backButtonText, { color: colors.text }]}>QUAY LẠI ĐĂNG KÝ</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* ───── FORGOT PASSWORD VIEW ───── */}
           {viewMode === 'forgot_password' && (
             <View style={styles.form}>
-              <Text style={[styles.label, { color: colors.textMuted }]}>EMAIL LẤY LẠI MẬT KHẨU</Text>
+              <Text style={[styles.otpHint, { color: colors.textMuted }]}>
+                Nhập email đã đăng ký để nhận mã OTP đặt lại mật khẩu.
+              </Text>
+
+              <Text style={[styles.label, { color: colors.textMuted }]}>EMAIL</Text>
               <TextInput
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -616,8 +654,10 @@ export default function LoginScreen() {
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={handleForgotPassword}
-                style={[styles.button, { backgroundColor: colors.primaryAccent }]}
+                disabled={loading}
+                style={[styles.button, { backgroundColor: colors.primaryAccent, opacity: loading ? 0.6 : 1 }]}
               >
+                <Ionicons name="mail-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
                 <Text style={styles.buttonText}>GỬI MÃ XÁC THỰC</Text>
               </TouchableOpacity>
 
@@ -631,6 +671,7 @@ export default function LoginScreen() {
             </View>
           )}
 
+          {/* ───── RESET PASSWORD VIEW ───── */}
           {viewMode === 'reset_password' && (
             <View style={styles.form}>
               <Text style={[styles.label, { color: colors.textMuted }]}>MÃ XÁC THỰC OTP</Text>
@@ -641,34 +682,34 @@ export default function LoginScreen() {
                 placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 value={otpCode}
                 onChangeText={setOtpCode}
-                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+                style={[styles.input, styles.otpInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
               />
 
               <Text style={[styles.label, { color: colors.textMuted }]}>MẬT KHẨU MỚI</Text>
-              <TextInput
-                secureTextEntry
-                placeholder="Nhập mật khẩu mới..."
-                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+              <PasswordInput
                 value={password}
                 onChangeText={setPassword}
-                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+                placeholder="Tối thiểu 6 ký tự..."
+                secureVisible={showNewPassword}
+                onToggleSecure={() => setShowNewPassword(!showNewPassword)}
               />
 
               <Text style={[styles.label, { color: colors.textMuted }]}>XÁC NHẬN MẬT KHẨU MỚI</Text>
-              <TextInput
-                secureTextEntry
-                placeholder="Nhập lại mật khẩu mới..."
-                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+              <PasswordInput
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+                placeholder="Nhập lại mật khẩu mới..."
+                secureVisible={showConfirmPassword}
+                onToggleSecure={() => setShowConfirmPassword(!showConfirmPassword)}
               />
 
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={handleResetPassword}
-                style={[styles.button, { backgroundColor: colors.primaryAccent }]}
+                disabled={loading}
+                style={[styles.button, { backgroundColor: colors.primaryAccent, opacity: loading ? 0.6 : 1 }]}
               >
+                <Ionicons name="key-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
                 <Text style={styles.buttonText}>ĐẶT LẠI MẬT KHẨU</Text>
               </TouchableOpacity>
 
@@ -681,50 +722,14 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
           )}
-
-          {viewMode === 'otp' && (
-            <View style={styles.form}>
-              <Text style={[styles.label, { color: colors.textMuted }]}>MÃ XÁC THỰC OTP</Text>
-              <TextInput
-                keyboardType="number-pad"
-                maxLength={6}
-                placeholder="Nhập 6 chữ số OTP từ email..."
-                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
-                value={otpCode}
-                onChangeText={setOtpCode}
-                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
-              />
-
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={handleVerifyOtp}
-                style={[styles.button, { backgroundColor: colors.primaryAccent }]}
-              >
-                <Text style={styles.buttonText}>XÁC MINH OTP</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setViewMode('register')}
-                style={[styles.backButton, { borderColor: colors.border }]}
-              >
-                <Text style={[styles.backButtonText, { color: colors.text }]}>QUAY LẠI</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
-        
-        {/* Diagnostic & Configuration Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showDiagnostics}
-          onRequestClose={() => setShowDiagnostics(false)}
-        >
+
+        {/* ───── DIAGNOSTICS MODAL ───── */}
+        <Modal animationType="slide" transparent visible={showDiagnostics} onRequestClose={() => setShowDiagnostics(false)}>
           <View style={styles.modalContainer}>
             <View style={[styles.modalContent, { backgroundColor: colors.bg, borderColor: colors.border }]}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>🛠️ THIẾT LẬP DEVELOPER</Text>
-              
+
               <ScrollView style={{ width: '100%', marginBottom: 16 }} showsVerticalScrollIndicator={false}>
                 <Text style={[styles.label, { color: colors.textMuted, marginTop: 8 }]}>ĐƯỜNG DẪN API HIỆN TẠI</Text>
                 <TextInput
@@ -734,7 +739,7 @@ export default function LoginScreen() {
                   placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                   style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text, marginBottom: 8 }]}
                 />
-                
+
                 <TouchableOpacity
                   onPress={applyCustomBaseUrl}
                   style={[styles.button, { backgroundColor: colors.primaryAccent, padding: 10, borderRadius: 8, marginBottom: 16 }]}
@@ -743,64 +748,60 @@ export default function LoginScreen() {
                 </TouchableOpacity>
 
                 <Text style={[styles.label, { color: colors.textMuted }]}>TEST KẾT NỐI HỆ THỐNG</Text>
-                
+
                 {diagnosticLogs.map((log, index) => {
-                  let statusColor = '#94a3b8'; // idle
+                  let statusColor = '#94a3b8';
                   let statusText = '⏳ ';
                   if (log.status === 'testing') {
-                    statusColor = '#eab308'; // yellow
+                    statusColor = '#eab308';
                     statusText = '🔄 ';
                   } else if (log.status === 'success') {
-                    statusColor = '#22c55e'; // green
+                    statusColor = '#22c55e';
                     statusText = '✅ ';
                   } else if (log.status === 'failed') {
-                    statusColor = '#ef4444'; // red
+                    statusColor = '#ef4444';
                     statusText = '❌ ';
                   }
 
                   return (
-                    <View 
-                      key={index} 
+                    <View
+                      key={index}
                       style={[
-                        styles.logItem, 
-                        { 
-                          borderColor: statusColor, 
-                          backgroundColor: isDark ? 'rgba(30, 41, 59, 0.4)' : 'rgba(241, 245, 249, 0.6)' 
-                        }
+                        styles.logItem,
+                        {
+                          borderColor: statusColor,
+                          backgroundColor: isDark ? 'rgba(30, 41, 59, 0.4)' : 'rgba(241, 245, 249, 0.6)',
+                        },
                       ]}
                     >
-                      <Text style={[styles.logName, { color: colors.text }]}>{statusText}{log.name}</Text>
-                      <Text style={[styles.logDetail, { color: log.status === 'failed' ? '#ef4444' : colors.textMuted }]}>
-                        {log.detail}
+                      <Text style={[styles.logName, { color: colors.text }]}>
+                        {statusText}
+                        {log.name}
                       </Text>
+                      <Text style={[styles.logDetail, { color: log.status === 'failed' ? '#ef4444' : colors.textMuted }]}>{log.detail}</Text>
                     </View>
                   );
                 })}
-                
+
                 <TouchableOpacity
                   disabled={testing}
                   onPress={runDiagnosticTests}
                   style={[
-                    styles.button, 
-                    { 
-                      backgroundColor: testing ? '#475569' : colors.plasmaAccent, 
-                      padding: 10, 
-                      borderRadius: 8, 
-                      marginTop: 8 
-                    }
+                    styles.button,
+                    {
+                      backgroundColor: testing ? '#475569' : colors.plasmaAccent,
+                      padding: 10,
+                      borderRadius: 8,
+                      marginTop: 8,
+                    },
                   ]}
                 >
-                  <Text style={[styles.buttonText, { fontSize: 12 }]}>
-                    {testing ? 'ĐANG CHẠY KIỂM TRA...' : '⚡ CHẠY TEST CHẨN ĐOÁN LỖI'}
-                  </Text>
+                  <Text style={[styles.buttonText, { fontSize: 12 }]}>{testing ? 'ĐANG CHẠY KIỂM TRA...' : '⚡ CHẠY TEST CHẨN ĐOÁN LỖI'}</Text>
                 </TouchableOpacity>
               </ScrollView>
 
-              <TouchableOpacity
-                onPress={() => setShowDiagnostics(false)}
-                style={[styles.backButton, { width: '100%', borderColor: colors.border }]}
-              >
-                <Text style={[styles.backButtonText, { color: colors.text }]}>ĐÓNG BẢNG ĐIỀU KHIỂN</Text>
+              <TouchableOpacity onPress={() => setShowDiagnostics(false)} style={[styles.backButton, { width: '100%', borderColor: colors.border }]}>
+                <Text style={[styles.backButtonText, { color: colors.text }]}>ĐÓNG</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -822,21 +823,30 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    maxWidth: 340,
+    maxWidth: 360,
     borderWidth: 1,
     borderRadius: 20,
-    padding: 24,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 5,
+    padding: 28,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 6,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 8,
   },
   brand: {
     fontSize: 24,
     fontWeight: '900',
-    textAlign: 'center',
-    marginBottom: 4,
-    letterSpacing: 1,
+    letterSpacing: 1.5,
+  },
+  settingsBtn: {
+    padding: 8,
+    borderRadius: 8,
   },
   title: {
     fontSize: 13,
@@ -862,14 +872,49 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 16,
   },
+  otpInput: {
+    textAlign: 'center',
+    fontSize: 20,
+    letterSpacing: 8,
+    fontWeight: '900',
+  },
+  otpHint: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  // Password input with eye toggle
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 14,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  eyeButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // Buttons
   button: {
     borderRadius: 12,
     padding: 14,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -888,15 +933,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 1,
   },
   googleButtonText: {
-    color: '#3c4043',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.5,
+  },
+  forgotBtn: {
+    alignSelf: 'flex-end',
+    marginBottom: 16,
+    paddingVertical: 2,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginHorizontal: 12,
   },
   backButton: {
     borderWidth: 1,
@@ -922,6 +986,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textDecorationLine: 'underline',
   },
+  // Diagnostics Modal
   modalContainer: {
     flex: 1,
     justifyContent: 'center',

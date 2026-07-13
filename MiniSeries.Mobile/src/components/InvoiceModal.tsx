@@ -183,13 +183,16 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
                     <ActivityIndicator size="small" color={colors.primaryAccent} style={{ position: 'absolute' }} />
                   )}
                   <Image
-                    source={{ uri: `https://api.vietqr.io/image/${bankBin}-${accountNumber}-compact.jpg?accountName=${encodeURIComponent(accountName)}&amount=${amount}&addInfo=${paymentCode}` }}
+                    source={{
+                      uri: `https://img.vietqr.io/image/${bankBin}-${accountNumber}-compact2.png?amount=${String(amount).replace(/[^0-9]/g, '')}&addInfo=${encodeURIComponent(paymentCode)}&accountName=${encodeURIComponent(accountName)}`,
+                      headers: { 'Accept': 'image/png' },
+                    }}
                     style={styles.qrImage}
                     resizeMode="contain"
                     onLoadStart={() => setQrImageLoading(true)}
                     onLoadEnd={() => setQrImageLoading(false)}
                     onError={(e) => {
-                      console.log('VietQR Image Load Error:', e.nativeEvent.error);
+                      console.log('VietQR Image Load Error:', e.nativeEvent?.error);
                       setQrImageLoading(false);
                     }}
                   />
