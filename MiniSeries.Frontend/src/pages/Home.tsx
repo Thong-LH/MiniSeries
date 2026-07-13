@@ -421,22 +421,7 @@ export default function Home() {
           <h2 className="final-title">Bạn đã sẵn sàng?</h2>
           <div className="final-cta-stack">
             <Link to="/studio" onClick={handleProtectedNavigation} className="final-cta-card primary-card">
-              <div className="cta-icon-wrapper">
-                <svg className="cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div className="cta-text-content">
-                <span className="cta-kicker">Bắt đầu ngay</span>
-                <span className="cta-label">Tạo Mini Series của riêng bạn</span>
-                <span className="cta-hint">Thiết kế bài học manga & video AI trong vài phút</span>
-              </div>
-              <div className="cta-arrow-wrapper">
-                <svg className="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" strokeLinejoin="round"/>
-                  <polyline points="12 5 19 12 12 19" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
+              <span className="cta-label-only">Tạo Mini Series của riêng bạn</span>
             </Link>
 
             <a
@@ -445,23 +430,12 @@ export default function Home() {
               rel="noopener noreferrer"
               className="final-cta-card secondary-card"
             >
-              <div className="cta-icon-wrapper">
-                <svg className="cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <line x1="12" y1="18" x2="12.01" y2="18" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div className="cta-text-content">
-                <span className="cta-kicker apk-kicker">Ứng dụng di động</span>
-                <span className="cta-label">Tải App Android (APK)</span>
-                <span className="cta-hint">Học mọi lúc trên điện thoại, đồng bộ tiến độ</span>
-              </div>
-              <div className="cta-arrow-wrapper">
-                <svg className="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" strokeLinejoin="round"/>
-                  <polyline points="12 5 19 12 12 19" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
+              <svg className="drive-icon" viewBox="0 0 1443 1250" fill="none">
+                <path d="M479.5 0L0 830.5L239.75 1250L719.25 419.5L479.5 0Z" fill="#0066DA"/>
+                <path d="M719.25 419.5L479.5 830.5L959 830.5L1198.75 419.5L719.25 419.5Z" fill="#00A852"/>
+                <path d="M1198.75 419.5L959 0L479.5 0L719.25 419.5L1198.75 419.5Z" fill="#FFD014"/>
+              </svg>
+              <span className="cta-label-small">Tải App Android (APK)</span>
             </a>
           </div>
 

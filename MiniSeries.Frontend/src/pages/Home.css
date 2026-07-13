@@ -631,10 +631,10 @@
 .final-cta-stack {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     gap: 16px;
     width: min(100%, 540px);
-    margin: 35px auto 0;
+    margin: 40px auto 0;
     position: relative;
     z-index: 100;
 }
@@ -642,208 +642,114 @@
 .final-cta-card {
     display: flex;
     align-items: center;
-    gap: 20px;
-    width: 100%;
-    padding: 20px 24px;
-    border-radius: 20px;
+    justify-content: center;
     text-decoration: none;
+    border-radius: 20px;
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
+    background: rgba(9, 9, 11, 0.95);
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(15, 23, 42, 0.45);
-    box-shadow: 
-        0 4px 30px rgba(0, 0, 0, 0.4),
-        inset 0 1px 1px rgba(255, 255, 255, 0.05);
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-    overflow: hidden;
-}
-
-.final-cta-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.05),
-        transparent
-    );
-    transition: 0.5s;
-}
-
-.final-cta-card:hover::before {
-    left: 100%;
-}
-
-.final-cta-card:hover {
-    transform: translateY(-4px) scale(1.01);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.6),
-        inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 .final-cta-card.primary-card {
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(99, 102, 241, 0.04) 100%);
-    border-color: rgba(56, 189, 248, 0.25);
+    width: 100%;
+    padding: 22px 30px;
+    border-color: rgba(56, 189, 248, 0.42);
+    background: linear-gradient(135deg, rgba(9, 9, 11, 0.96) 0%, rgba(15, 23, 42, 0.94) 100%);
 }
 
 .final-cta-card.primary-card:hover {
-    border-color: rgba(56, 189, 248, 0.6);
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.14) 0%, rgba(99, 102, 241, 0.08) 100%);
+    transform: translateY(-4px) scale(1.02);
+    border-color: rgba(56, 189, 248, 0.75);
     box-shadow: 
-        0 20px 40px rgba(56, 189, 248, 0.15),
-        0 0 100px rgba(99, 102, 241, 0.05),
-        inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        0 20px 45px rgba(56, 189, 248, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.cta-label-only {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-align: center;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
 }
 
 .final-cta-card.secondary-card {
-    background: linear-gradient(135deg, rgba(251, 146, 60, 0.08) 0%, rgba(219, 39, 119, 0.04) 100%);
-    border-color: rgba(251, 146, 60, 0.22);
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 22px;
+    border-radius: 999px;
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(9, 9, 11, 0.85);
 }
 
 .final-cta-card.secondary-card:hover {
-    border-color: rgba(251, 146, 60, 0.55);
-    background: linear-gradient(135deg, rgba(251, 146, 60, 0.12) 0%, rgba(219, 39, 119, 0.08) 100%);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(9, 9, 11, 0.95);
     box-shadow: 
-        0 20px 40px rgba(251, 146, 60, 0.12),
-        0 0 100px rgba(219, 39, 119, 0.04),
-        inset 0 1px 1px rgba(255, 255, 255, 0.12);
+        0 10px 25px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.cta-icon-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: all 0.3s ease;
+.drive-icon {
+    width: 16px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
-.primary-card .cta-icon {
-    width: 24px;
-    height: 24px;
-    color: #38bdf8;
-    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.4));
+.cta-label-small {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: rgba(250, 250, 250, 0.85);
+    text-align: center;
 }
 
-.secondary-card .cta-icon {
-    width: 24px;
-    height: 24px;
-    color: #fb923c;
-    filter: drop-shadow(0 0 8px rgba(251, 146, 60, 0.4));
-}
-
-.final-cta-card:hover .cta-icon-wrapper {
-    transform: scale(1.08);
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-.cta-text-content {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-    gap: 4px;
-    flex: 1;
-}
-
-.cta-kicker {
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #7dd3fc;
-}
-
-.cta-kicker.apk-kicker {
-    color: #fdba74;
-}
-
-.cta-label {
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: 0.03em;
+.final-cta-card.secondary-card:hover .cta-label-small {
     color: #ffffff;
-    line-height: 1.2;
-}
-
-.cta-hint {
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.55);
-    line-height: 1.35;
-}
-
-.final-cta-card:hover .cta-hint {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.cta-arrow-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    opacity: 0.3;
-    transform: translateX(-4px);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    color: #ffffff;
-}
-
-.cta-arrow {
-    width: 20px;
-    height: 20px;
-}
-
-.final-cta-card:hover .cta-arrow-wrapper {
-    opacity: 0.85;
-    transform: translateX(2px);
 }
 
 @media (max-width: 768px) {
     .final-cta-stack {
         width: 100%;
-        padding: 0 16px;
-        gap: 12px;
+        padding: 0 20px;
+        gap: 14px;
     }
     
-    .final-cta-card {
-        padding: 16px 20px;
-        gap: 16px;
+    .final-cta-card.primary-card {
+        padding: 18px 24px;
     }
     
-    .cta-icon-wrapper {
-        width: 42px;
-        height: 42px;
+    .cta-label-only {
+        font-size: 1rem;
     }
     
-    .cta-label {
-        font-size: 0.95rem;
+    .final-cta-card.secondary-card {
+        padding: 8px 16px;
     }
     
-    .cta-hint {
-        font-size: 0.72rem;
+    .cta-label-small {
+        font-size: 0.76rem;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .final-cta-card,
-    .final-cta-card:hover,
-    .cta-icon-wrapper,
-    .cta-arrow-wrapper {
+    .final-cta-card:hover {
         transition: none;
         transform: none;
     }
 }
+
 
 
 .book-container {
