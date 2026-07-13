@@ -645,9 +645,7 @@
     justify-content: center;
     text-decoration: none;
     border-radius: 20px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    background: rgba(9, 9, 11, 0.55);
+    background: #09090b;
     box-shadow: 
         0 10px 30px rgba(0, 0, 0, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -687,23 +685,15 @@
     padding: 10px 22px;
     border-radius: 999px;
     border-color: rgba(255, 255, 255, 0.08);
-    background: rgba(9, 9, 11, 0.55);
+    background: #09090b;
 }
 
 .final-cta-card.secondary-card:hover {
     transform: translateY(-2px);
     border-color: rgba(255, 255, 255, 0.25);
-    background: rgba(9, 9, 11, 0.7);
     box-shadow: 
         0 10px 25px rgba(0, 0, 0, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.android-icon {
-    width: 18px;
-    height: 18px;
-    color: #3DDC84;
-    flex-shrink: 0;
 }
 
 .cta-label-small {
