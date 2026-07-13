@@ -58,6 +58,7 @@ public sealed class FeedbackController(MiniSeriesDbContext dbContext) : Controll
         try
         {
             var list = await dbContext.Feedbacks
+                .AsNoTracking()
                 .OrderByDescending(f => f.CreatedAt)
                 .ToListAsync();
             return Ok(list);
@@ -75,6 +76,7 @@ public sealed class FeedbackController(MiniSeriesDbContext dbContext) : Controll
         try
         {
             var list = await dbContext.Feedbacks
+                .AsNoTracking()
                 .OrderByDescending(f => f.CreatedAt)
                 .ToListAsync();
             return Ok(list);

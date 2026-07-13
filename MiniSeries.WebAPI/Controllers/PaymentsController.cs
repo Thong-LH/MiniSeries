@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
 using MiniSeries.Domain.Entities;
 using MiniSeries.Infrastructure.ExternalServices;
 using MiniSeries.Infrastructure.Persistence;
 using MiniSeries.Infrastructure.Services;
 using MiniSeries.WebAPI.Contracts;
 using MiniSeries.WebAPI.Security;
+using MiniSeries.WebAPI.Hubs;
 using Npgsql;
 
 namespace MiniSeries.WebAPI.Controllers;
@@ -16,7 +18,8 @@ namespace MiniSeries.WebAPI.Controllers;
 public sealed class PaymentsController(
     MiniSeriesDbContext dbContext,
     UserPlanQuotaService quotaService,
-    IConfiguration configuration) : ControllerBase
+    IConfiguration configuration,
+    IHubContext<PaymentHub> paymentHubContext) : ControllerBase
 {
     [Authorize(Policy = "AuthenticatedUser")]
     [HttpPost("create-invoice")]
@@ -155,11 +158,33 @@ public sealed class PaymentsController(
 
         var amount = bankData.TransferAmount > 0 ? bankData.TransferAmount : bankData.Amount;
 
-        var recentOrders = await dbContext.PaymentOrders
-            .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync();
-        var matched = recentOrders
-            .FirstOrDefault(o => contentUpper.Contains(o.PaymentCode, StringComparison.OrdinalIgnoreCase));
+        PaymentOrder? matched = null;
+        string? parsedCode = null;
+        var words = contentUpper.Split(new[] { ' ', '_', '-', '.', ',', ':', ';' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var word in words)
+        {
+            if (word.StartsWith("MGX", StringComparison.OrdinalIgnoreCase))
+            {
+                parsedCode = word;
+                break;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(parsedCode))
+        {
+            matched = await dbContext.PaymentOrders.FirstOrDefaultAsync(o => o.PaymentCode == parsedCode);
+        }
+
+        if (matched is null)
+        {
+            // Fallback: check recent pending orders created in the last 7 days only
+            var cutoff = DateTime.UtcNow.AddDays(-7);
+            var recentOrders = await dbContext.PaymentOrders
+                .Where(o => o.CreatedAt > cutoff && !o.IsCompleted)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+            matched = recentOrders.FirstOrDefault(o => contentUpper.Contains(o.PaymentCode, StringComparison.OrdinalIgnoreCase));
+        }
 
         if (matched is null)
         {
@@ -197,6 +222,20 @@ public sealed class PaymentsController(
             var quota = await quotaService.ApplyPaidPlanAsync(Guid.Parse(matched.UserId), matched.PlanName);
 
             // EF PaymentHistories is the primary history source. Table mapping handles unification.
+
+            // Broadcast payment completion to SignalR client
+            await paymentHubContext.Clients.Group($"payment-{matched.PaymentCode.ToUpperInvariant()}")
+                .SendAsync("PaymentReceived", new
+                {
+                    isPaid = true,
+                    planName = quota.PlanName,
+                    mangaMonthlyLimit = quota.MangaMonthlyLimit,
+                    remainingMangaCount = quota.RemainingMangaCount,
+                    videoMonthlyLimit = quota.VideoMonthlyLimit,
+                    remainingVideoCount = quota.RemainingVideoCount,
+                    monthlyGenerationLimit = quota.MonthlyGenerationLimit,
+                    remainingGenerationCount = quota.RemainingGenerationCount
+                });
 
             return Ok(new
             {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { useApp } from '../../context/AppContext';
@@ -21,7 +21,7 @@ export default function ProfileScreen() {
     setIsAuthenticated,
     triggerToast,
     refreshProfile,
-    updateStatsFromData,
+    refreshStats,
     globalStreak
   } = useApp();
   const router = useRouter();
@@ -41,29 +41,34 @@ export default function ProfileScreen() {
     setThemeId(isDark ? 'bold-typography' : 'bold-typography-dark');
   };
 
-  const fetchDashboardStats = async () => {
+  const lastFetchTimeRef = useRef<number>(0);
+
+  const fetchProfileData = async () => {
     try {
-      const res = await apiClient.get('/progress/dashboard');
-      if (res.data) {
-        updateStatsFromData(res.data);
-      }
+      await Promise.all([
+        refreshProfile(),
+        refreshStats()
+      ]);
     } catch (e) {
-      console.log('Error fetching stats in profile:', e);
+      console.log('Error fetching profile data:', e);
     }
   };
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      refreshProfile();
-      fetchDashboardStats();
+      const now = Date.now();
+      if (now - lastFetchTimeRef.current > 3000) {
+        lastFetchTimeRef.current = now;
+        fetchProfileData();
+      }
       apiClient.post('/analytics/track', { path: '/profile', deviceType: 'Mobile' }).catch(() => { });
     });
     return unsubscribe;
   }, [navigation]);
 
   useEffect(() => {
-    refreshProfile();
-    fetchDashboardStats();
+    lastFetchTimeRef.current = Date.now();
+    fetchProfileData();
   }, []);
 
   const renderStreakFlame = (streakCount: number, size: number = 14) => {

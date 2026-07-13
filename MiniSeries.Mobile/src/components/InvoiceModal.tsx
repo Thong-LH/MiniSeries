@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../hooks/use-theme';
-import { apiClient } from '../services/apiClient';
+import { apiClient, BASE_URL } from '../services/apiClient';
+import * as signalR from '@microsoft/signalr';
 
 interface InvoiceModalProps {
   visible: boolean;
@@ -85,41 +86,80 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
     return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
   };
 
-  // Polling payment status
+  // Listen to payment status via SignalR PaymentHub with 30s slow fallback
   useEffect(() => {
-    let checkInterval: any;
-    let isChecking = false;
+    let connection: signalR.HubConnection | null = null;
+    let fallbackInterval: any = null;
+    let isMounted = true;
 
     if (visible && paymentCode) {
-      checkInterval = setInterval(async () => {
-        if (isChecking) return;
-        isChecking = true;
+      const hubUrl = BASE_URL.replace('/api', '/hubs/payments');
+      connection = new signalR.HubConnectionBuilder()
+        .withUrl(hubUrl)
+        .withAutomaticReconnect()
+        .build();
+
+      const startConnection = async () => {
+        try {
+          await connection!.start();
+          if (!isMounted) {
+            await connection!.stop();
+            return;
+          }
+          await connection!.invoke("JoinPaymentGroup", paymentCode);
+          console.log(`Subscribed to SignalR PaymentHub group: payment-${paymentCode}`);
+        } catch (err) {
+          console.log('Error starting SignalR connection for PaymentHub:', err);
+        }
+      };
+
+      const handlePaymentSuccess = () => {
+        setActivePlan(planName);
+        if (planName === 'Basic') {
+          setMangaTokens((prev) => prev + 30);
+        } else if (planName === 'Premium') {
+          setMangaTokens(99999);
+          setVideoTokens((prev) => prev + 30);
+        }
+        triggerToast(`Nâng cấp thành công gói ${planName}! 🎉`);
+        onClose();
+      };
+
+      connection.on("PaymentReceived", (data: { isPaid: boolean }) => {
+        if (data.isPaid && isMounted) {
+          handlePaymentSuccess();
+        }
+      });
+
+      startConnection();
+
+      // Fallback polling just in case SignalR fails or disconnects (every 30 seconds)
+      fallbackInterval = setInterval(async () => {
+        if (connection && connection.state === signalR.HubConnectionState.Connected) {
+          return; // Skip polling if SignalR is active and connected
+        }
         try {
           const res = await apiClient.get('/payment/check-status', {
             params: { code: paymentCode }
           });
-          if (res.data.isPaid) {
-            clearInterval(checkInterval);
-            setActivePlan(planName);
-            if (planName === 'Basic') {
-              setMangaTokens((prev) => prev + 30);
-            } else if (planName === 'Premium') {
-              setMangaTokens(99999);
-              setVideoTokens((prev) => prev + 30);
-            }
-            triggerToast(`Nâng cấp thành công gói ${planName}!`);
-            onClose();
+          if (res.data.isPaid && isMounted) {
+            handlePaymentSuccess();
           }
         } catch (e) {
-          console.log('Polling error:', e);
-        } finally {
-          isChecking = false;
+          console.log('Fallback polling error:', e);
         }
-      }, 4000);
+      }, 30000);
     }
 
     return () => {
-      if (checkInterval) clearInterval(checkInterval);
+      isMounted = false;
+      if (fallbackInterval) clearInterval(fallbackInterval);
+      if (connection) {
+        if (connection.state === signalR.HubConnectionState.Connected) {
+          connection.invoke("LeavePaymentGroup", paymentCode).catch(err => console.log(err));
+        }
+        connection.stop().catch(err => console.log(err));
+      }
     };
   }, [visible, paymentCode, planName]);
 
@@ -184,8 +224,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
                   )}
                   <Image
                     source={{
-                      uri: `https://img.vietqr.io/image/${bankBin}-${accountNumber}-compact2.png?amount=${String(amount).replace(/[^0-9]/g, '')}&addInfo=${encodeURIComponent(paymentCode)}&accountName=${encodeURIComponent(accountName)}`,
-                      headers: { 'Accept': 'image/png' },
+                      uri: `https://img.vietqr.io/image/${bankBin}-${accountNumber}-compact.jpg?amount=${String(amount).replace(/[^0-9]/g, '')}&addInfo=${encodeURIComponent(paymentCode)}&accountName=${encodeURIComponent(accountName)}`
                     }}
                     style={styles.qrImage}
                     resizeMode="contain"

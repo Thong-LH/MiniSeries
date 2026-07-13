@@ -396,7 +396,7 @@ export default function Home() {
         <div className="orbit-container">
           <div className="orbit-ring">
             {reviews.map((r, i) => (
-              <div className="review-orbit-slot" style={{ transform: `rotateY(${i * 45}deg) translateZ(400px)` }} key={i}>
+              <div className="review-orbit-slot" style={{ transform: `rotateY(${i * 45}deg) translateZ(470px)` }} key={i}>
                 <div className="review-card">
                   <div className="quote-icon">❝</div>
                   <p>"{r.text}"</p>

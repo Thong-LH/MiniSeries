@@ -22,6 +22,43 @@ import { signInWithGoogleBrowser, signInWithGoogleWeb } from '../../services/goo
 
 WebBrowser.maybeCompleteAuthSession();
 
+const PasswordInput = ({
+  value,
+  onChangeText,
+  placeholder,
+  secureVisible,
+  onToggleSecure,
+}: {
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder: string;
+  secureVisible: boolean;
+  onToggleSecure: () => void;
+}) => {
+  const colors = useTheme();
+  const isDark = colors.isDark;
+
+  return (
+    <View style={[styles.passwordContainer, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
+      <TextInput
+        secureTextEntry={!secureVisible}
+        placeholder={placeholder}
+        placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+        value={value}
+        onChangeText={onChangeText}
+        style={[styles.passwordInput, { color: colors.text }]}
+      />
+      <TouchableOpacity onPress={onToggleSecure} style={styles.eyeButton} activeOpacity={0.7}>
+        <Ionicons
+          name={secureVisible ? 'eye-off-outline' : 'eye-outline'}
+          size={20}
+          color={colors.textMuted}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 export default function LoginScreen() {
   const {
     themeId,
@@ -386,40 +423,6 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
-
-  // ─── PASSWORD INPUT WITH TOGGLE ──────────────────────────
-
-  const PasswordInput = ({
-    value,
-    onChangeText,
-    placeholder,
-    secureVisible,
-    onToggleSecure,
-  }: {
-    value: string;
-    onChangeText: (text: string) => void;
-    placeholder: string;
-    secureVisible: boolean;
-    onToggleSecure: () => void;
-  }) => (
-    <View style={[styles.passwordContainer, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
-      <TextInput
-        secureTextEntry={!secureVisible}
-        placeholder={placeholder}
-        placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
-        value={value}
-        onChangeText={onChangeText}
-        style={[styles.passwordInput, { color: colors.text }]}
-      />
-      <TouchableOpacity onPress={onToggleSecure} style={styles.eyeButton} activeOpacity={0.7}>
-        <Ionicons
-          name={secureVisible ? 'eye-off-outline' : 'eye-outline'}
-          size={20}
-          color={colors.textMuted}
-        />
-      </TouchableOpacity>
-    </View>
-  );
 
   // ─── RENDER ──────────────────────────────────────────────
 

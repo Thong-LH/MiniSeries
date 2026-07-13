@@ -54,17 +54,20 @@ public sealed class ReportsController(MiniSeriesDbContext dbContext) : Controlle
     {
         try
         {
-            var list = await dbContext.StaffReports
-                .OrderBy(r => r.CreatedAt)
-                .ToListAsync();
+            var query = dbContext.StaffReports.AsNoTracking();
 
             if (User.IsInRole("Staff") && !User.IsInRole("Admin"))
             {
                 var staffName = AuthUser.GetCurrentUserName(User) ?? AuthUser.GetCurrentUserEmail(User);
-                list = list
-                    .Where(r => string.Equals(r.StaffName, staffName, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                if (!string.IsNullOrWhiteSpace(staffName))
+                {
+                    query = query.Where(r => r.StaffName.ToLower() == staffName.Trim().ToLower());
+                }
             }
+
+            var list = await query
+                .OrderBy(r => r.CreatedAt)
+                .ToListAsync();
 
             return Ok(list);
         }
