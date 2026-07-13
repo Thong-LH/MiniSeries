@@ -47,7 +47,6 @@ export default function HomeScreen() {
   const [dashboardStats, setDashboardStats] = useState<any>(null);
 
   // Pager / Carousel state
-  const [carouselLessons, setCarouselLessons] = useState<Lesson[]>([]);
   const [carouselLoading, setCarouselLoading] = useState<boolean>(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -250,7 +249,7 @@ export default function HomeScreen() {
 
   const fetchHomeLessons = async (silent = false) => {
     if (!isAuthenticated) return;
-    if (!silent && carouselLessons.length === 0) {
+    if (!silent && lessons.length === 0) {
       setCarouselLoading(true);
     }
     try {
@@ -259,7 +258,7 @@ export default function HomeScreen() {
       });
       if (res.data && Array.isArray(res.data)) {
         const mapped = res.data.map(mapDtoToLesson);
-        setCarouselLessons(mapped);
+        setLessons(mapped);
       }
     } catch (err) {
       console.log('Lỗi tải bài học carousel:', err);
@@ -342,7 +341,7 @@ export default function HomeScreen() {
   const fetchHomeData = async (force = false) => {
     if (!isAuthenticated) return;
     try {
-      const silent = carouselLessons.length > 0 && !force;
+      const silent = lessons.length > 0 && !force;
       await Promise.all([
         fetchHomeLessons(silent),
         fetchDashboardStats(),
@@ -880,7 +879,7 @@ export default function HomeScreen() {
           style={{ marginHorizontal: -16 }}
         >
           {categories.map((cat, catIdx) => {
-            const filtered = carouselLessons.filter(l => {
+            const filtered = lessons.filter(l => {
               if (cat === 'Manga') return l.type === 'manga';
               if (cat === 'Video') return l.type === 'video';
               if (cat === 'Hoàn thành') return l.status === 'Hoàn thành';

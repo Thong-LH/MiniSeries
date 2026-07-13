@@ -57,7 +57,11 @@ async function readJsonResponse(response: Response) {
     const data = text ? JSON.parse(text) : {};
 
     if (response.status === 401) {
-        if (!(window as any).isSessionExpiredAlerting) {
+        // Skip aggressive session clearing if we just logged in (grace period)
+        const loginTimestamp = Number(localStorage.getItem("login_timestamp") || "0");
+        const isWithinGracePeriod = Date.now() - loginTimestamp < 5000;
+
+        if (!isWithinGracePeriod && !(window as any).isSessionExpiredAlerting) {
             (window as any).isSessionExpiredAlerting = true;
             clearAuthSession();
             window.location.href = "/login?expired=true";
@@ -163,9 +167,13 @@ export const api = {
         });
         const data = await readJsonResponse(response);
         const previousUserId = localStorage.getItem("userId");
+
         if (data.accessToken) {
             localStorage.setItem("token", data.accessToken);
+            // THÊM DÒNG NÀY: Đánh dấu thời điểm login để kích hoạt Grace Period
+            localStorage.setItem("login_timestamp", Date.now().toString());
         }
+
         if (data.userId) localStorage.setItem("userId", data.userId);
         if (previousUserId && data.userId && previousUserId !== data.userId) {
             localStorage.removeItem(PROFILE_CACHE_KEY);
@@ -176,6 +184,7 @@ export const api = {
         }
         if (data.fullName) localStorage.setItem("user_name", data.fullName);
         if (data.email) localStorage.setItem("user_email", data.email);
+
         return data;
     },
 

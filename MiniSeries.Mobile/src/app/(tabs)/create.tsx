@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { useApp } from '../../context/AppContext';
@@ -25,7 +25,7 @@ export default function CreateScreen() {
     videoTokens,
     triggerToast,
     refreshProfile,
-    updateStatsFromData,
+    refreshStats,
     globalStreak,
   } = useApp();
   const router = useRouter();
@@ -39,14 +39,16 @@ export default function CreateScreen() {
     setThemeId(isDark ? 'bold-typography' : 'bold-typography-dark');
   };
 
-  const fetchDashboardStats = async () => {
+  const lastFetchTimeRef = useRef<number>(0);
+
+  const fetchCreateData = async () => {
     try {
-      const res = await apiClient.get('/progress/dashboard');
-      if (res.data) {
-        updateStatsFromData(res.data);
-      }
+      await Promise.all([
+        refreshProfile(),
+        refreshStats()
+      ]);
     } catch (e) {
-      console.log('Error fetching dashboard stats in create:', e);
+      console.log('Error fetching create stats:', e);
     }
   };
 
@@ -88,8 +90,11 @@ export default function CreateScreen() {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      refreshProfile();
-      fetchDashboardStats();
+      const now = Date.now();
+      if (now - lastFetchTimeRef.current > 3000) {
+        lastFetchTimeRef.current = now;
+        fetchCreateData();
+      }
       apiClient.post('/analytics/track', { path: '/create', deviceType: 'Mobile' }).catch(() => {});
     });
     return unsubscribe;

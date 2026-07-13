@@ -137,5 +137,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<LessonHub>("/hubs/lessons");
+app.MapHub<PaymentHub>("/hubs/payments");
 
 app.Run();

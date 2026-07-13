@@ -36,6 +36,7 @@ public sealed class SupportController(
         try
         {
             var list = await dbContext.SupportRequests
+                .AsNoTracking()
                 .Where(s => s.CustomerEmail == customerEmail.Trim())
                 .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync();
@@ -205,6 +206,7 @@ public sealed class SupportController(
         try
         {
             var list = await dbContext.SupportRequests
+                .AsNoTracking()
                 .OrderBy(s => s.CreatedAt)
                 .ToListAsync();
             return Ok(list);

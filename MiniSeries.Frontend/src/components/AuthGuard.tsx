@@ -26,10 +26,24 @@ export default function AuthGuard() {
         const nextRole = profile.role || 'Customer';
         setRole(nextRole);
       })
-      .catch(() => {
+      .catch((err) => {
         if (ignore) return;
-        clearAuthSession();
-        setStatus('denied');
+
+        // Lấy thời điểm login gần nhất
+        const loginTimestamp = Number(localStorage.getItem("login_timestamp") || "0");
+        const isWithinGracePeriod = Date.now() - loginTimestamp < 5000; // Ân hạn 5 giây
+
+        // Only clear session on definitive auth errors (401/403), not transient failures
+        if (err?.status === 401 || err?.status === 403) {
+          if (isWithinGracePeriod) {
+            console.warn("AuthGuard: Bỏ qua lỗi 401/403 do đang trong thời gian ân hạn sau login.");
+            // Không setStatus('denied') ở đây để user tiếp tục vào được Outlet
+          } else {
+            clearAuthSession();
+            setStatus('denied');
+          }
+        }
+        // For other errors (network, timeout, server 500), keep the session alive
       });
 
     return () => {

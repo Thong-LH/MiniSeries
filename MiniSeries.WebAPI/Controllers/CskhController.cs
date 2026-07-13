@@ -147,6 +147,7 @@ public class CskhController : ControllerBase
         try
         {
             var list = await _dbContext.CskhMessages
+                .AsNoTracking()
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
 

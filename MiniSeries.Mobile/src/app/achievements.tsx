@@ -264,8 +264,6 @@ export default function AchievementsScreen() {
                   style={[
                     styles.gridItem,
                     { 
-                      backgroundColor: colors.cardBg, 
-                      borderColor: isSelected ? colors.primaryAccent : colors.border,
                       opacity: item.isUnlocked ? 1 : 0.65 
                     }
                   ]}
@@ -476,27 +474,12 @@ const styles = StyleSheet.create({
   },
   gridItem: {
     width: '48%',
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 12,
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 20,
     position: 'relative',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
-      },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.02,
-        shadowRadius: 4,
-        elevation: 1,
-      }
-    }),
   },
   badgeThumbnailWrapper: {
-    height: 120,
+    height: 185,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,

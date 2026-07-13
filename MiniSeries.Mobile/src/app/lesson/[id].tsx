@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Platform, Modal, Animated } from 'react-native';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { QuizSection } from '../../components/QuizSection';
@@ -79,6 +80,15 @@ export default function LessonViewerScreen() {
     }
   }, [currentChapterIndex, lessonData]);
 
+  const isVideoMode = lessonData?.outputMode === 1 || lessonData?.outputMode === 'Video';
+  const chapters = lessonData?.chapters ? [...lessonData.chapters].sort((a: any, b: any) => a.order - b.order) : [];
+  const currentChapter = chapters[currentChapterIndex];
+
+  const videoPlayer = useVideoPlayer(currentChapter?.videoUrl || '', player => {
+    player.loop = true;
+    player.play();
+  });
+
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }]}>
@@ -102,10 +112,6 @@ export default function LessonViewerScreen() {
       </View>
     );
   }
-
-  const isVideoMode = lessonData.outputMode === 1 || lessonData.outputMode === 'Video';
-  const chapters = lessonData.chapters ? [...lessonData.chapters].sort((a: any, b: any) => a.order - b.order) : [];
-  const currentChapter = chapters[currentChapterIndex];
 
   const q = currentChapter?.quiz;
   let parsedQuiz = undefined;
@@ -180,15 +186,12 @@ export default function LessonViewerScreen() {
           >
             {isVideoMode ? (
               currentChapter?.videoUrl ? (
-                <View style={styles.videoPlaceholderActive}>
-                  <Ionicons name="film" size={48} color={colors.primaryAccent} />
-                  <Text style={{ color: '#FFFFFF', marginTop: 12, fontWeight: '700', fontSize: 13, textAlign: 'center' }}>
-                    Video: Phân cảnh {currentChapterIndex + 1}
-                  </Text>
-                  <Text style={{ color: '#94a3b8', marginTop: 6, fontSize: 11, textAlign: 'center' }}>
-                    {currentChapter.videoUrl.split('/').pop()}
-                  </Text>
-                </View>
+                <VideoView
+                  style={styles.videoPlayer}
+                  player={videoPlayer}
+                  allowsFullscreen
+                  allowsPictureInPicture
+                />
               ) : (
                 <View style={styles.videoPlaceholderActive}>
                   <Ionicons name="film-outline" size={48} color="#94a3b8" />
@@ -439,6 +442,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 6,
     letterSpacing: 0.5,
+  },
+  videoPlayer: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
   },
   videoPlaceholderActive: {
     width: '100%',

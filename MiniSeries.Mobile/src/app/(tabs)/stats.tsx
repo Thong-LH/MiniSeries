@@ -225,7 +225,11 @@ export default function StatsScreen() {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       if (isAuthenticated) {
-        fetchStatsData(true);
+        const now = Date.now();
+        if (now - lastFetchTimeRef.current > 3000) {
+          lastFetchTimeRef.current = now;
+          fetchStatsData(true);
+        }
       }
     });
     return unsubscribe;
@@ -233,6 +237,7 @@ export default function StatsScreen() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      lastFetchTimeRef.current = Date.now();
       fetchStatsData(true);
     }
   }, [isAuthenticated]);

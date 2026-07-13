@@ -312,17 +312,15 @@ namespace MiniSeries.WebAPI.Controllers
             return CalculateUserStats(userId, progresses, lessons, correctQuizzes);
         }
 
-        private async Task EvaluateAndUnlockAchievementsAsync(Guid userId, UserStats stats, List<string> unlockedKeys = null)
+        private async Task<List<string>> EvaluateAndUnlockAchievementsAsync(
+            Guid userId, 
+            UserStats stats, 
+            List<string> unlockedKeys, 
+            bool hasPaid, 
+            int spentTokens)
         {
-            if (unlockedKeys == null)
-            {
-                unlockedKeys = await dbContext.UserAchievements
-                    .Where(a => a.UserId == userId)
-                    .Select(a => a.AchievementKey)
-                    .ToListAsync();
-            }
-
             var newAchievements = new List<UserAchievement>();
+            var newKeys = new List<string>();
 
             void CheckAndAdd(string key, bool condition)
             {
@@ -335,6 +333,7 @@ namespace MiniSeries.WebAPI.Controllers
                         AchievementKey = key,
                         UnlockedAt = DateTime.UtcNow
                     });
+                    newKeys.Add(key);
                 }
             }
 
@@ -358,18 +357,7 @@ namespace MiniSeries.WebAPI.Controllers
             CheckAndAdd("exp_500", stats.TotalExp >= 500);
             CheckAndAdd("exp_2000", stats.TotalExp >= 2000);
 
-            // Nhánh danh hiệu Wealth (Nạp & Tiêu dùng)
-            var orderIds = await dbContext.PaymentOrders.Where(o => o.UserId == userId.ToString()).Select(o => o.Id).ToListAsync();
-            bool hasPaid = await dbContext.PaymentHistories.AnyAsync(h => h.PaymentOrderId != null && orderIds.Contains(h.PaymentOrderId.Value));
             CheckAndAdd("wealth_first_topup", hasPaid);
-
-            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == userId);
-            int spentTokens = 0;
-            if (profile != null)
-            {
-                var quota = await quotaService.GetSnapshotAsync(profile);
-                spentTokens = quota.UsedMangaCount + quota.UsedVideoCount;
-            }
             CheckAndAdd("wealth_spend_10", spentTokens >= 10);
             CheckAndAdd("wealth_spend_50", spentTokens >= 50);
             CheckAndAdd("wealth_spend_200", spentTokens >= 200);
@@ -379,6 +367,8 @@ namespace MiniSeries.WebAPI.Controllers
                 await dbContext.UserAchievements.AddRangeAsync(newAchievements);
                 await dbContext.SaveChangesAsync();
             }
+
+            return newKeys;
         }
 
         private sealed record AchievementDefinition(
@@ -440,17 +430,12 @@ namespace MiniSeries.WebAPI.Controllers
                 .Where(q => q.UserId == userId.Value && q.IsCorrect)
                 .CountAsync();
 
-            var unlockedList = await dbContext.UserAchievements
+            var finalUnlocked = await dbContext.UserAchievements
                 .Where(a => a.UserId == userId.Value)
-                .AsNoTracking()
-                .ToListAsync();
-
-            var stats = CalculateUserStats(userId.Value, progresses, lessons, correctQuizzes);
-            var unlockedKeys = unlockedList.Select(a => a.AchievementKey).ToList();
+                .ToDictionaryAsync(a => a.AchievementKey, a => a.UnlockedAt);
+            var unlockedKeys = finalUnlocked.Keys.ToList();
             
-            await EvaluateAndUnlockAchievementsAsync(userId.Value, stats, unlockedKeys);
-
-            // Truy vấn thông tin tài chính để hiển thị tiến độ danh hiệu
+            // Truy vấn thông tin tài chính một lần duy nhất
             var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == userId.Value);
             int spentTokens = 0;
             if (profile != null)
@@ -462,9 +447,13 @@ namespace MiniSeries.WebAPI.Controllers
             var orderIds = await dbContext.PaymentOrders.Where(o => o.UserId == userId.Value.ToString()).Select(o => o.Id).ToListAsync();
             bool hasPaid = await dbContext.PaymentHistories.AnyAsync(h => h.PaymentOrderId != null && orderIds.Contains(h.PaymentOrderId.Value));
 
-            var finalUnlocked = await dbContext.UserAchievements
-                .Where(a => a.UserId == userId.Value)
-                .ToDictionaryAsync(a => a.AchievementKey, a => a.UnlockedAt);
+            var stats = CalculateUserStats(userId.Value, progresses, lessons, correctQuizzes);
+            var newKeys = await EvaluateAndUnlockAchievementsAsync(userId.Value, stats, unlockedKeys, hasPaid, spentTokens);
+            
+            foreach (var newKey in newKeys)
+            {
+                finalUnlocked[newKey] = DateTime.UtcNow;
+            }
 
             var result = Achievements.Select(def =>
             {
@@ -522,13 +511,24 @@ namespace MiniSeries.WebAPI.Controllers
                 .Where(q => q.UserId == userId.Value && q.IsCorrect)
                 .CountAsync();
 
+            var profile = await dbContext.UserProfiles.FirstOrDefaultAsync(x => x.Id == userId.Value);
+            int spentTokens = 0;
+            if (profile != null)
+            {
+                var quota = await quotaService.GetSnapshotAsync(profile);
+                spentTokens = quota.UsedMangaCount + quota.UsedVideoCount;
+            }
+
+            var orderIds = await dbContext.PaymentOrders.Where(o => o.UserId == userId.Value.ToString()).Select(o => o.Id).ToListAsync();
+            bool hasPaid = await dbContext.PaymentHistories.AnyAsync(h => h.PaymentOrderId != null && orderIds.Contains(h.PaymentOrderId.Value));
+
             var unlockedKeys = await dbContext.UserAchievements
                 .Where(a => a.UserId == userId.Value)
                 .Select(a => a.AchievementKey)
                 .ToListAsync();
 
             var stats = CalculateUserStats(userId.Value, progresses, lessons, correctQuizzes);
-            await EvaluateAndUnlockAchievementsAsync(userId.Value, stats, unlockedKeys);
+            await EvaluateAndUnlockAchievementsAsync(userId.Value, stats, unlockedKeys, hasPaid, spentTokens);
 
             var activityDates = progresses.Select(p => p.UpdatedAt.Date)
                 .Concat(lessons.Select(l => l.CreatedAt.Date))

@@ -395,18 +395,22 @@ export default function Home() {
       <section className="feedback-section" id="feedback" style={{ padding: '50px 0' }}>
         <div className="orbit-container">
           <div className="orbit-ring">
-            {reviews.map((r, i) => (
-              <div className="review-orbit-slot" style={{ transform: `rotateY(${i * 45}deg) translateZ(400px)` }} key={i}>
-                <div className="review-card">
-                  <div className="quote-icon">❝</div>
-                  <p>"{r.text}"</p>
-                  <div className="review-author">
-                    <span className="review-badge" style={{ background: r.badgeBg, color: r.badgeColor }}>{r.badge}</span>
-                    <span className="review-name">— {r.author}</span>
+            {reviews.map((r, i) => {
+              const orbitRadius = window.innerWidth <= 768 ? 270 : 470;
+              return (
+                <div className="review-orbit-slot" style={{ transform: `rotateY(${i * 45}deg) translateZ(${orbitRadius}px)` }} key={i}>
+                  <div className="review-card">
+                    <div className="quote-icon">❝</div>
+                    <p>"{r.text}"</p>
+                    <div className="review-author">
+                      <span className="review-badge" style={{ background: r.badgeBg, color: r.badgeColor }}>{r.badge}</span>
+                      <span className="review-name">— {r.author}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })
+            }
           </div>
         </div>
       </section>

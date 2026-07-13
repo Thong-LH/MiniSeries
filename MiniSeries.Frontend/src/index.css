@@ -394,7 +394,7 @@
 body {
   background-color: #09090b;
   color: #fafafa;
-  overflow-x: hidden;
+  overflow-x: clip;
   font-family: var(--font-sans);
 }
 
