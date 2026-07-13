@@ -420,20 +420,48 @@ export default function Home() {
         <div className="final-content">
           <h2 className="final-title">Bạn đã sẵn sàng?</h2>
           <div className="final-cta-stack">
-            <Link to="/studio" onClick={handleProtectedNavigation} className="final-cta-primary glass-cta">
-              <span className="final-cta-kicker">Bắt đầu ngay</span>
-              <span className="final-cta-label">Tạo Mini Series của riêng bạn</span>
-              <span className="final-cta-hint">Thiết kế bài học manga & video AI trong vài phút</span>
+            <Link to="/studio" onClick={handleProtectedNavigation} className="final-cta-card primary-card">
+              <div className="cta-icon-wrapper">
+                <svg className="cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="cta-text-content">
+                <span className="cta-kicker">Bắt đầu ngay</span>
+                <span className="cta-label">Tạo Mini Series của riêng bạn</span>
+                <span className="cta-hint">Thiết kế bài học manga & video AI trong vài phút</span>
+              </div>
+              <div className="cta-arrow-wrapper">
+                <svg className="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" strokeLinejoin="round"/>
+                  <polyline points="12 5 19 12 12 19" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
             </Link>
+
             <a
               href="https://drive.google.com/drive/folders/1-Pr-07rFCbfUqI5Lxkpm6bHmhxdvPGPf?usp=drive_link"
               target="_blank"
               rel="noopener noreferrer"
-              className="final-cta-secondary glass-cta"
+              className="final-cta-card secondary-card"
             >
-              <span className="final-cta-kicker apk-kicker">Ứng dụng di động</span>
-              <span className="final-cta-label">Tải App Android (APK)</span>
-              <span className="final-cta-hint">Học mọi lúc trên điện thoại, đồng bộ tiến độ</span>
+              <div className="cta-icon-wrapper">
+                <svg className="cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="12" y1="18" x2="12.01" y2="18" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="cta-text-content">
+                <span className="cta-kicker apk-kicker">Ứng dụng di động</span>
+                <span className="cta-label">Tải App Android (APK)</span>
+                <span className="cta-hint">Học mọi lúc trên điện thoại, đồng bộ tiến độ</span>
+              </div>
+              <div className="cta-arrow-wrapper">
+                <svg className="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" strokeLinejoin="round"/>
+                  <polyline points="12 5 19 12 12 19" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
             </a>
           </div>
 

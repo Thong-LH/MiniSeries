@@ -35,3 +35,7 @@ project_context.md
 
 # Web layout studio references (keep local, do not track in mobile repo)
 MiniSeries-Studio/
+
+# Local short C++ build directory
+c/
+
