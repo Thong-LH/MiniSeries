@@ -645,7 +645,9 @@
     justify-content: center;
     text-decoration: none;
     border-radius: 20px;
-    background: #09090b;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    background: rgba(12, 12, 14, 0.85);
     box-shadow: 
         0 10px 30px rgba(0, 0, 0, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -657,6 +659,7 @@
     width: 100%;
     padding: 22px 30px;
     border-color: rgba(56, 189, 248, 0.35);
+    background: rgba(12, 12, 14, 0.85);
 }
 
 .final-cta-card.primary-card:hover {
@@ -665,6 +668,7 @@
     box-shadow: 
         0 20px 45px rgba(56, 189, 248, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    background: rgba(12, 12, 14, 0.9);
 }
 
 .cta-label-only {
@@ -685,12 +689,13 @@
     padding: 10px 22px;
     border-radius: 999px;
     border-color: rgba(255, 255, 255, 0.08);
-    background: #09090b;
+    background: rgba(12, 12, 14, 0.8);
 }
 
 .final-cta-card.secondary-card:hover {
     transform: translateY(-2px);
     border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(12, 12, 14, 0.9);
     box-shadow: 
         0 10px 25px rgba(0, 0, 0, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
