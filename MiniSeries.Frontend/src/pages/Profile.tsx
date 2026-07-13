@@ -303,7 +303,7 @@ export default function Profile() {
       })
       .catch((err) => {
         if (ignore || handleAuthError(err)) return;
-        setPaymentsError(readErrorMessage(err, 'Không tải được lịch sử thanh toán.'));
+        setPaymentsError(readErrorMessage(err, 'Không tải được lịch sử thanh toán của bạn.'));
         setPaymentsLoaded(true);
       })
       .finally(() => {
@@ -363,14 +363,14 @@ export default function Profile() {
               fontFamily: 'inherit'
             }}
           >
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2.5" 
-              strokeLinecap="round" 
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
               strokeLinejoin="round"
             >
               <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -669,10 +669,10 @@ export default function Profile() {
         )}
 
         {activeTab === 'feedback' && (
-          <div className="profile-content-card" style={{ 
-            maxWidth: 560, 
-            background: 'rgba(15, 23, 42, 0.75)', 
-            backdropFilter: 'blur(24px)', 
+          <div className="profile-content-card" style={{
+            maxWidth: 560,
+            background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(24px)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
             boxShadow: '0 24px 48px -12px rgba(0, 0, 0, 0.5)',
             borderRadius: '24px',
@@ -687,14 +687,14 @@ export default function Profile() {
                 <h3 style={{ color: '#fafafa', marginBottom: '8px', fontFamily: "'Inter', sans-serif", fontSize: '1.25rem', fontWeight: 700 }}>Cảm ơn bạn đã đánh giá!</h3>
                 <p style={{ color: 'rgba(250, 250, 250, 0.55)', fontSize: '0.85rem' }}>Phản hồi quý giá của bạn giúp chúng tôi cải thiện sản phẩm tốt hơn.</p>
                 <button
-                  style={{ 
-                    marginTop: '24px', 
-                    padding: '12px 32px', 
-                    borderRadius: '999px', 
-                    border: 'none', 
-                    background: 'linear-gradient(135deg, #06b6d4, #0891b2)', 
-                    color: '#fff', 
-                    fontWeight: 800, 
+                  style={{
+                    marginTop: '24px',
+                    padding: '12px 32px',
+                    borderRadius: '999px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                    color: '#fff',
+                    fontWeight: 800,
                     fontSize: '0.85rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
@@ -747,7 +747,7 @@ export default function Profile() {
                     ))}
                   </div>
                   {fbRating > 0 && (
-                    <div style={{ 
+                    <div style={{
                       display: 'inline-flex',
                       padding: '4px 14px',
                       borderRadius: '999px',
@@ -801,12 +801,12 @@ export default function Profile() {
                 </div>
 
                 {fbError && (
-                  <div style={{ 
-                    padding: '10px 16px', 
-                    borderRadius: '8px', 
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)', 
+                  <div style={{
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)',
                     border: '1px solid rgba(239, 68, 68, 0.15)',
-                    marginBottom: '16px' 
+                    marginBottom: '16px'
                   }}>
                     <p style={{ color: '#f87171', fontSize: '0.8rem', fontWeight: 600, margin: 0 }}>⚠️ {fbError}</p>
                   </div>

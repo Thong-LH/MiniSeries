@@ -29,7 +29,7 @@ export default function Pricing() {
     let animationFrameId: number;
     let stars: any[] = [];
     let planets: any[] = [];
-    const sun = { x: 0, y: 0, radius: 28, color: '#ec4899', glow: '#a855f7' };
+    const sun = { x: 0, y: 0, radius: 28, color: '#701040ff', glow: '#a855f7' };
 
     const initBackground = () => {
       canvas.width = window.innerWidth;
@@ -228,7 +228,7 @@ export default function Pricing() {
       </div>
 
       {showFloatHint && (
-        <div 
+        <div
           className="pricing-floating-hint"
           onClick={() => document.getElementById('single-tokens-section')?.scrollIntoView({ behavior: 'smooth' })}
         >

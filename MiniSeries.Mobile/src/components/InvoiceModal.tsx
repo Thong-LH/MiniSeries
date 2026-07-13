@@ -225,7 +225,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
                   )}
                   <Image
                     source={{
-                      uri: `https://img.vietqr.io/image/${bankBin}-${accountNumber}-compact.jpg?amount=${String(amount).replace(/[^0-9]/g, '')}&addInfo=${encodeURIComponent(paymentCode)}&accountName=${encodeURIComponent(accountName)}`
+                      uri: `https://vietqr.app/img?acc=${accountNumber}&bank=${bankBin}&amount=${String(amount).replace(/[^0-9]/g, '')}&des=${encodeURIComponent(paymentCode)}&template=compact`
                     }}
                     style={styles.qrImage}
                     contentFit="contain"

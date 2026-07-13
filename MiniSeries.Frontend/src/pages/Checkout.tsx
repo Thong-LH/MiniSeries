@@ -14,7 +14,7 @@ export default function Checkout() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentCode, setPaymentCode] = useState('');
-  
+
   // Dynamic bank details from backend settings
   const [bankBin, setBankBin] = useState('970422');
   const [accountNumber, setAccountNumber] = useState('0909090909');
@@ -36,7 +36,7 @@ export default function Checkout() {
       } catch (err: any) {
         if (ignore) return;
         console.error(err);
-        setError(err.message || 'Không thể khởi tạo hóa đơn thanh toán.');
+        setError(err.message || 'Không thể khởi tạo hóa đơn thanh toán của bạn.');
         setLoading(false);
       }
     };
@@ -183,7 +183,7 @@ export default function Checkout() {
             <p style={{ color: 'rgba(250, 250, 250, 0.6)', textAlign: 'center', marginBottom: '36px', fontSize: '0.9rem' }}>
               Quét mã QR dưới đây hoặc bấm nút giả lập chuyển khoản để nâng cấp gói tài khoản.
             </p>
- 
+
             <div className="checkout-container-grid">
               {/* Order Info */}
               <div style={{ color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -205,7 +205,7 @@ export default function Checkout() {
                       {paymentCode}
                     </strong>
                   </div>
- 
+
                   <h3 style={{ color: '#38bdf8', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '10px', marginBottom: '20px', marginTop: '28px', fontSize: '1.1rem', fontWeight: 700 }}>
                     Thông tin tài khoản nhận
                   </h3>
@@ -222,7 +222,7 @@ export default function Checkout() {
                     <span style={{ color: '#fafafa', fontWeight: '600' }}>{accountName}</span>
                   </div>
                 </div>
- 
+
                 <div style={{ marginTop: '36px', padding: '16px', background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.12)', borderRadius: '14px' }}>
                   <p style={{ margin: 0, color: '#38bdf8', fontSize: '0.82rem', lineHeight: '1.5', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
                     <span>ℹ️</span>
@@ -230,7 +230,7 @@ export default function Checkout() {
                   </p>
                 </div>
               </div>
- 
+
               {/* QR Code */}
               <div style={{
                 display: 'flex',
@@ -247,7 +247,7 @@ export default function Checkout() {
               }}>
                 <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', marginBottom: '16px' }}>
                   <img
-                    src={`https://api.vietqr.io/image/${bankBin}-${accountNumber}-compact.jpg?amount=${price}&addInfo=${paymentCode}&accountName=${encodeURIComponent(accountName)}`}
+                    src={`https://vietqr.app/img?acc=${accountNumber}&bank=${bankBin}&amount=${price}&des=${paymentCode}&template=compact`}
                     alt="VietQR Code"
                     style={{ width: '220px', height: '220px', display: 'block' }}
                   />
