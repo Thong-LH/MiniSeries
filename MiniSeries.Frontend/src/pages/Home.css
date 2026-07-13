@@ -16,6 +16,10 @@
     --font-sans: 'Inter', sans-serif;
 }
 
+html, body {
+    overflow-x: clip;
+}
+
 .home-container {
     background-color: var(--paper-beige);
     /* Add structural grid and lateral ambient glows */
@@ -30,7 +34,6 @@
     color: var(--ink-black);
     font-family: var(--font-sans);
     min-height: 100vh;
-    overflow-x: clip;
 }
 
 /* Global content wrapper to sit above the stream */

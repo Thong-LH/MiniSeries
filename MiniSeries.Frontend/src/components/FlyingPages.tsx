@@ -16,8 +16,8 @@ export default function FlyingPages() {
       const page = document.createElement('div');
       page.className = 'flying-page';
 
-      // Pick a random template variant from 0 to 7
-      const variant = Math.floor(Math.random() * 8);
+      // Pick a random template variant from 0 to 8
+      const variant = Math.floor(Math.random() * 9);
       const subject = subjects[Math.floor(Math.random() * subjects.length)];
       const grade = grades[Math.floor(Math.random() * grades.length)];
       const badgeClass = grade.length > 2 ? 'mini-grade-badge-red wide' : 'mini-grade-badge-red';
@@ -151,7 +151,7 @@ export default function FlyingPages() {
             </div>
           </div>
         `;
-      } else {
+      } else if (variant === 7) {
         // Variant 7: Pure Lined Note Page (Notebook lines/stripes with a simple title 'notes', no grade)
         contentHtml = `
           <div class="mini-page-lined">
@@ -165,6 +165,13 @@ export default function FlyingPages() {
               <div class="mini-notebook-line"></div>
               <div class="mini-notebook-line"></div>
             </div>
+          </div>
+        `;
+      } else {
+        // Variant 8: Project Logo v2 Page
+        contentHtml = `
+          <div class="mini-page-logo-container">
+            <img src="/project-logo-v2.png" class="mini-page-logo-img" alt="Logo" />
           </div>
         `;
       }
