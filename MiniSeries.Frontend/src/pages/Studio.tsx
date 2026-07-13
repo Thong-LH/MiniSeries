@@ -259,6 +259,16 @@ export default function Studio() {
             } else if (data.status === 'Failed') {
                 setError(data.errorMessage || "Đã xảy ra lỗi khi tạo media từ server.");
                 setStep('draft_review');
+            } else {
+                // Intermediate step changes (CreateChapters, GenerateAnchorImage, GenerateChapters, Finalizing)
+                // Re-fetch lesson data so getStepStatus() reads the updated currentStep & logs
+                api.getLesson(lessonId).then(updatedLesson => {
+                    if (isMounted) {
+                        setLessonData(updatedLesson);
+                    }
+                }).catch(err => {
+                    console.error("Lỗi khi cập nhật trạng thái bước:", err);
+                });
             }
         });
 
@@ -337,26 +347,45 @@ export default function Studio() {
 
         const allChaptersGenerated = chapters.length > 0 && generatedCount === chapters.length;
 
-        if (index === 0) {
-            if (currentStep === "CreateChapters" && !hasReachedAnchorImage) {
-                return 'active';
+        // Use log-based detection if logs have meaningful data
+        const hasLogData = hasReachedAnchorImage || hasReachedGenerate || allChaptersGenerated;
+
+        if (hasLogData) {
+            // Log-based step detection (for real lessons with backend updates)
+            if (index === 0) {
+                return hasReachedAnchorImage ? 'completed' : 'active';
             }
-            return 'completed';
-        }
-        if (index === 1) {
-            if (!hasReachedAnchorImage) return 'pending';
-            if (currentStep === "GenerateAnchorImage" && !hasReachedGenerate) return 'active';
-            return 'completed';
-        }
-        if (index === 2) {
-            if (!hasReachedGenerate) return 'pending';
-            if (!allChaptersGenerated) return 'active';
-            return 'completed';
-        }
-        if (index === 3) {
-            if (!allChaptersGenerated) return 'pending';
-            if (!isCompleted) return 'active';
-            return 'completed';
+            if (index === 1) {
+                if (!hasReachedAnchorImage) return 'pending';
+                if (!hasReachedGenerate) return 'active';
+                return 'completed';
+            }
+            if (index === 2) {
+                if (!hasReachedGenerate) return 'pending';
+                if (!allChaptersGenerated) return 'active';
+                return 'completed';
+            }
+            if (index === 3) {
+                if (!allChaptersGenerated) return 'pending';
+                if (!isCompleted) return 'active';
+                return 'completed';
+            }
+        } else {
+            // Timer-based step detection (fallback for mock/video lessons)
+            // Backend mock timing: State 1 (0-5s), State 2 (5-15s), State 3 (15-25s), State 4 (25-30s)
+            const elapsed = elapsedSeconds;
+            const thresholds = [0, 5, 15, 25]; // start times for each step
+
+            for (let i = 0; i < 4; i++) {
+                const stepStart = thresholds[i];
+                const stepEnd = i < 3 ? thresholds[i + 1] : 30;
+
+                if (index === i) {
+                    if (elapsed < stepStart) return 'pending';
+                    if (elapsed < stepEnd) return 'active';
+                    return 'completed';
+                }
+            }
         }
 
         return 'pending';

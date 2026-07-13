@@ -226,7 +226,7 @@ export default function FlyingPages() {
       const rotXEnd = (Math.random() - 0.5) * 1440;
       const rotYEnd = (Math.random() - 0.5) * 1440;
       const rotZEnd = (Math.random() - 0.5) * 180;
-      const scaleEnd = isMobile ? (0.6 + Math.random() * 0.2) : (1.1 + Math.random() * 0.4);
+      const scaleEnd = isMobile ? (0.9 + Math.random() * 0.25) : (1.1 + Math.random() * 0.4);
 
       const distance = spawnY - targetY;
       const speed = 90 + Math.random() * 130; // Faster speed range (90 to 220 px/s)
