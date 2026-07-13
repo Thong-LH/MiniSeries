@@ -501,7 +501,6 @@ html, body {
     width: 100%;
     height: 100%;
     backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     background: rgba(15, 23, 42, 0.65);
     border-radius: 24px;
     padding: 12px 14px;
@@ -673,7 +672,6 @@ html, body {
     text-decoration: none;
     border-radius: 20px;
     backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
     background: rgba(12, 12, 14, 0.85);
     box-shadow:
         0 10px 30px rgba(0, 0, 0, 0.5),
@@ -688,7 +686,6 @@ html, body {
     border: 1px solid #9a3412;
     background: #c2410c;
     backdrop-filter: none;
-    -webkit-backdrop-filter: none;
     box-shadow: 0 10px 25px rgba(194, 65, 12, 0.3);
 }
 
