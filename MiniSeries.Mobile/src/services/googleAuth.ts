@@ -5,55 +5,54 @@ import { apiClient, setAuthToken } from './apiClient';
 
 const SUPABASE_URL = 'https://devnyzwnvyzgulqroyqa.supabase.co';
 
+function extractAccessToken(url: string): string | null {
+  const hashIndex = url.indexOf('#');
+  if (hashIndex !== -1) {
+    const token = new URLSearchParams(url.substring(hashIndex + 1)).get('access_token');
+    if (token) return token;
+  }
+
+  try {
+    return new URL(url).searchParams.get('access_token');
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Google Sign-In for MOBILE (Android/iOS) — opens Supabase OAuth in an in-app browser.
- * No native SDK configuration (SHA-1, google-services.json) needed.
- * Returns the backend login data (accessToken, planName, etc.) on success.
+ * openAuthSessionAsync returns the redirect URL with #access_token; we exchange it here.
  */
 export const signInWithGoogleBrowser = async (): Promise<any> => {
-  // Build the redirect URI that the browser will return to after OAuth
   const redirectUri = Linking.createURL('auth/callback');
+  console.log('[Google OAuth] Redirect URI (Expo Go / mobile):', redirectUri);
 
-  // Supabase OAuth authorize URL
   const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUri)}`;
+  console.log('[Google OAuth] Auth URL:', authUrl);
 
-  // Open the browser for OAuth
   const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+  console.log('[Google OAuth] Browser result:', result.type, result.type === 'success' ? result.url : '');
 
-  if (result.type !== 'success' || !result.url) {
+  if (result.type === 'cancel' || result.type === 'dismiss') {
     throw new Error('Đăng nhập Google đã bị hủy.');
   }
 
-  // Parse the returned URL to extract access_token from hash fragment
-  // Supabase redirects with: redirect_uri#access_token=...&refresh_token=...&...
-  const returnedUrl = result.url;
-  let supabaseAccessToken: string | null = null;
-
-  // Try hash fragment first (standard Supabase redirect)
-  const hashIndex = returnedUrl.indexOf('#');
-  if (hashIndex !== -1) {
-    const hashParams = new URLSearchParams(returnedUrl.substring(hashIndex + 1));
-    supabaseAccessToken = hashParams.get('access_token');
+  if (result.type !== 'success' || !result.url) {
+    throw new Error('Đăng nhập Google thất bại.');
   }
 
-  // Fallback: try query params
-  if (!supabaseAccessToken) {
-    const urlObj = new URL(returnedUrl);
-    supabaseAccessToken = urlObj.searchParams.get('access_token');
-  }
-
+  const supabaseAccessToken = extractAccessToken(result.url);
   if (!supabaseAccessToken) {
     throw new Error('Không nhận được Access Token từ Google/Supabase.');
   }
 
-  // Exchange Supabase access token with our backend
   const backendRes = await apiClient.post('/auth/google-signin', {
     accessToken: supabaseAccessToken,
   });
 
   const loginData = backendRes.data;
 
-  if (loginData && loginData.accessToken) {
+  if (loginData?.accessToken) {
     setAuthToken(loginData.accessToken);
   }
 

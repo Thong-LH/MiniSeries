@@ -10,6 +10,7 @@ import { apiClient } from '../../services/apiClient';
 import { SpaceBackground } from '../../components/SpaceBackground';
 import { useTheme } from '../../hooks/use-theme';
 import { LevelAvatar } from '../../components/LevelAvatar';
+import { StripWhitespace } from '../../components/StripWhitespace';
 export default function ProfileScreen() {
   const {
     themeId,
@@ -22,7 +23,8 @@ export default function ProfileScreen() {
     triggerToast,
     refreshProfile,
     refreshStats,
-    globalStreak
+    globalStreak,
+    isAuthenticated,
   } = useApp();
   const router = useRouter();
   const navigation = useNavigation();
@@ -42,6 +44,7 @@ export default function ProfileScreen() {
   };
 
   const lastFetchTimeRef = useRef<number>(0);
+  const PROFILE_STALE_MS = 2 * 60 * 1000;
 
   const fetchProfileData = async () => {
     try {
@@ -56,20 +59,16 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
+      if (!isAuthenticated) return;
       const now = Date.now();
-      if (now - lastFetchTimeRef.current > 3000) {
+      if (now - lastFetchTimeRef.current > PROFILE_STALE_MS) {
         lastFetchTimeRef.current = now;
         fetchProfileData();
       }
       apiClient.post('/analytics/track', { path: '/profile', deviceType: 'Mobile' }).catch(() => { });
     });
     return unsubscribe;
-  }, [navigation]);
-
-  useEffect(() => {
-    lastFetchTimeRef.current = Date.now();
-    fetchProfileData();
-  }, []);
+  }, [navigation, isAuthenticated]);
 
   const renderStreakFlame = (streakCount: number, size: number = 14) => {
     if (streakCount === 0) {
@@ -140,6 +139,7 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <StripWhitespace>
         {/* User Card */}
         <View style={[styles.userCard, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' }]}>
           <View style={[styles.avatar, { backgroundColor: colors.primaryAccent }]}>
@@ -152,7 +152,7 @@ export default function ProfileScreen() {
             <Text style={[styles.userEmail, { color: colors.textMuted }]}>{userEmail || 'customer@miniseries.com'}</Text>
             <View style={[styles.tierBadge, { borderColor: colors.border, backgroundColor: colors.text }]}>
               <Text style={[styles.tierBadgeText, { color: colors.bg }]}>
-                {activePlan.toUpperCase()} PLAN
+                {(activePlan || 'Free').toUpperCase()} PLAN
               </Text>
             </View>
           </View>
@@ -302,7 +302,8 @@ export default function ProfileScreen() {
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.text} />
           </View>
-        </TouchableOpacity>        {/* Transaction History Button */}
+        </TouchableOpacity>
+        {/* Transaction History Button */}
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => setHistoryVisible(true)}
@@ -342,6 +343,7 @@ export default function ProfileScreen() {
         >
           <Text style={[styles.logoutBtnText, { color: colors.text }]}>ĐĂNG XUẤT TÀI KHOẢN</Text>
         </TouchableOpacity>
+        </StripWhitespace>
       </ScrollView>
 
       {/* Payment History Modal */}

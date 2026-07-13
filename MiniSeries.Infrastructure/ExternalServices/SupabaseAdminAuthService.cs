@@ -55,18 +55,18 @@ public sealed class SupabaseAdminAuthService
             using var doc = JsonDocument.Parse(body);
             if (doc.RootElement.TryGetProperty("msg", out var msg))
             {
-                return msg.GetString() ?? body;
+                return SupabaseAuthErrorLocalizer.Localize(msg.GetString());
             }
             if (doc.RootElement.TryGetProperty("message", out var message))
             {
-                return message.GetString() ?? body;
+                return SupabaseAuthErrorLocalizer.Localize(message.GetString());
             }
         }
         catch
         {
             // ignore
         }
-        return body;
+        return SupabaseAuthErrorLocalizer.Localize(body);
     }
 
     public async Task<Guid> CreateUserAsync(string email, string password, string? fullName = null)

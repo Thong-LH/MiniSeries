@@ -4,14 +4,16 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../hooks/use-theme';
 
 // Platform-safe SVG Components
-let SvgComponent: any = 'svg';
-let CircleComponent: any = 'circle';
+let svgReady = false;
+let SvgComponent: React.ComponentType<any> | null = null;
+let CircleComponent: React.ComponentType<any> | null = null;
 
 if (Platform.OS !== 'web') {
   try {
     const RNSvg = require('react-native-svg');
     SvgComponent = RNSvg.default || RNSvg.Svg || RNSvg;
     CircleComponent = RNSvg.Circle;
+    svgReady = true;
   } catch (e) {
     console.log('Failed to load react-native-svg on native', e);
   }
@@ -130,6 +132,7 @@ export const LevelAvatar: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.avatarWrapper}>
+        {svgReady && SvgComponent && CircleComponent ? (
         <SvgComponent pointerEvents="none" width={size} height={size} style={styles.svg}>
           {/* Background Track Circle */}
           <CircleComponent
@@ -161,6 +164,7 @@ export const LevelAvatar: React.FC = () => {
             })}
           />
         </SvgComponent>
+        ) : null}
 
         {/* Inner Container: Replaces Monogram with Level or +EXP */}
         <View style={[

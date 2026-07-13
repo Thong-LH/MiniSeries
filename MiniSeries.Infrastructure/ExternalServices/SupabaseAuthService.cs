@@ -53,25 +53,25 @@ public sealed class SupabaseAuthService
             using var doc = JsonDocument.Parse(body);
             if (doc.RootElement.TryGetProperty("msg", out var msg))
             {
-                return msg.GetString() ?? body;
+                return SupabaseAuthErrorLocalizer.Localize(msg.GetString());
             }
             if (doc.RootElement.TryGetProperty("error_description", out var desc))
             {
-                return desc.GetString() ?? body;
+                return SupabaseAuthErrorLocalizer.Localize(desc.GetString());
             }
             if (doc.RootElement.TryGetProperty("message", out var message))
             {
-                return message.GetString() ?? body;
+                return SupabaseAuthErrorLocalizer.Localize(message.GetString());
             }
         }
         catch
         {
             // ignore
         }
-        return body;
+        return SupabaseAuthErrorLocalizer.Localize(body);
     }
 
-  /// <summary>supabase.Auth.SignUp — tạo user trên Supabase Auth.</summary>
+    /// <summary>supabase.Auth.SignUp — tạo user trên Supabase Auth.</summary>
     public async Task<SupabaseAuthSession> SignUpAsync(string email, string password, string? fullName = null)
     {
         EnsureConfigured();

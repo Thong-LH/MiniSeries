@@ -19,6 +19,7 @@ import { useTheme } from '../../hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { signInWithGoogleBrowser, signInWithGoogleWeb } from '../../services/googleAuth';
+import { formatAuthErrorMessage } from '../../services/authErrors';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -253,10 +254,9 @@ export default function LoginScreen() {
       }
     } catch (err: any) {
       const errMsg =
-        err.response?.data?.message ||
-        (err.message === 'Network Error' || !err.response
+        err.message === 'Network Error' || !err.response
           ? 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng!'
-          : 'Email hoặc mật khẩu không chính xác!');
+          : formatAuthErrorMessage(err.response?.data?.message);
       triggerToast(errMsg);
     } finally {
       setLoading(false);
@@ -273,7 +273,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const data = await signInWithGoogleBrowser();
-      if (data && data.accessToken) {
+      if (data?.accessToken) {
         setIsAuthenticated(true);
         if (data.planName) setActivePlan(data.planName);
         if (data.remainingMangaCount !== undefined) setMangaTokens(data.remainingMangaCount);
@@ -286,7 +286,10 @@ export default function LoginScreen() {
       }
     } catch (err: any) {
       console.log('Lỗi đăng nhập Google:', err);
-      const msg = err.message || 'Đăng nhập Google thất bại!';
+      const msg = formatAuthErrorMessage(
+        err.response?.data?.message || err.message,
+        'Đăng nhập Google thất bại. Vui lòng thử lại.'
+      );
       triggerToast(msg);
     } finally {
       setLoading(false);

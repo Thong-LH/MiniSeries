@@ -18,8 +18,11 @@ import { SpaceBackground } from '../components/SpaceBackground';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../services/apiClient';
 import { FlyingPageBadge, Achievement } from '../components/FlyingPageBadge';
+import { StripWhitespace } from '../components/StripWhitespace';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
+const ACHIEVEMENTS_CACHE_KEY = 'cached_achievements';
 
 export default function AchievementsScreen() {
   const { isAuthenticated } = useApp();
@@ -57,20 +60,23 @@ export default function AchievementsScreen() {
   }, []);
 
   // Fetch achievements from API
-  const fetchAchievements = async () => {
+  const fetchAchievements = async (silent = false) => {
     if (!isAuthenticated) return;
-    try {
+    if (!silent) {
       setLoading(true);
+    }
+    try {
       const res = await apiClient.get('/progress/achievements');
       if (res.data && Array.isArray(res.data)) {
         setAchievements(res.data);
-        
+        AsyncStorage.setItem(ACHIEVEMENTS_CACHE_KEY, JSON.stringify(res.data)).catch(() => {});
+
         // Match initially selected badge from parameter key or default to first
         const initialKey = params.selectedKey;
         const matched = res.data.find((item: Achievement) => item.key === initialKey);
         if (matched) {
           setSelectedBadge(matched);
-        } else if (res.data.length > 0) {
+        } else if (res.data.length > 0 && !selectedBadge) {
           setSelectedBadge(res.data[0]);
         }
       }
@@ -82,7 +88,30 @@ export default function AchievementsScreen() {
   };
 
   useEffect(() => {
-    fetchAchievements();
+    const hydrateAchievements = async () => {
+      try {
+        const cached = await AsyncStorage.getItem(ACHIEVEMENTS_CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached) as Achievement[];
+          setAchievements(parsed);
+          const initialKey = params.selectedKey;
+          const matched = parsed.find((item) => item.key === initialKey);
+          if (matched) {
+            setSelectedBadge(matched);
+          } else if (parsed.length > 0) {
+            setSelectedBadge(parsed[0]);
+          }
+          setLoading(false);
+        }
+      } catch (e) {
+        console.log('Lỗi đọc cache danh hiệu:', e);
+      }
+      fetchAchievements(true);
+    };
+
+    if (isAuthenticated) {
+      hydrateAchievements();
+    }
   }, [isAuthenticated, params.selectedKey]);
 
   // Handle selected badge change with sliding animation
@@ -139,6 +168,7 @@ export default function AchievementsScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
+          <StripWhitespace>
           {/* Detailed Selected Badge Card */}
           {selectedBadge && (
             <View style={[styles.detailCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
@@ -291,6 +321,7 @@ export default function AchievementsScreen() {
               </View>
             )}
           </View>
+          </StripWhitespace>
         </ScrollView>
       )}
     </View>

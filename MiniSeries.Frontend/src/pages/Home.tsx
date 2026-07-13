@@ -419,9 +419,22 @@ export default function Home() {
       <section className="final-section">
         <div className="final-content">
           <h2 className="final-title">Bạn đã sẵn sàng?</h2>
-          <div className="cta-group" style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '30px' }}>
-            <Link to="/studio" onClick={handleProtectedNavigation} className="cta-btn">Tạo Mini Series của riêng bạn</Link>
-            <a href="https://drive.google.com/drive/folders/1-Pr-07rFCbfUqI5Lxkpm6bHmhxdvPGPf?usp=drive_link" target="_blank" rel="noopener noreferrer" className="cta-btn apk-btn" style={{ background: 'transparent', border: '2px solid #fafafa', color: '#fafafa' }}>Tải App Android (APK)</a>
+          <div className="final-cta-stack">
+            <Link to="/studio" onClick={handleProtectedNavigation} className="final-cta-primary glass-cta">
+              <span className="final-cta-kicker">Bắt đầu ngay</span>
+              <span className="final-cta-label">Tạo Mini Series của riêng bạn</span>
+              <span className="final-cta-hint">Thiết kế bài học manga & video AI trong vài phút</span>
+            </Link>
+            <a
+              href="https://drive.google.com/drive/folders/1-Pr-07rFCbfUqI5Lxkpm6bHmhxdvPGPf?usp=drive_link"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="final-cta-secondary glass-cta"
+            >
+              <span className="final-cta-kicker apk-kicker">Ứng dụng di động</span>
+              <span className="final-cta-label">Tải App Android (APK)</span>
+              <span className="final-cta-hint">Học mọi lúc trên điện thoại, đồng bộ tiến độ</span>
+            </a>
           </div>
 
         </div>

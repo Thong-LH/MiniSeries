@@ -628,6 +628,124 @@
     background: #ffffff;
 }
 
+.final-cta-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    width: min(100%, 440px);
+    margin: 30px auto 0;
+    position: relative;
+    z-index: 2;
+}
+
+.glass-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    width: 100%;
+    padding: 18px 22px;
+    border-radius: 18px;
+    text-decoration: none;
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.28s ease;
+}
+
+.glass-cta:hover {
+    transform: translateY(-3px);
+}
+
+.final-cta-primary {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.22) 0%, rgba(99, 102, 241, 0.14) 100%);
+    border-color: rgba(56, 189, 248, 0.42);
+    box-shadow:
+        0 12px 36px rgba(56, 189, 248, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.final-cta-primary:hover {
+    border-color: rgba(125, 211, 252, 0.65);
+    box-shadow:
+        0 16px 44px rgba(56, 189, 248, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.final-cta-secondary {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.16) 0%, rgba(15, 23, 42, 0.35) 100%);
+    border-color: rgba(251, 146, 60, 0.38);
+    box-shadow:
+        0 10px 32px rgba(251, 146, 60, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.final-cta-secondary:hover {
+    border-color: rgba(253, 186, 116, 0.62);
+    box-shadow:
+        0 14px 40px rgba(251, 146, 60, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.final-cta-kicker {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #7dd3fc;
+}
+
+.final-cta-kicker.apk-kicker {
+    color: #fdba74;
+}
+
+.final-cta-label {
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fafafa;
+    line-height: 1.35;
+}
+
+.final-cta-hint {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: rgba(250, 250, 250, 0.72);
+    line-height: 1.45;
+    max-width: 34ch;
+}
+
+@media (max-width: 768px) {
+    .final-cta-stack {
+        width: min(100%, 360px);
+        padding: 0 12px;
+    }
+
+    .glass-cta {
+        padding: 16px 18px;
+    }
+
+    .final-cta-label {
+        font-size: 0.82rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .glass-cta,
+    .glass-cta:hover,
+    .cta-btn,
+    .cta-btn:hover {
+        transition: none;
+        transform: none;
+    }
+}
+
 .book-container {
     position: relative;
     width: 100%;

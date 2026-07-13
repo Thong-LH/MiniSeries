@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SpaceBackground } from '../../components/SpaceBackground';
 import { useTheme } from '../../hooks/use-theme';
 import { LevelAvatar } from '../../components/LevelAvatar';
+import { StripWhitespace } from '../../components/StripWhitespace';
 
 export default function CreateScreen() {
   const {
@@ -167,6 +168,7 @@ export default function CreateScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <StripWhitespace>
         <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' }]}>
           <Text style={[styles.cardHeader, { color: colors.text, borderBottomColor: colors.border }]}>
             TẠO BÀI HỌC MỚI
@@ -307,6 +309,7 @@ export default function CreateScreen() {
             <Text style={[styles.issueBtnText, { color: colors.text }]}>BÁO CÁO SỰ CỐ / LỖI HỆ THỐNG</Text>
           </View>
         </TouchableOpacity>
+        </StripWhitespace>
       </ScrollView>
 
       {/* Fullscreen Loading overlay */}

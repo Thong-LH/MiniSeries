@@ -5,14 +5,18 @@ import { useApp } from '../../context/AppContext';
 import { Lesson } from '../../types';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../services/apiClient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SpaceBackground } from '../../components/SpaceBackground';
 import { useTheme } from '../../hooks/use-theme';
 import { LevelAvatar } from '../../components/LevelAvatar';
+import { StripWhitespace } from '../../components/StripWhitespace';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.82;
 const CARD_GAP = 12;
 const SNAP_INTERVAL = CARD_WIDTH + CARD_GAP;
+const HOME_LESSONS_CACHE_KEY = 'cached_home_lessons';
+const HOME_STALE_MS = 2 * 60 * 1000;
 
 export default function HomeScreen() {
   const {
@@ -159,6 +163,22 @@ export default function HomeScreen() {
   const [allLessonsFilter, setAllLessonsFilter] = useState<string>('Manga');
   const [allLessonsLoading, setAllLessonsLoading] = useState<boolean>(false);
 
+  useEffect(() => {
+    const loadCachedLessons = async () => {
+      try {
+        const cached = await AsyncStorage.getItem(HOME_LESSONS_CACHE_KEY);
+        if (!cached) return;
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setLessons(parsed);
+        }
+      } catch (e) {
+        console.log('Lỗi đọc cache bài học home:', e);
+      }
+    };
+    loadCachedLessons();
+  }, []);
+
   const colors = useTheme();
   const isDark = colors.isDark;
 
@@ -259,6 +279,7 @@ export default function HomeScreen() {
       if (res.data && Array.isArray(res.data)) {
         const mapped = res.data.map(mapDtoToLesson);
         setLessons(mapped);
+        AsyncStorage.setItem(HOME_LESSONS_CACHE_KEY, JSON.stringify(mapped)).catch(() => {});
       }
     } catch (err) {
       console.log('Lỗi tải bài học carousel:', err);
@@ -363,10 +384,9 @@ export default function HomeScreen() {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       if (isAuthenticated) {
-        // Throttle: skip focus-triggered fetch if an isAuthenticated-triggered fetch
-        // already ran within the last 3 seconds (prevents double-fetch on mount)
         const now = Date.now();
-        if (now - lastFetchTimeRef.current > 3000) {
+        // Chỉ refresh nền khi dữ liệu đã cũ — tránh gọi API mỗi lần đổi tab
+        if (now - lastFetchTimeRef.current > HOME_STALE_MS) {
           lastFetchTimeRef.current = now;
           fetchHomeData(false);
         }
@@ -663,6 +683,7 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <StripWhitespace>
 
         {/* Weekly Goal Calendar Card (Redesigned for Depth & Value) */}
         <View style={[styles.weeklyGoalCard, { backgroundColor: colors.cardBg, borderColor: colors.border, position: 'relative' }]}>
@@ -989,6 +1010,7 @@ export default function HomeScreen() {
             <Text style={{ color: '#ffffff', fontWeight: '900', fontSize: 10 }}>ĐI</Text>
           </View>
         </TouchableOpacity>
+        </StripWhitespace>
       </ScrollView>
     </View>
   );

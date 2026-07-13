@@ -52,6 +52,29 @@ function getAuthHeaders() {
     };
 }
 
+function localizeAuthError(message: string): string {
+    const normalized = message.trim();
+    if (/invalid login credentials/i.test(normalized)) {
+        return "Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.";
+    }
+    if (/email not confirmed/i.test(normalized)) {
+        return "Email chưa được xác thực. Vui lòng kiểm tra hộp thư (kể cả thư rác).";
+    }
+    if (/user already registered|already been registered/i.test(normalized)) {
+        return "Email này đã được đăng ký trên hệ thống.";
+    }
+    if (/invalid email/i.test(normalized)) {
+        return "Email không hợp lệ. Vui lòng nhập đúng định dạng email.";
+    }
+    if (/password should be at least|password is too short/i.test(normalized)) {
+        return "Mật khẩu phải có ít nhất 6 ký tự.";
+    }
+    if (/rate limit|too many requests/i.test(normalized)) {
+        return "Bạn thao tác quá nhanh. Vui lòng đợi vài phút rồi thử lại.";
+    }
+    return normalized;
+}
+
 async function readJsonResponse(response: Response) {
     const text = await response.text();
     const data = text ? JSON.parse(text) : {};
@@ -69,7 +92,8 @@ async function readJsonResponse(response: Response) {
     }
 
     if (!response.ok) {
-        const message = data.detail || data.message || data.title || "Request failed.";
+        const rawMessage = data.detail || data.message || data.title || "Request failed.";
+        const message = localizeAuthError(String(rawMessage));
         const error = new Error(message);
         (error as any).status = response.status;
         (error as any).details = data;

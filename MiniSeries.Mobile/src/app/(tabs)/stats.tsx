@@ -5,12 +5,16 @@ import { useTheme } from '../../hooks/use-theme';
 import { SpaceBackground } from '../../components/SpaceBackground';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../services/apiClient';
+import { fetchDashboardOnce } from '../../services/dashboardFetch';
 import { useNavigation, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FlyingPageBadge, Achievement } from '../../components/FlyingPageBadge';
 import { LevelAvatar } from '../../components/LevelAvatar';
+import { StripWhitespace } from '../../components/StripWhitespace';
 
 const { width } = Dimensions.get('window');
+const STATS_STALE_MS = 2 * 60 * 1000;
+const ACHIEVEMENTS_CACHE_KEY = 'cached_achievements';
 
 interface DashboardStats {
   currentStreak: number;
@@ -78,6 +82,10 @@ export default function StatsScreen() {
         const cachedHistory = await AsyncStorage.getItem('cached_history_lessons');
         if (cachedHistory) {
           setHistoryLessons(JSON.parse(cachedHistory));
+        }
+        const cachedAchievements = await AsyncStorage.getItem(ACHIEVEMENTS_CACHE_KEY);
+        if (cachedAchievements) {
+          setAchievements(JSON.parse(cachedAchievements));
         }
         const cachedTimer = await AsyncStorage.getItem('local_study_timer_data');
         if (cachedTimer) {
@@ -156,69 +164,44 @@ export default function StatsScreen() {
     setThemeId(themeId === 'bold-typography-dark' ? 'bold-typography' : 'bold-typography-dark');
   };
 
-  const fetchDashboardStats = async (silent = false) => {
+  const fetchStatsData = async (silent = true) => {
     if (!isAuthenticated) return;
-    if (!silent && stats.weeklyActivity.length === 0) {
+    const hasCachedData =
+      stats.weeklyActivity.length > 0 ||
+      achievements.length > 0 ||
+      historyLessons.length > 0;
+
+    if (!silent && !hasCachedData) {
       setLoading(true);
+      setLoadingHistory(true);
     }
-    try {
-      const res = await apiClient.get('/progress/dashboard');
-      if (res.data) {
-        setStats(res.data);
-        updateStatsFromData(res.data);
-      }
-    } catch (e) {
-      console.log('Lỗi tải dữ liệu thống kê từ API:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchAchievements = async () => {
-    if (!isAuthenticated) return;
-    if (!achievements || achievements.length === 0) setLoadingAchievements(true);
     try {
-      const res = await apiClient.get('/progress/achievements');
-      if (res.data) {
-        setAchievements(res.data);
-      }
-    } catch (e) {
-      console.log('Lỗi tải danh hiệu từ API:', e);
-    } finally {
-      setLoadingAchievements(false);
-    }
-  };
-
-  const fetchStatsData = async (force = false) => {
-    if (!isAuthenticated) return;
-    const hasData = stats.weeklyActivity.length > 0 || historyLessons.length > 0;
-    try {
-      if (!hasData || force) {
-        setLoading(true);
-        setLoadingHistory(true);
-      }
       const [statsRes, achievementsRes, historyRes] = await Promise.all([
-        apiClient.get('/progress/dashboard'),
+        fetchDashboardOnce(),
         apiClient.get('/progress/achievements'),
-        apiClient.get('/lessons/my', { params: { page: 1, pageSize: 100 } })
+        apiClient.get('/lessons/my', { params: { page: 1, pageSize: 100 } }),
       ]);
-      if (statsRes.data) {
+
+      if (statsRes?.data) {
         setStats(statsRes.data);
         updateStatsFromData(statsRes.data);
-        AsyncStorage.setItem('cached_dashboard_stats', JSON.stringify(statsRes.data)).catch(err => console.log(err));
+        AsyncStorage.setItem('cached_dashboard_stats', JSON.stringify(statsRes.data)).catch(() => {});
       }
-      if (achievementsRes.data) {
+      if (achievementsRes?.data) {
         setAchievements(achievementsRes.data);
+        AsyncStorage.setItem(ACHIEVEMENTS_CACHE_KEY, JSON.stringify(achievementsRes.data)).catch(() => {});
       }
-      if (historyRes.data && Array.isArray(historyRes.data)) {
+      if (historyRes?.data && Array.isArray(historyRes.data)) {
         setHistoryLessons(historyRes.data);
-        AsyncStorage.setItem('cached_history_lessons', JSON.stringify(historyRes.data)).catch(err => console.log(err));
+        AsyncStorage.setItem('cached_history_lessons', JSON.stringify(historyRes.data)).catch(() => {});
       }
     } catch (e) {
       console.log('Error fetching stats data:', e);
     } finally {
       setLoading(false);
       setLoadingHistory(false);
+      setLoadingAchievements(false);
     }
   };
 
@@ -226,7 +209,7 @@ export default function StatsScreen() {
     const unsubscribe = navigation.addListener('focus', () => {
       if (isAuthenticated) {
         const now = Date.now();
-        if (now - lastFetchTimeRef.current > 3000) {
+        if (now - lastFetchTimeRef.current > STATS_STALE_MS) {
           lastFetchTimeRef.current = now;
           fetchStatsData(true);
         }
@@ -241,9 +224,6 @@ export default function StatsScreen() {
       fetchStatsData(true);
     }
   }, [isAuthenticated]);
-
-
-
   // Lấy các ngày trong tháng (bao gồm cả các ô trống padding ở đầu tháng)
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -427,6 +407,7 @@ export default function StatsScreen() {
         <ActivityIndicator size="large" color={colors.primaryAccent} style={{ marginTop: 80 }} />
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <StripWhitespace>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>BÁO CÁO</Text>
           <View style={[styles.levelCard, { backgroundColor: colors.cardBg, borderColor: colors.border, marginBottom: 12 }]}>
@@ -648,6 +629,7 @@ export default function StatsScreen() {
               )}
             </ScrollView>
           </View>
+          </StripWhitespace>
         </ScrollView>
       )}
 

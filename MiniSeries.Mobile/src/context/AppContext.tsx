@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect, useRef } from 'r
 import { DesignThemeId, DesignTheme, Lesson } from '../types';
 import { designThemes } from '../data';
 import { apiClient, initializeAuthToken, setUnauthorizedCallback } from '../services/apiClient';
+import { fetchDashboardOnce } from '../services/dashboardFetch';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -63,6 +64,7 @@ interface AppContextType {
   updateStatsFromData: (data: any) => void;
   awardExpMock: (amount: number) => void;
   globalStreak: number;
+  isAppReady: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -130,6 +132,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch (e) {
         console.log('Lỗi phục hồi token xác thực:', e);
+      } finally {
+        setIsAppReady(true);
       }
     };
     restoreSession();
@@ -175,7 +179,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toastTimeoutRef.current = setTimeout(() => {
       setToastMessage(null);
       toastTimeoutRef.current = null;
-    }, 3500);
+    }, 2200);
   };
 
   const closeToast = () => {
@@ -224,11 +228,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [globalLevelLabel, setGlobalLevelLabel] = useState<string>('Tập sự');
   const [expNotification, setExpNotification] = useState<number | null>(null);
   const [globalStreak, setGlobalStreak] = useState<number>(0);
+  const [isAppReady, setIsAppReady] = useState<boolean>(Platform.OS === 'web');
 
-  const updateStatsFromData = (data: any) => {
+  const STATS_CACHE_KEY = 'cached_dashboard_stats';
+
+  const updateStatsFromData = (data: any, options?: { fromCache?: boolean }) => {
     const oldExp = globalExp;
     const newExp = data.totalExp ?? 0;
-    
+
     setGlobalLevel(data.currentLevel ?? 1);
     setGlobalExp(newExp);
     setGlobalNextLevelExp(data.nextLevelExp ?? 100);
@@ -237,8 +244,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (data.currentStreak !== undefined) {
       setGlobalStreak(data.currentStreak);
     }
-    
-    if (oldExp > 0 && newExp > oldExp) {
+
+    if (!options?.fromCache) {
+      AsyncStorage.setItem(STATS_CACHE_KEY, JSON.stringify(data)).catch(() => {});
+    }
+
+    if (!options?.fromCache && oldExp > 0 && newExp > oldExp) {
       setExpNotification(newExp - oldExp);
       setTimeout(() => {
         setExpNotification(null);
@@ -246,10 +257,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const refreshStats = async () => {
+  useEffect(() => {
+    const hydrateStatsCache = async () => {
+      try {
+        const cached = await AsyncStorage.getItem(STATS_CACHE_KEY);
+        if (cached) {
+          updateStatsFromData(JSON.parse(cached), { fromCache: true });
+        }
+      } catch (e) {
+        console.log('Lỗi đọc cache thống kê:', e);
+      }
+    };
+    hydrateStatsCache();
+  }, []);
+
+  const lastStatsFetchRef = useRef<number>(0);
+  const STATS_STALE_MS = 2 * 60 * 1000;
+
+  const refreshStats = async (force = false) => {
     if (!isAuthenticated) return;
+    if (!force && Date.now() - lastStatsFetchRef.current < STATS_STALE_MS) return;
+    lastStatsFetchRef.current = Date.now();
     try {
-      const res = await apiClient.get('/progress/dashboard');
+      const res = await fetchDashboardOnce();
       if (res.data) {
         updateStatsFromData(res.data);
       }
@@ -257,6 +287,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.log('Error refreshing stats:', e);
     }
   };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    refreshStats();
+    refreshProfile();
+  }, [isAuthenticated]);
 
   const awardExpMock = (amount: number) => {
     setExpNotification(amount);
@@ -316,6 +352,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateStatsFromData,
         awardExpMock,
         globalStreak,
+        isAppReady,
       }}
     >
       {children}
