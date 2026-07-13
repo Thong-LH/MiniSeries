@@ -43,6 +43,14 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.126955656491-vddeqf0bguj9g5gpah91m5u9sl3d0bbu"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "agpVersion": "8.7.2"
+          }
+        }
       ]
     ],
     "experiments": {
