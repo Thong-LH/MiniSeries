@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../hooks/use-theme';
 import { apiClient, BASE_URL } from '../services/apiClient';
@@ -227,11 +228,11 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
                       uri: `https://img.vietqr.io/image/${bankBin}-${accountNumber}-compact.jpg?amount=${String(amount).replace(/[^0-9]/g, '')}&addInfo=${encodeURIComponent(paymentCode)}&accountName=${encodeURIComponent(accountName)}`
                     }}
                     style={styles.qrImage}
-                    resizeMode="contain"
+                    contentFit="contain"
                     onLoadStart={() => setQrImageLoading(true)}
                     onLoadEnd={() => setQrImageLoading(false)}
                     onError={(e) => {
-                      console.log('VietQR Image Load Error:', e.nativeEvent?.error);
+                      console.log('VietQR Image Load Error:', e);
                       setQrImageLoading(false);
                     }}
                   />
