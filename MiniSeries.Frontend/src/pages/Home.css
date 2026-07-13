@@ -589,7 +589,6 @@
     text-align: center;
     margin-bottom: 100px;
     position: relative;
-    z-index: 60;
 }
 
 .final-title {
@@ -658,17 +657,17 @@
 .final-cta-card.primary-card {
     width: 100%;
     padding: 22px 30px;
-    border-color: rgba(56, 189, 248, 0.35);
+    border-color: rgba(251, 146, 60, 0.35);
     background: rgba(12, 12, 14, 0.85);
 }
 
 .final-cta-card.primary-card:hover {
     transform: translateY(-4px) scale(1.02);
-    border-color: rgba(56, 189, 248, 0.75);
+    border-color: rgba(251, 146, 60, 0.75);
     box-shadow: 
-        0 20px 45px rgba(56, 189, 248, 0.25),
+        0 20px 45px rgba(251, 146, 60, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    background: rgba(12, 12, 14, 0.9);
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.12) 0%, rgba(12, 12, 14, 0.9) 100%);
 }
 
 .cta-label-only {
@@ -678,7 +677,7 @@
     text-transform: uppercase;
     color: #ffffff;
     text-align: center;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+    text-shadow: 0 0 15px rgba(251, 146, 60, 0.15);
 }
 
 .final-cta-card.secondary-card {
@@ -688,16 +687,16 @@
     gap: 10px;
     padding: 10px 22px;
     border-radius: 999px;
-    border-color: rgba(255, 255, 255, 0.08);
-    background: rgba(12, 12, 14, 0.8);
+    border-color: rgba(34, 197, 94, 0.2);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(12, 12, 14, 0.8) 100%);
 }
 
 .final-cta-card.secondary-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.25);
-    background: rgba(12, 12, 14, 0.9);
+    border-color: rgba(34, 197, 94, 0.55);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(12, 12, 14, 0.9) 100%);
     box-shadow: 
-        0 10px 25px rgba(0, 0, 0, 0.5),
+        0 10px 25px rgba(34, 197, 94, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
