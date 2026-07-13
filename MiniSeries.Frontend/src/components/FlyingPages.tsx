@@ -175,12 +175,7 @@ export default function FlyingPages() {
         page.classList.add('flipped');
       }
 
-      const orbitContainer = document.querySelector('.orbit-container');
-      if (orbitContainer) {
-        orbitContainer.appendChild(page);
-      } else {
-        document.body.appendChild(page);
-      }
+      document.body.appendChild(page);
       spawnedPages.push(page);
 
       const wrapper = document.querySelector('.css-book-wrapper');
@@ -188,17 +183,8 @@ export default function FlyingPages() {
       const rect = wrapper.getBoundingClientRect();
 
       const initialOffset = (Math.random() - 0.5) * 120;
-      let spawnX = rect.left + rect.width / 2 + initialOffset;
-      let spawnY = rect.top + 155;
-
-      if (orbitContainer) {
-        const orbitRect = orbitContainer.getBoundingClientRect();
-        spawnX -= orbitRect.left;
-        spawnY -= orbitRect.top;
-      } else {
-        spawnX += window.scrollX;
-        spawnY += window.scrollY;
-      }
+      let spawnX = rect.left + rect.width / 2 + initialOffset + window.scrollX;
+      let spawnY = rect.top + 155 + window.scrollY;
 
       const driftX = (Math.random() - 0.5) * (isMobile ? 120 : 300);
       const driftZ = (Math.random() - 0.5) * (isMobile ? 120 : 300);
@@ -210,6 +196,7 @@ export default function FlyingPages() {
         x: spawnX,
         y: spawnY,
         z: driftZ,
+        transformPerspective: 9000,
         xPercent: -50,
         yPercent: -50,
         rotationY: (Math.random() - 0.5) * 45,
@@ -218,10 +205,6 @@ export default function FlyingPages() {
       });
 
       let targetY = -200;
-      if (orbitContainer) {
-        const orbitRect = orbitContainer.getBoundingClientRect();
-        targetY = -(orbitRect.top + window.scrollY) - 200;
-      }
 
       const rotXEnd = (Math.random() - 0.5) * 1440;
       const rotYEnd = (Math.random() - 0.5) * 1440;
