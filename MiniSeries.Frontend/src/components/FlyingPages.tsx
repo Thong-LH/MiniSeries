@@ -7,6 +7,7 @@ const grades = ['A+', 'A', 'A-', 'B+', 'B', '10/10', '9.5/10', '9/10', '8.5/10',
 
 export default function FlyingPages() {
   useEffect(() => {
+    const isMobile = window.innerWidth <= 768;
     let accumulatedTime = 0;
     const activeTweens: (gsap.core.Tween | gsap.core.Timeline)[] = [];
     const spawnedPages: HTMLDivElement[] = [];
@@ -199,8 +200,8 @@ export default function FlyingPages() {
         spawnY += window.scrollY;
       }
 
-      const driftX = (Math.random() - 0.5) * 300;
-      const driftZ = (Math.random() - 0.5) * 300;
+      const driftX = (Math.random() - 0.5) * (isMobile ? 120 : 300);
+      const driftZ = (Math.random() - 0.5) * (isMobile ? 120 : 300);
 
       gsap.set(page, {
         left: 0,
@@ -225,7 +226,7 @@ export default function FlyingPages() {
       const rotXEnd = (Math.random() - 0.5) * 1440;
       const rotYEnd = (Math.random() - 0.5) * 1440;
       const rotZEnd = (Math.random() - 0.5) * 180;
-      const scaleEnd = 1.1 + Math.random() * 0.4;
+      const scaleEnd = isMobile ? (0.6 + Math.random() * 0.2) : (1.1 + Math.random() * 0.4);
 
       const distance = spawnY - targetY;
       const speed = 90 + Math.random() * 130; // Faster speed range (90 to 220 px/s)
@@ -293,13 +294,14 @@ export default function FlyingPages() {
       });
     }
 
-    for (let i = 0; i < 20; i++) {
+    const initialCount = isMobile ? 8 : 20;
+    for (let i = 0; i < initialCount; i++) {
       spawnPage(Math.random());
     }
 
     const tickHandler = (_time: number, deltaTime: number) => {
       accumulatedTime += deltaTime;
-      if (accumulatedTime >= 350) {
+      if (accumulatedTime >= (isMobile ? 600 : 350)) {
         spawnPage();
         accumulatedTime = 0;
       }

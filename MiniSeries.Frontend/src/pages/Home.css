@@ -1120,6 +1120,80 @@
         scale: 0.45;
     }
 
+    /* Feedback section mobile-friendly sizing */
+    .feedback-section {
+        min-height: auto !important;
+        padding: 30px 0 !important;
+    }
+
+    .orbit-container {
+        height: 250px !important;
+        margin: 10px 0 !important;
+    }
+
+    .review-orbit-slot {
+        width: 240px !important;
+        height: 110px !important;
+        left: -120px !important;
+        top: -55px !important;
+    }
+
+    .review-card {
+        padding: 8px 10px !important;
+        border-radius: 16px !important;
+    }
+
+    .review-card p {
+        font-size: 0.7rem !important;
+        line-height: 1.35 !important;
+        margin-top: 6px !important;
+        margin-bottom: 4px !important;
+        -webkit-line-clamp: 3 !important;
+        line-clamp: 3 !important;
+    }
+
+    .review-name {
+        font-size: 0.75rem !important;
+    }
+
+    .review-badge {
+        font-size: 0.65rem !important;
+        padding: 2px 6px !important;
+    }
+
+    .quote-icon {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.9rem !important;
+        padding: 6px !important;
+        top: -12px !important;
+        left: -10px !important;
+        border-radius: 8px !important;
+    }
+
+    /* Flying pages mobile-friendly sizing */
+    .flying-page {
+        width: 40px !important;
+        height: 54px !important;
+        padding: 3px !important;
+    }
+
+    /* Book section scaled down on mobile */
+    .css-book-wrapper {
+        height: 220px !important;
+        max-width: 380px !important;
+    }
+
+    .css-book {
+        height: 200px !important;
+    }
+
+    .spawn-glow {
+        width: 80px !important;
+        height: 80px !important;
+        top: 100px !important;
+    }
+
     .hero-title {
         font-size: 3rem;
     }
@@ -1674,6 +1748,49 @@
 
     .comparison-container {
         justify-self: center;
+    }
+}
+
+/* Extra small mobile screens */
+@media (max-width: 480px) {
+    .orbit-ring {
+        scale: 0.32 !important;
+    }
+
+    .orbit-container {
+        height: 180px !important;
+    }
+
+    .review-orbit-slot {
+        width: 200px !important;
+        height: 95px !important;
+        left: -100px !important;
+        top: -47px !important;
+    }
+
+    .flying-page {
+        width: 32px !important;
+        height: 44px !important;
+        padding: 2px !important;
+    }
+
+    .final-section {
+        min-height: 80vh !important;
+    }
+
+    .css-book-wrapper {
+        height: 180px !important;
+        max-width: 300px !important;
+    }
+
+    .css-book {
+        height: 160px !important;
+    }
+
+    .spawn-glow {
+        width: 60px !important;
+        height: 60px !important;
+        top: 80px !important;
     }
 }
 
