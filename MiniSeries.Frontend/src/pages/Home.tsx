@@ -430,10 +430,10 @@ export default function Home() {
               rel="noopener noreferrer"
               className="final-cta-card secondary-card"
             >
-              <svg className="drive-icon" viewBox="0 0 1443 1250" fill="none">
-                <path d="M479.5 0L0 830.5L239.75 1250L719.25 419.5L479.5 0Z" fill="#0066DA"/>
-                <path d="M719.25 419.5L479.5 830.5L959 830.5L1198.75 419.5L719.25 419.5Z" fill="#00A852"/>
-                <path d="M1198.75 419.5L959 0L479.5 0L719.25 419.5L1198.75 419.5Z" fill="#FFD014"/>
+              <svg className="drive-icon" viewBox="0 0 24 24" fill="none">
+                <path fill="#4285F4" d="M2.38 18.97l4.08-7.07 3.54 6.13-4.08 7.07z"/>
+                <path fill="#34A853" d="M10 18l4.08-7.07h8.16L18.16 18z"/>
+                <path fill="#FBBC05" d="M15.92 5.03l-4.08 7.07-3.54-6.13L12.38 0z"/>
               </svg>
               <span className="cta-label-small">Tải App Android (APK)</span>
             </a>
