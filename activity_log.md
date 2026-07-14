@@ -3,7 +3,10 @@ client secret:
 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
 
 ### Đã hoàn thành:
-1. **Thiết kế lại luồng tải file APK trên thiết bị di động & máy tính (Navbar)**:
+1. **Loại bỏ thư mục cấu hình nội bộ `.agents` khỏi Git**:
+   - Thêm quy tắc `.agents/` vào tệp `.gitignore` để ngăn Git theo dõi thư mục này trong tương lai.
+   - Chạy lệnh `git rm -r --cached .agents` để xóa thư mục `.agents` khỏi cơ sở dữ liệu (index) của Git từ xa mà vẫn giữ nguyên tệp tin local trên ổ đĩa của bạn.
+2. **Thiết kế lại luồng tải file APK trên thiết bị di động & máy tính (Navbar)**:
    - **Yêu cầu:** Trên giao diện máy tính, nút "Tải APK" là một tab cuộn (scroll) mượt mà xuống phần tải ứng dụng. Trên giao diện điện thoại (mobile), do không đủ diện tích hiển thị thanh navbar dài, cần hiển thị riêng nút "Tải APK" ngay cạnh nút "Bắt đầu" và khi người dùng click sẽ lập tức tải trực tiếp file APK.
    - **Khắc phục:**
      - Thiết lập ID `download-apk` cho phần tải app ở chân trang trong `Home.tsx`.
