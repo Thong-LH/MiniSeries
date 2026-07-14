@@ -54,9 +54,9 @@ jobs:
 
       - name: Rename and Move APK
         run: |
-          # The APK is generated at MiniSeries.Mobile/android/app/build/outputs/apk/release/app-release.apk
+          # The APK is generated under release/ folder (e.g. app-release.apk or app-release-unsigned.apk)
           # We rename it to MiniSeries.apk and place it in the MiniSeries.Mobile root for easy upload
-          cp MiniSeries.Mobile/android/app/build/outputs/apk/release/app-release.apk MiniSeries.Mobile/MiniSeries.apk
+          cp MiniSeries.Mobile/android/app/build/outputs/apk/release/*.apk MiniSeries.Mobile/MiniSeries.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
