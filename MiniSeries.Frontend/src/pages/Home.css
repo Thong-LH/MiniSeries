@@ -2065,3 +2065,15 @@ html, body {
 .quiz-reset-link:hover {
     color: #f97316;
 }
+
+/* APK Nav Link responsive rules */
+.apk-nav-link-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .apk-nav-link-mobile {
+        display: block !important;
+        margin-right: 4px;
+    }
+}

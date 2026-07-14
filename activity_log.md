@@ -3,7 +3,14 @@ client secret:
 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
 
 ### Đã hoàn thành:
-1. **Loại bỏ phần Quản lý nội dung trong Dashboard**:
+1. **Thiết kế lại luồng tải file APK trên thiết bị di động & máy tính (Navbar)**:
+   - **Yêu cầu:** Trên giao diện máy tính, nút "Tải APK" là một tab cuộn (scroll) mượt mà xuống phần tải ứng dụng. Trên giao diện điện thoại (mobile), do không đủ diện tích hiển thị thanh navbar dài, cần hiển thị riêng nút "Tải APK" ngay cạnh nút "Bắt đầu" và khi người dùng click sẽ lập tức tải trực tiếp file APK.
+   - **Khắc phục:**
+     - Thiết lập ID `download-apk` cho phần tải app ở chân trang trong `Home.tsx`.
+     - Cập nhật liên kết "Tải APK" trên thanh menu chính của `Layout.tsx` để thực hiện cuộn trang (scroll) mượt mà tới `#download-apk` khi ở màn hình máy tính.
+     - Thêm một liên kết `.apk-nav-link-mobile` chuyên biệt trỏ thẳng đến đường dẫn tải trực tiếp file APK.
+     - Cấu hình CSS responsive trong `Home.css` để ẩn nút tải trực tiếp trên máy tính và chỉ hiển thị trên màn hình điện thoại (max-width: 768px).
+2. **Loại bỏ phần Quản lý nội dung trong Dashboard**:
    - Xóa bỏ hoàn toàn tab "Quản lý nội dung" và nút chuyển đổi tương ứng trên Sidebar của Dashboard.
    - Chuyển tab mặc định khi đăng nhập vào Dashboard thành "Quản lý Khách hàng".
 2. **Loại bỏ trạng thái Online/Offline giả lập của Khách hàng & Staff**:

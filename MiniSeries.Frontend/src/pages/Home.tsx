@@ -416,7 +416,7 @@ export default function Home() {
       </section>
 
       {/* SECTION 4: THE FINAL BOOK */}
-      <section className="final-section">
+      <section className="final-section" id="download-apk">
         <div className="final-content">
           <h2 className="final-title">Bạn đã sẵn sàng?</h2>
           <div className="final-cta-stack">
