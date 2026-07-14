@@ -26,6 +26,7 @@ coverage/
 .claude/
 .codegraph/
 .gemini/
+.agents/
 .trae/
 .trae-cn/
 taste-skill/
