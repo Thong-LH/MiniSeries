@@ -13,6 +13,8 @@ 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
      - Cập nhật liên kết "Tải APK" trên thanh menu chính của `Layout.tsx` để thực hiện cuộn trang (scroll) mượt mà tới `#download-apk` khi ở màn hình máy tính.
      - Thêm một liên kết `.apk-nav-link-mobile` chuyên biệt trỏ thẳng đến đường dẫn tải trực tiếp file APK.
      - Cấu hình CSS responsive trong `Home.css` để ẩn nút tải trực tiếp trên máy tính và chỉ hiển thị trên màn hình điện thoại (max-width: 768px).
+     - **Tối ưu hóa thứ tự hiển thị (z-index):** Tăng `z-index` của thanh `.nav` từ `100` lên `1000` để ngăn các thẻ/nút CTA ở phần nội dung trang (như nút Tạo Series) hiển thị đè lên trên thanh Navbar khi cuộn trang.
+     - **Đồng bộ màu sắc:** Loại bỏ thuộc tính style màu cam của nút "Tải APK" trên giao diện máy tính để hiển thị đồng màu trắng/bạc đồng bộ tinh tế như các tab menu khác.
 2. **Loại bỏ phần Quản lý nội dung trong Dashboard**:
    - Xóa bỏ hoàn toàn tab "Quản lý nội dung" và nút chuyển đổi tương ứng trên Sidebar của Dashboard.
    - Chuyển tab mặc định khi đăng nhập vào Dashboard thành "Quản lý Khách hàng".

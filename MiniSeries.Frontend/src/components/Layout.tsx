@@ -371,7 +371,7 @@ export default function Layout() {
             <a href="#flow" onClick={(e) => handleNavClick(e, 'flow')}>Tính năng</a>
             <a href="#comparison" onClick={(e) => handleNavClick(e, 'comparison')}>Trải nghiệm</a>
             <a href="#feedback" onClick={(e) => handleNavClick(e, 'feedback')}>Phản hồi</a>
-            <a href="#download-apk" onClick={(e) => handleNavClick(e, 'download-apk')} className="apk-nav-link" style={{ color: '#fb923c', fontWeight: 'bold' }}>Tải APK</a>
+            <a href="#download-apk" onClick={(e) => handleNavClick(e, 'download-apk')} className="apk-nav-link">Tải APK</a>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
