@@ -39,3 +39,9 @@ MiniSeries-Studio/
 # Local short C++ build directory
 /c/
 
+# Local scripts to keep local only
+scripts/get_myself.ps1
+scripts/get_transitions.ps1
+scripts/sprint5_tasks.json
+scripts/sync_sprint5_jira.ps1
+
