@@ -96,7 +96,7 @@ public sealed class ApproveLessonScriptCommandHandler(
 
         try
         {
-            if (PredefinedLessons.IsPredefined(lesson.Title))
+            if (PredefinedLessons.IsPredefined(lesson.Title, lesson.OutputMode))
             {
                 var localNotifier = sp.GetRequiredService<ILessonStatusNotifier>();
 

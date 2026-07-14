@@ -1,3 +1,82 @@
+## [2026-07-14] - Kiểm thử tích hợp toàn trình luồng sinh truyện Manga
+client secret:
+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
+
+### Đã hoàn thành:
+1. **Loại bỏ phần Quản lý nội dung trong Dashboard**:
+   - Xóa bỏ hoàn toàn tab "Quản lý nội dung" và nút chuyển đổi tương ứng trên Sidebar của Dashboard.
+   - Chuyển tab mặc định khi đăng nhập vào Dashboard thành "Quản lý Khách hàng".
+2. **Loại bỏ trạng thái Online/Offline giả lập của Khách hàng & Staff**:
+   - Loại bỏ các thẻ hiển thị số lượng khách hàng "Đang Online" và "Offline" bị mock/thiếu chính xác ở tab Quản lý khách hàng.
+   - Thay thế bằng việc hiển thị trực quan các thẻ thống kê thực tế: "Tổng số khách hàng", "Đang hoạt động" và "Bị khóa" dựa trên dữ liệu database thật.
+   - Đổi nhãn trạng thái hiển thị của từng dòng trong danh sách khách hàng và danh sách nhân viên từ trạng thái giả lập "Offline/Online" thành trạng thái tài khoản thực tế "Active" (màu xanh lá) hoặc "Blocked" (màu đỏ).
+3. **Sửa lỗi tính toán Token / Gói cước nạp lẻ**:
+   - **Vấn đề:** Khi mua gói lẻ (`addon_manga_1` hoặc `addon_video_1`), API `PaymentsController` không nhận dạng được nên đã trả về gói `Free` (làm hóa đơn hiển thị sai số lượng token cộng thêm là 4 thay vì 1).
+   - **Khắc phục:** Định nghĩa thêm các gói `addon_manga_1` (1 Manga, 0 Video) và `addon_video_1` (0 Manga, 1 Video) vào `UserPlanQuotaService` của Backend. Hệ thống đã trả về chính xác số lượng token (1 token) khi người dùng chọn mua lượt lẻ.
+2. **Đồng bộ động thông tin Ngân hàng thụ hưởng**:
+   - **Vấn đề:** Trang checkout đang bị mock số tài khoản ("0909090909" / "MINISERIES STUDIO") khi chạy local và có logic hiển thị tên ngân hàng hardcode theo BIN.
+   - **Khắc phục:** 
+     - Bổ sung cấu hình `PaymentSettings` chuẩn từ file sản xuất vào `appsettings.local.json` (sử dụng tài khoản BIDV thực tế của bạn).
+     - Bổ sung trường cấu hình `BankName` ở cả backend và đồng bộ trả về qua API khởi tạo hóa đơn. 
+     - Thay thế logic ternary hardcode ở frontend `Checkout.tsx` bằng việc hiển thị trực tiếp `bankName` động nhận từ API. Mã VietQR và thông tin văn bản hiển thị đã khớp hoàn toàn.
+3. **Tạo tài khoản Admin và Staff mới trên Supabase mới**:
+   - Viết và chạy script Python `create_admin_staff.py` để tạo các tài khoản `admin@miniseries.com` (vai trò Admin) và `staff@miniseries.com` (vai trò Staff) với mật khẩu `TestPassword123!`.
+   - Các tài khoản đã được chèn đồng bộ vào cả Supabase Auth (`auth.users`, `auth.identities`) và bảng thông tin `UserProfiles`.
+2. **Khắc phục lỗi ghi nhận lượt truy cập web (Traffic Logs)**:
+   - **Phát hiện:** Do React ở chế độ Development sử dụng `StrictMode` khiến cho các Hook `useEffect` bị chạy hai lần (double-render), dẫn đến việc gửi hai request ghi nhận traffic đồng thời cho cùng một page-load gây sai lệch số liệu thống kê.
+   - **Sửa đổi:** Bổ sung cơ chế chống trùng lặp (deduplication guard) tại `App.tsx` bằng cách lưu trữ và so sánh đường dẫn vừa truy cập trong vòng 1.5 giây. Nếu trùng sẽ bỏ qua request thứ hai.
+3. **Thay đổi Font chữ và sửa lỗi ký tự "Đ"**:
+   - Thay thế toàn bộ Font chữ tiêu đề `Cinzel` (không hỗ trợ bảng mã tiếng Việt đầy đủ dẫn đến lỗi hiển thị chữ "Đ") bằng Font chữ Serif sang trọng `Playfair Display` tại các file `index.css`, `Profile.css`, `Studio.css`, `Pricing.css`, `Login.css`, `Profile.tsx`, `Checkout.tsx`.
+2. **Cải tiến giao diện Loading & Bảng lịch sử thanh toán**:
+   - Thay thế loading bằng chữ đơn điệu trên trang hồ sơ và các tab bằng vòng quay hiệu ứng vũ trụ động (`cosmic-portal-loader`) khớp với nhận diện thương hiệu.
+   - Thiết kế lại hàng bảng thanh toán thành các khối capsule/card glassmorphic nổi, có hiệu ứng hover mượt mà và nhãn trạng thái sinh động (`payment-status-badge` dạng success/pending).
+3. **Sửa lỗi cấu trúc bảng `PaymentHistory` trên database mới**:
+   - Khắc phục lỗi thiếu các cột `PaidAt`, `PaymentOrderId`, `UserId`, `PlanName`, `TokensReceived`, `Status` và sai tên cột `TransactionCode` (đổi lại thành `PaymentCode`) dẫn đến lỗi `500 Internal Server Error` khi gọi API `GET /api/payment/my-history`.
+   - Chạy script Python điều chỉnh bảng để đồng bộ 100% với EF Core model snapshot.
+2. **Khởi chạy môi trường local phục vụ kiểm thử**:
+   - Chạy backend API trên cổng `5088` (`dotnet run`).
+   - Chạy frontend Vite Dev Server trên cổng `5173` (`npm run dev`).
+2. **Kiểm thử tích hợp toàn trình (E2E Integration Test) thành công**:
+   - Viết và chạy lại kịch bản kiểm thử [test-full-flow-manga.ps1](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/scripts/test-full-flow-manga.ps1).
+   - Đăng nhập thành công tài khoản test thực tế `test-manga-8122@miniseries.com` trên database Supabase mới, tạo bài học Manga nháp qua Groq, phê duyệt bài học để kích hoạt background media generation pipeline.
+   - Luồng sinh ảnh thông qua Azure Flux-2-pro và tải lên Cloudinary thật đã hoàn thành 100% thành công cho tất cả các chapter, cập nhật đúng cơ sở dữ liệu.
+2. **Sửa lỗi biến clashing & so khớp Enum trong PowerShell script**:
+   - Khắc phục lỗi case-insensitivity trong PowerShell khiến biến local `$email` đè lên tham số truyền vào `$EmailInput`.
+   - Sửa lỗi mã hóa ký tự tiếng Việt có dấu khi gửi JSON Payload thông qua việc ép kiểu `$params.Body` thành mảng byte UTF-8 (`[System.Text.Encoding]::UTF8.GetBytes($jsonStr)`).
+   - Cập nhật điều kiện so khớp trạng thái và loại công việc (Job Type & Status) để hỗ trợ cả dạng chuỗi và dạng số nguyên (do mặc định System.Text.Json serialize enum sang int): lọc loại công việc `type -eq 2` (MediaGeneration) và trạng thái hoàn thành `status -eq 2` (Completed).
+
+## [2026-07-14] - Tối ưu hóa truy vấn, băng thông & Connection Pool và dời Database sang dự án mới
+
+### Đã hoàn thành:
+1. **Dọn dẹp warmup DDL lúc khởi động trong `Program.cs`**:
+   - Loại bỏ các câu lệnh `ExecuteSqlRawAsync` tạo bảng và chỉ mục làm khóa bảng gây nghẽn kết nối. Thay thế bằng truy vấn `FirstOrDefaultAsync` đọc nhẹ để warmup EF Core an toàn.
+2. **Kích hoạt Split Query trong `LessonRepository.cs`**:
+   - Thêm `.AsSplitQuery()` vào hàm `GetByIdAsync` để tránh tích Descartes (Cartesian product) khi nạp các quan hệ. Giảm thiểu băng thông egress và RAM sử dụng.
+3. **Cải tiến composite index trong `MiniSeriesDbContext.cs`**:
+   - Thay thế index đơn trên `UserId` bằng index composite `(UserId, CreatedAt)` trên bảng `Lessons`.
+   - Sinh migration `AddLessonsUserIdCreatedAtCompositeIndex` và áp dụng thành công lên database.
+4. **Tối ưu hóa API thống kê trong `AnalyticsController.cs`**:
+   - Thực hiện đếm aggregate (`CountAsync` và `Distinct().CountAsync()`) trực tiếp bằng DB cho các chỉ số tổng quan.
+   - Giới hạn khoảng thời gian tải log cho biểu đồ trong vòng 30 ngày (theo ngày) hoặc 12 tháng (theo tháng).
+5. **Cập nhật Connection String trong `appsettings.local.json`**:
+   - Trỏ kết nối sang dự án Supabase mới (`aws-1-ap-south-1.pooler.supabase.com:6543`).
+   - Cấu hình các tham số tối ưu hóa cho PgBouncer Transaction Mode: `Pooling=true;No Reset On Close=true;Max Auto Prepare=0;`.
+6. **Di chuyển dữ liệu chọn lọc**:
+   - Viết và thực thi kịch bản Python `migrate_partial.py` để lọc và chuyển dữ liệu đăng nhập (auth), hồ sơ (profiles), bài học, tiến độ và giao dịch của **9 người dùng học sinh thực tế** sang database mới, loại bỏ các tài khoản test và admin dư thừa.
+   - Xử lý tự động tương thích cột Generated và giá trị rỗng của các cột `NOT NULL` (như `TransactionCode`).
+7. **Cập nhật URL cấu hình cứng trong codebase**:
+   - Thay thế URL Supabase cũ `devnyzwnvyzgulqroyqa.supabase.co` bằng URL mới `jtdqyzkaviqopmxotuge.supabase.co` trong các file của mobile (`googleAuth.ts`, `login.tsx`), frontend (`Login.tsx`, `.env`), và WebAPI (`appsettings.local.json`).
+8. **Cập nhật Keys Supabase mới**:
+   - Điền các khóa bảo mật AnonKey (`eyJhbGciOi...`) và ServiceRoleKey (`eyJhbGciOi...`) mới dưới dạng các JWT token chuẩn của dự án vào `appsettings.local.json`.
+9. **Thiết lập CI/CD tự động Build và Release APK**:
+   - Tạo quy trình GitHub Actions tại `.github/workflows/release-apk.yml` tự động build dự án Expo Mobile khi đẩy code lên nhánh chính (`master`/`main`), đóng gói tệp APK sạch và xuất bản (Release) lên GitHub dưới thẻ `latest`.
+10. **Liên kết tải APK tự động trên Web Frontend**:
+    - Thay thế link tải file APK (trỏ đến Google Drive cũ) bằng link tải trực tiếp từ GitHub Release (`https://github.com/Thong-LH/MiniSeries/releases/download/latest/MiniSeries.apk`) trong hai tệp [Home.tsx](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/MiniSeries.Frontend/src/pages/Home.tsx) và [Layout.tsx](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/MiniSeries.Frontend/src/components/Layout.tsx) của frontend.
+11. **Phân tách cơ chế Mock cho luồng sản xuất Manga và Video**:
+    - Chỉnh sửa hàm `IsPredefined` trong `PredefinedLessons.cs` nhận thêm `OutputMode` và chỉ trả về `true` (mock) khi định dạng đầu ra là Video.
+    - Cập nhật các command handler `CreateLessonDraftCommandHandler.cs` và `ApproveLessonScriptCommandHandler.cs` để truyền `OutputMode` vào hàm kiểm tra mock, giúp luồng sinh truyện Manga thực tế chạy qua dịch vụ sinh ảnh bằng AI (AzureFlux/Pollinations) và tải lên Cloudinary thật, thay vì dùng mock data như trước.
+
+
 ## [2026-06-21] - Tai cau truc EF Core, dong nhat schema, xoa RLS & cache tre (nhanh AnKhang2)
 
 ### Da hoan thanh:

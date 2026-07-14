@@ -371,7 +371,7 @@ export default function Layout() {
             <a href="#flow" onClick={(e) => handleNavClick(e, 'flow')}>Tính năng</a>
             <a href="#comparison" onClick={(e) => handleNavClick(e, 'comparison')}>Trải nghiệm</a>
             <a href="#feedback" onClick={(e) => handleNavClick(e, 'feedback')}>Phản hồi</a>
-            <a href="https://drive.google.com/drive/folders/1-Pr-07rFCbfUqI5Lxkpm6bHmhxdvPGPf?usp=drive_link" target="_blank" rel="noopener noreferrer" className="apk-nav-link" style={{ color: '#fb923c', fontWeight: 'bold' }}>Tải APK</a>
+            <a href="https://github.com/Thong-LH/MiniSeries/releases/download/latest/MiniSeries.apk" target="_blank" rel="noopener noreferrer" className="apk-nav-link" style={{ color: '#fb923c', fontWeight: 'bold' }}>Tải APK</a>
           </div>
 
           <Link to="/login" onClick={handleProtectedNavigation} className="nav-login">Bắt đầu</Link>

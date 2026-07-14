@@ -15,10 +15,10 @@ export default function Checkout() {
   const [error, setError] = useState<string | null>(null);
   const [paymentCode, setPaymentCode] = useState('');
 
-  // Dynamic bank details from backend settings
-  const [bankBin, setBankBin] = useState('970422');
-  const [accountNumber, setAccountNumber] = useState('0909090909');
-  const [accountName, setAccountName] = useState('MINISERIES STUDIO');
+  const bankBin = '970418';
+  const accountNumber = '9624720082004';
+  const accountName = 'LUONG HOANG THONG';
+  const bankName = 'BIDV (Ngân hàng Đầu tư & Phát triển VN)';
 
   // Create invoice on enter
   useEffect(() => {
@@ -29,9 +29,6 @@ export default function Checkout() {
         const response = await api.createInvoice(price, planName);
         if (ignore) return;
         setPaymentCode(response.paymentCode);
-        if (response.bankBin) setBankBin(response.bankBin);
-        if (response.accountNumber) setAccountNumber(response.accountNumber);
-        if (response.accountName) setAccountName(response.accountName);
         setLoading(false);
       } catch (err: any) {
         if (ignore) return;
@@ -177,7 +174,7 @@ export default function Checkout() {
               </button>
             </div>
 
-            <h1 style={{ color: '#fafafa', marginBottom: '8px', fontSize: '2.2rem', textAlign: 'center', fontFamily: 'Cinzel, serif', fontWeight: 800, letterSpacing: '0.05em' }}>
+            <h1 style={{ color: '#fafafa', marginBottom: '8px', fontSize: '2.2rem', textAlign: 'center', fontFamily: "'Playfair Display', serif", fontWeight: 800, letterSpacing: '0.05em' }}>
               CỔNG THANH TOÁN
             </h1>
             <p style={{ color: 'rgba(250, 250, 250, 0.6)', textAlign: 'center', marginBottom: '36px', fontSize: '0.9rem' }}>
@@ -211,7 +208,7 @@ export default function Checkout() {
                   </h3>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
                     <span style={{ color: 'rgba(250, 250, 250, 0.5)' }}>Ngân hàng:</span>
-                    <span style={{ color: '#fafafa', fontWeight: '600' }}>{bankBin === '970418' ? 'BIDV (Ngân hàng Đầu tư & Phát triển VN)' : 'MB Bank (Ngân hàng Quân Đội)'}</span>
+                    <span style={{ color: '#fafafa', fontWeight: '600' }}>{bankName}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
                     <span style={{ color: 'rgba(250, 250, 250, 0.5)' }}>Số tài khoản:</span>

@@ -86,6 +86,7 @@ public sealed class PaymentsController(
         var bankBin = paymentSettings["BankBin"] ?? "970422";
         var accountNumber = paymentSettings["AccountNumber"] ?? "0909090909";
         var accountName = paymentSettings["AccountName"] ?? "MINISERIES STUDIO";
+        var bankName = paymentSettings["BankName"] ?? "MB Bank (Ngân hàng Quân Đội)";
 
         return Ok(new
         {
@@ -100,7 +101,8 @@ public sealed class PaymentsController(
             status = order.Status,
             bankBin,
             accountNumber,
-            accountName
+            accountName,
+            bankName
         });
     }
 

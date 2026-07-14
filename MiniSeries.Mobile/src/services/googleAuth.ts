@@ -3,7 +3,7 @@ import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 import { apiClient, setAuthToken } from './apiClient';
 
-const SUPABASE_URL = 'https://devnyzwnvyzgulqroyqa.supabase.co';
+const SUPABASE_URL = 'https://jtdqyzkaviqopmxotuge.supabase.co';
 
 function extractAccessToken(url: string): string | null {
   const hashIndex = url.indexOf('#');

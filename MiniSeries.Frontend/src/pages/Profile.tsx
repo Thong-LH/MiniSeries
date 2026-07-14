@@ -328,8 +328,11 @@ export default function Profile() {
 
   if (!profile) {
     return (
-      <section style={{ padding: '110px 20px 60px', color: '#fff', textAlign: 'center', minHeight: '70vh' }}>
-        <h1 style={{ color: '#06b6d4', marginBottom: '12px' }}>Đang tải hồ sơ...</h1>
+      <section className="profile-section">
+        <div className="profile-loader-container">
+          <div className="cosmic-portal-loader"></div>
+          <p className="cosmic-loader-text">Đang tải hồ sơ...</p>
+        </div>
       </section>
     );
   }
@@ -439,7 +442,12 @@ export default function Profile() {
         {activeTab === 'lessons' && (
           <div className="profile-content-card">
             <h2 style={{ color: '#67e8f9' }}>Bài học đã tạo</h2>
-            {lessonsLoading && <p style={{ color: '#94a3b8' }}>Đang tải lịch sử bài học...</p>}
+            {lessonsLoading && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0', gap: '12px' }}>
+                <div className="cosmic-portal-loader" style={{ width: '40px', height: '40px' }}></div>
+                <p style={{ color: 'rgba(250,250,250,0.5)', fontSize: '0.8rem', letterSpacing: '0.05em', margin: 0 }}>Đang tải lịch sử bài học...</p>
+              </div>
+            )}
             {lessonsError && <p style={{ color: '#f87171' }}>{lessonsError}</p>}
             {!lessonsLoading && !lessonsError && lessons.length === 0 && (
               <p style={{ color: '#94a3b8' }}>Bạn chưa tạo bài học nào.</p>
@@ -628,7 +636,12 @@ export default function Profile() {
         {activeTab === 'payments' && (
           <div className="profile-content-card payments-table-container">
             <h2 style={{ marginBottom: '14px', color: '#c084fc' }}>Lịch sử thanh toán</h2>
-            {paymentsLoading && <p style={{ color: '#94a3b8' }}>Đang tải lịch sử thanh toán...</p>}
+            {paymentsLoading && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0', gap: '12px' }}>
+                <div className="cosmic-portal-loader" style={{ width: '40px', height: '40px' }}></div>
+                <p style={{ color: 'rgba(250,250,250,0.5)', fontSize: '0.8rem', letterSpacing: '0.05em', margin: 0 }}>Đang tải lịch sử thanh toán...</p>
+              </div>
+            )}
             {paymentsError && <p style={{ color: '#f87171' }}>{paymentsError}</p>}
             {!paymentsLoading && !paymentsError && payments.length === 0 && (
               <p style={{ color: '#94a3b8' }}>Bạn chưa có giao dịch thanh toán.</p>
@@ -654,8 +667,10 @@ export default function Profile() {
                       <td>
                         Truyện {payment.mangaMonthlyLimit ?? 0} / Video {payment.videoMonthlyLimit ?? 0}
                       </td>
-                      <td style={{ color: payment.isCompleted ? '#86efac' : '#facc15' }}>
-                        {payment.isCompleted ? 'Đã thanh toán' : payment.status}
+                      <td>
+                        <span className={`payment-status-badge ${payment.isCompleted ? 'success' : 'pending'}`}>
+                          {payment.isCompleted ? 'Đã thanh toán' : payment.status}
+                        </span>
                       </td>
                       <td>
                         {formatDate(payment.paidAt || payment.createdAt)}
@@ -678,7 +693,7 @@ export default function Profile() {
             borderRadius: '24px',
             padding: '40px 32px'
           }}>
-            <h2 style={{ marginBottom: '8px', color: '#facc15', fontFamily: "'Cinzel', serif", fontSize: '1.6rem', fontWeight: 700, letterSpacing: '0.05em' }}>Đánh giá MiniSeries</h2>
+            <h2 style={{ marginBottom: '8px', color: '#facc15', fontFamily: "'Playfair Display', serif", fontSize: '1.6rem', fontWeight: 700, letterSpacing: '0.05em' }}>Đánh giá MiniSeries</h2>
             <p style={{ color: 'rgba(250, 250, 250, 0.55)', fontSize: '0.85rem', marginBottom: '28px', lineHeight: '1.5' }}>Chia sẻ trải nghiệm của bạn để giúp chúng tôi cải thiện sản phẩm tốt hơn.</p>
 
             {fbSubmitted ? (

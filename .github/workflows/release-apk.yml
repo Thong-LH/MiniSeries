@@ -1,0 +1,68 @@
+name: Build & Release Android APK
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - 'MiniSeries.Mobile/**'
+      - '.github/workflows/release-apk.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: MiniSeries.Mobile/package-lock.json
+
+      - name: Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: |
+          cd MiniSeries.Mobile
+          npm install
+
+      - name: Run Expo Prebuild
+        run: |
+          cd MiniSeries.Mobile
+          npx expo prebuild --platform android
+
+      - name: Compile Release APK
+        run: |
+          cd MiniSeries.Mobile/android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Rename and Move APK
+        run: |
+          # The APK is generated at MiniSeries.Mobile/android/app/build/outputs/apk/release/app-release.apk
+          # We rename it to MiniSeries.apk and place it in the MiniSeries.Mobile root for easy upload
+          cp MiniSeries.Mobile/android/app/build/outputs/apk/release/app-release.apk MiniSeries.Mobile/MiniSeries.apk
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest Mobile Release
+          body: "Bản build tự động (CI/CD) của ứng dụng MiniSeries Android APK mới nhất."
+          draft: false
+          prerelease: false
+          files: MiniSeries.Mobile/MiniSeries.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

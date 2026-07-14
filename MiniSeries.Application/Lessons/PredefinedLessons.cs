@@ -7,10 +7,10 @@ namespace MiniSeries.Application.Lessons;
 
 public static class PredefinedLessons
 {
-    public static bool IsPredefined(string title)
+    public static bool IsPredefined(string title, OutputMode outputMode)
     {
-        // Treat everything as predefined so that it always succeeds instantly during demo
-        return true;
+        // Only treat as predefined (mocked) if OutputMode is Video
+        return outputMode == OutputMode.Video;
     }
 
     public static string GetCharacterProfile(string title)

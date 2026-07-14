@@ -198,7 +198,7 @@ export default function LoginScreen() {
     }
 
     // Test 4: Supabase
-    const supabaseUrl = 'https://devnyzwnvyzgulqroyqa.supabase.co';
+    const supabaseUrl = 'https://jtdqyzkaviqopmxotuge.supabase.co';
     updateLog(3, 'testing', `Đang kết nối Supabase...`);
     try {
       const ctrl = new AbortController();

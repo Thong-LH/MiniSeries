@@ -322,7 +322,7 @@ export default function CustomerTab({ showToast, showConfirm, activeSubTab }: Cu
         <section className="dashboard-fade-in space-y-6">
           <div className="section-header">
             <h2 className="section-title">Quản lý Khách hàng</h2>
-            <p className="section-subtitle">Danh sách Customer và trạng thái Online/Offline realtime theo dữ liệu API.</p>
+            <p className="section-subtitle">Danh sách Customer và trạng thái hoạt động thực tế trên cơ sở dữ liệu.</p>
           </div>
 
           <div className="stats-grid">
@@ -331,12 +331,12 @@ export default function CustomerTab({ showToast, showConfirm, activeSubTab }: Cu
               <div className="stat-value">{customers.length}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-title">Đang Online 🟢</div>
-              <div className="stat-value green">0</div>
+              <div className="stat-title">Đang hoạt động 🟢</div>
+              <div className="stat-value green">{Math.max(0, customers.length - blockedCustomers)}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-title">Offline ⚪</div>
-              <div className="stat-value">{Math.max(0, customers.length - blockedCustomers)}</div>
+              <div className="stat-title">Bị khóa 🔴</div>
+              <div className="stat-value red">{blockedCustomers}</div>
             </div>
           </div>
 
@@ -418,7 +418,7 @@ export default function CustomerTab({ showToast, showConfirm, activeSubTab }: Cu
                               {isBlocked ? (
                                 <span className="status-badge badge-blocked">Blocked</span>
                               ) : (
-                                <span className="status-badge badge-offline">Offline</span>
+                                <span className="status-badge badge-done">Active</span>
                               )}
                             </td>
                             <td className="text-zinc-500 text-xs">{formatDate(c.createdAt)}</td>

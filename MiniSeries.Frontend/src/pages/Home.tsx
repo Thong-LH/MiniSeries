@@ -425,7 +425,7 @@ export default function Home() {
             </Link>
 
             <a
-              href="https://drive.google.com/drive/folders/1-Pr-07rFCbfUqI5Lxkpm6bHmhxdvPGPf?usp=drive_link"
+              href="https://github.com/Thong-LH/MiniSeries/releases/download/latest/MiniSeries.apk"
               target="_blank"
               rel="noopener noreferrer"
               className="final-cta-card secondary-card"

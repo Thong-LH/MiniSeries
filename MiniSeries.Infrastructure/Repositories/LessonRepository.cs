@@ -114,6 +114,7 @@ public sealed class LessonRepository(MiniSeriesDbContext dbContext) : ILessonRep
     public Task<Lesson?> GetByIdAsync(Guid lessonId)
     {
         return dbContext.Lessons
+            .AsSplitQuery()
             .Include(x => x.Chapters.OrderBy(ch => ch.Order))
                 .ThenInclude(x => x.Quiz)
             .Include(x => x.LlmJsons.OrderBy(json => json.CreatedAt))

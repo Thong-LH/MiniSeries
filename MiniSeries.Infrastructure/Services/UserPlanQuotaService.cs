@@ -10,6 +10,8 @@ public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
     private static readonly PlanQuota FreePlan = new("Free", 3, 1);
     private static readonly PlanQuota BasicPlan = new("Basic", 20, 5);
     private static readonly PlanQuota PremiumPlan = new("Premium", 45, 15);
+    private static readonly PlanQuota AddonManga1 = new("addon_manga_1", 1, 0);
+    private static readonly PlanQuota AddonVideo1 = new("addon_video_1", 0, 1);
 
     public static PlanQuota ResolvePlan(string? planName)
     {
@@ -18,6 +20,8 @@ public sealed class UserPlanQuotaService(MiniSeriesDbContext dbContext)
         {
             "plus" or "basic" => BasicPlan,
             "pro max" or "promax" or "premium" => PremiumPlan,
+            "addon_manga_1" => AddonManga1,
+            "addon_video_1" => AddonVideo1,
             _ => FreePlan
         };
     }

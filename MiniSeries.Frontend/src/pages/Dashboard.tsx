@@ -35,7 +35,7 @@ export default function Dashboard() {
   const [authChecked, setAuthChecked] = useState<boolean>(false);
 
   // UI States
-  const [activeTab, setActiveTab] = useState<string>('content');
+  const [activeTab, setActiveTab] = useState<string>('customers');
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
@@ -456,13 +456,6 @@ export default function Dashboard() {
           <div className="nav-section-title">Quản lý chung</div>
           <nav className="sidebar-nav">
             <div 
-              className={`sidebar-item ${activeTab === 'content' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('content'); setIsSidebarOpen(false); }}
-            >
-              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.008 1.24l.885 1.77a2.25 2.25 0 002.007 1.24h1.98a2.25 2.25 0 002.007-1.24l.885-1.77a2.25 2.25 0 012.007-1.24h3.86m-18 0h18a2.25 2.25 0 012.25 2.25v4.5A2.25 2.25 0 0118 21H6a2.25 2.25 0 01-2.25-2.25v-4.5a2.25 2.25 0 012.25-2.25zM6 7.5l6-6 6 6m-6-6v12" /></svg>
-              Quản lý nội dung
-            </div>
-            <div 
               className={`sidebar-item ${activeTab === 'customers' ? 'active' : ''}`}
               onClick={() => { setActiveTab('customers'); setIsSidebarOpen(false); }}
             >
@@ -561,23 +554,6 @@ export default function Dashboard() {
       </aside>
 
       <main className="dashboard-main">
-        {/* Content Section */}
-        {activeTab === 'content' && (
-          <section className="dashboard-fade-in space-y-6">
-            <div className="section-header">
-              <h2 className="section-title">Quản lý nội dung</h2>
-              <p className="section-subtitle">Duyệt bài học, truyền Manga và MiniSeries do người dùng tạo.</p>
-            </div>
-            <div className="stat-card pending-content-card">
-              <div className="flex items-center gap-3">
-                <span className="pending-indicator-ping"></span>
-                <p className="pending-content-text">
-                  Danh sách nội dung đang chờ duyệt: <strong className="pending-content-count">8</strong> mục
-                </p>
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* Modularized Customer/Tokens Tab */}
         {(activeTab === 'customers' || activeTab === 'tokens') && (
@@ -892,7 +868,7 @@ export default function Dashboard() {
                                 {isBlocked ? (
                                   <span className="status-badge badge-blocked">Blocked</span>
                                 ) : (
-                                  <span className="status-badge badge-offline">Offline</span>
+                                  <span className="status-badge badge-done">Active</span>
                                 )}
                               </td>
                               <td className="text-zinc-500 text-xs">{formatDate(s.createdAt)}</td>

@@ -47,7 +47,7 @@
 }
 
 .profile-title {
-    font-family: 'Cinzel', serif;
+    font-family: 'Playfair Display', serif;
     color: #fafafa;
     margin-bottom: 18px;
     font-size: 2rem;
@@ -220,7 +220,7 @@
 .profile-content-card h2 {
     margin-top: 0;
     margin-bottom: 18px;
-    font-family: 'Cinzel', serif;
+    font-family: 'Playfair Display', serif;
     font-size: 1.35rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -277,7 +277,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-family: 'Cinzel', serif;
+    font-family: 'Playfair Display', serif;
     font-size: 0.95rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -340,27 +340,130 @@
 
 .payments-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0 10px;
     min-width: 680px;
 }
 
 .payments-table th {
-    padding: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 14px 20px;
+    border-bottom: none;
     color: rgba(250, 250, 250, 0.45);
-    text-align: left;
     font-weight: 700;
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
 
+.payments-table tbody tr {
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease-in-out;
+}
+
+.payments-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateY(-1.5px);
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.08);
+}
+
 .payments-table td {
-    padding: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     font-size: 0.88rem;
     color: #e4e4e7;
     text-align: left;
+}
+
+.payments-table td:first-child {
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.payments-table td:last-child {
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+/* Payment Status Badges */
+.payment-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.payment-status-badge.success {
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #4ade80;
+}
+
+.payment-status-badge.pending {
+    background: rgba(234, 179, 8, 0.12);
+    border: 1px solid rgba(234, 179, 8, 0.25);
+    color: #facc15;
+}
+
+/* Premium Loader and Spinner */
+.profile-loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    gap: 20px;
+}
+
+.cosmic-portal-loader {
+    width: 64px;
+    height: 64px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cosmic-portal-loader::before,
+.cosmic-portal-loader::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    mix-blend-mode: screen;
+}
+
+.cosmic-portal-loader::before {
+    width: 100%;
+    height: 100%;
+    border: 3px solid transparent;
+    border-top-color: #06b6d4;
+    border-bottom-color: #0891b2;
+    animation: portal-spin-cw 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.cosmic-portal-loader::after {
+    width: 75%;
+    height: 75%;
+    border: 3px solid transparent;
+    border-left-color: #c084fc;
+    border-right-color: #a855f7;
+    animation: portal-spin-ccw 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.cosmic-loader-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    animation: pulse 1.8s ease-in-out infinite;
 }
 
 /* Responsive queries */

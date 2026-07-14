@@ -12,10 +12,21 @@ import TuVan from './pages/TuVan';
 import Studio from './pages/Studio';
 import { api } from './services/api';
 
+// Guard to prevent duplicate tracking calls due to React StrictMode or multiple mounts
+let lastTrackedPath = '';
+let lastTrackedTime = 0;
+
 function App() {
   const location = useLocation();
 
   useEffect(() => {
+    const now = Date.now();
+    // Skip tracking if it's the same path within 1.5 seconds
+    if (location.pathname === lastTrackedPath && (now - lastTrackedTime) < 1500) {
+      return;
+    }
+    lastTrackedPath = location.pathname;
+    lastTrackedTime = now;
     api.trackTraffic(location.pathname, 'Web');
   }, [location.pathname]);
 

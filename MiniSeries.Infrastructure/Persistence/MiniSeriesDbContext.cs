@@ -38,7 +38,7 @@ public sealed class MiniSeriesDbContext(DbContextOptions<MiniSeriesDbContext> op
             entity.Property(x => x.CreativeMode).HasConversion<string>().HasMaxLength(32);
             entity.Property(x => x.OutputMode).HasConversion<string>().HasMaxLength(32);
             entity.Property(x => x.ScriptStatus).HasConversion<string>().HasMaxLength(32);
-            entity.HasIndex(x => x.UserId);
+            entity.HasIndex(x => new { x.UserId, x.CreatedAt });
 
             entity.HasMany(x => x.Chapters)
                 .WithOne()

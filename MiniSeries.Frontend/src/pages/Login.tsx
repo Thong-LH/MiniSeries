@@ -340,7 +340,7 @@ export default function Login() {
     setError(null);
     setSuccess(null);
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://devnyzwnvyzgulqroyqa.supabase.co";
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://jtdqyzkaviqopmxotuge.supabase.co";
     const redirectUrl = encodeURIComponent(`${window.location.origin}/login`);
     
     window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectUrl}`;

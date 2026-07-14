@@ -52,8 +52,19 @@ public sealed class AnalyticsController(MiniSeriesDbContext dbContext) : Control
     {
         try
         {
+            var totalPageViews = await dbContext.TrafficLogs.CountAsync();
+            var totalUniqueVisitors = await dbContext.TrafficLogs
+                .Select(x => x.IpAddress)
+                .Distinct()
+                .CountAsync();
+
+            var startDate = (groupBy ?? "month").Equals("day", StringComparison.OrdinalIgnoreCase)
+                ? DateTime.UtcNow.AddDays(-30)
+                : DateTime.UtcNow.AddMonths(-12);
+
             var logs = await dbContext.TrafficLogs
                 .AsNoTracking()
+                .Where(t => t.CreatedAt >= startDate)
                 .Select(t => new { t.CreatedAt, t.IpAddress })
                 .ToListAsync();
 
@@ -79,10 +90,10 @@ public sealed class AnalyticsController(MiniSeriesDbContext dbContext) : Control
                 labels = grouped.Select(x => x.Label).ToList(),
                 pageViews = grouped.Select(x => x.PageViews).ToList(),
                 uniqueVisitors = grouped.Select(x => x.UniqueVisitors).ToList(),
-                totalPageViews = logs.Count,
-                totalUniqueVisitors = logs.Select(x => x.IpAddress).Distinct().Count(),
-                totalViews = logs.Count,
-                totalUnique = logs.Select(x => x.IpAddress).Distinct().Count()
+                totalPageViews = totalPageViews,
+                totalUniqueVisitors = totalUniqueVisitors,
+                totalViews = totalPageViews,
+                totalUnique = totalUniqueVisitors
             });
         }
         catch (Exception ex)

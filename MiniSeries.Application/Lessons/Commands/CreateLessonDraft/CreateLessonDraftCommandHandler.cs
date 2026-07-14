@@ -33,7 +33,7 @@ public sealed class CreateLessonDraftCommandHandler(
         {
             AddLog(job, "CreateScriptDraft", "Bắt đầu tạo kịch bản tổng thể.");
             
-            if (PredefinedLessons.IsPredefined(request.Title))
+            if (PredefinedLessons.IsPredefined(request.Title, lesson.OutputMode))
             {
                 lesson.CharacterProfile = PredefinedLessons.GetCharacterProfile(request.Title);
                 lesson.OverallScript = PredefinedLessons.GetOverallScript(request.Title);
