@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Dimensions, Text, Platform } from 'react-native';
 import { useTheme } from '../hooks/use-theme';
+import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 
 const { width, height } = Dimensions.get('window');
 
@@ -102,12 +103,37 @@ export const SpaceBackground: React.FC<SpaceBackgroundProps> = ({ plain = false 
     })
   ).current;
 
+  const isDark = colors.isDark;
+
+  const renderSvgNebulas = () => (
+    <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Defs>
+        <RadialGradient id="orangeGlow" cx="0%" cy="100%" rx="60%" ry="60%" fx="0%" fy="100%">
+          <Stop offset="0%" stopColor="#fb923c" stopOpacity={isDark ? 0.20 : 0.10} />
+          <Stop offset="50%" stopColor="#fb923c" stopOpacity={isDark ? 0.08 : 0.04} />
+          <Stop offset="100%" stopColor="#fb923c" stopOpacity={0} />
+        </RadialGradient>
+        <RadialGradient id="blueGlow" cx="100%" cy="0%" rx="65%" ry="65%" fx="100%" fy="0%">
+          <Stop offset="0%" stopColor="#38bdf8" stopOpacity={isDark ? 0.22 : 0.10} />
+          <Stop offset="50%" stopColor="#38bdf8" stopOpacity={isDark ? 0.08 : 0.04} />
+          <Stop offset="100%" stopColor="#38bdf8" stopOpacity={0} />
+        </RadialGradient>
+        <RadialGradient id="purpleGlow" cx="30%" cy="35%" rx="50%" ry="50%" fx="30%" fy="35%">
+          <Stop offset="0%" stopColor="#a855f7" stopOpacity={isDark ? 0.14 : 0.07} />
+          <Stop offset="60%" stopColor="#a855f7" stopOpacity={isDark ? 0.04 : 0.02} />
+          <Stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+      <Rect x="0" y="0" width="100%" height="100%" fill="url(#orangeGlow)" />
+      <Rect x="0" y="0" width="100%" height="100%" fill="url(#blueGlow)" />
+      <Rect x="0" y="0" width="100%" height="100%" fill="url(#purpleGlow)" />
+    </Svg>
+  );
+
   if (plain) {
     return (
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: colors.bg }]}>
-        <View style={styles.nebulaOrange} />
-        <View style={styles.nebulaBlue} />
-        <View style={styles.nebulaPurple} />
+        {renderSvgNebulas()}
       </View>
     );
   }
@@ -115,9 +141,7 @@ export const SpaceBackground: React.FC<SpaceBackgroundProps> = ({ plain = false 
   return (
     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: colors.bg }]}>
       {/* Background Nebulas */}
-      <View style={styles.nebulaOrange} />
-      <View style={styles.nebulaBlue} />
-      <View style={styles.nebulaPurple} />
+      {renderSvgNebulas()}
 
       {/* Orbit Lines connecting portals */}
       <View style={styles.orbit1} />
@@ -164,33 +188,7 @@ export const SpaceBackground: React.FC<SpaceBackgroundProps> = ({ plain = false 
 };
 
 const styles = StyleSheet.create({
-  nebulaOrange: {
-    position: 'absolute',
-    bottom: -100,
-    left: -100,
-    width: 350,
-    height: 350,
-    borderRadius: 175,
-    backgroundColor: 'rgba(251, 146, 60, 0.05)',
-  },
-  nebulaBlue: {
-    position: 'absolute',
-    top: -100,
-    right: -100,
-    width: 350,
-    height: 350,
-    borderRadius: 175,
-    backgroundColor: 'rgba(56, 189, 248, 0.05)',
-  },
-  nebulaPurple: {
-    position: 'absolute',
-    top: '25%',
-    left: '20%',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(99, 102, 241, 0.04)',
-  },
+
   orbit1: {
     position: 'absolute',
     top: '10%',

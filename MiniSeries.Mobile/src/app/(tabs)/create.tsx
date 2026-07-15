@@ -169,7 +169,7 @@ export default function CreateScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <StripWhitespace>
-        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg, shadowColor: isDark ? '#000000' : '#0f172a' }]}>
+        <View style={[styles.card, { borderColor: colors.cardBorder, backgroundColor: colors.cardBg, ...colors.cardShadow }]}>
           <Text style={[styles.cardHeader, { color: colors.text, borderBottomColor: colors.border }]}>
             TẠO BÀI HỌC MỚI
           </Text>
@@ -383,12 +383,12 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: 22,
+    paddingBottom: 90,
   },
   card: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 22,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -397,15 +397,15 @@ const styles = StyleSheet.create({
   cardHeader: {
     fontSize: 16,
     fontWeight: '800',
-    padding: 16,
+    padding: 20,
     borderBottomWidth: 1,
     letterSpacing: 0.5,
   },
   form: {
-    padding: 16,
+    padding: 20,
   },
   formGroup: {
-    marginBottom: 16,
+    marginBottom: 22,
   },
   label: {
     fontSize: 12.5,
@@ -415,8 +415,8 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 14,
+    padding: 16,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
   vibeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
     justifyContent: 'space-between',
   },
   vibeCard: {
@@ -435,9 +435,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 10,
-    gap: 8,
+    borderRadius: 14,
+    padding: 12,
+    gap: 10,
   },
   vibeIcon: {
     fontSize: 22,

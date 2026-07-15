@@ -410,7 +410,7 @@ export default function StatsScreen() {
           <StripWhitespace>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>BÁO CÁO</Text>
-          <View style={[styles.levelCard, { backgroundColor: colors.cardBg, borderColor: colors.border, marginBottom: 12 }]}>
+          <View style={[styles.levelCard, { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, marginBottom: 12, ...colors.cardShadow }]}>
             <View style={styles.levelHeaderRow}>
               <View>
                 <Text style={[styles.levelSubTitle, { color: colors.textMuted }]}>CẤP ĐỘ HIỆN TẠI</Text>
@@ -439,7 +439,7 @@ export default function StatsScreen() {
           </View>
 
           {/* Top 3-column Stats Header Card - BELOW LEVEL */}
-          <View style={[styles.mainStatsHeaderCard, { backgroundColor: colors.cardBg, borderColor: colors.border, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 18, borderRadius: 16, borderWidth: 1, marginBottom: 20 }]}>
+          <View style={[styles.mainStatsHeaderCard, { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 18, borderRadius: 16, borderWidth: 1, marginBottom: 20, ...colors.cardShadow }]}>
             <View style={{ flex: 1, alignItems: 'center' }}>
               <Ionicons name="book-outline" size={18} color="#0284c7" style={{ marginBottom: 6 }} />
               <Text style={{ fontSize: 24, fontWeight: '900', color: '#0284c7' }}>{displayLessons}</Text>
@@ -475,7 +475,7 @@ export default function StatsScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={[styles.historyCard, { backgroundColor: colors.cardBg, borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 20 }]}>
+          <View style={[styles.historyCard, { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 20, ...colors.cardShadow }]}>
             <View style={[styles.calendarRow, { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }]}>
               {getWeeklyCalendar().map((day, index) => (
                 <View key={index} style={[styles.calendarCol, { alignItems: 'center', flex: 1 }]}>
@@ -515,7 +515,7 @@ export default function StatsScreen() {
             <Text style={[styles.sectionSubtitle, { color: colors.text }]}>Tần suất hoạt động</Text>
           </View>
 
-          <View style={[styles.weightProgressCard, { backgroundColor: colors.cardBg, borderColor: colors.border, marginBottom: 20 }]}>
+          <View style={[styles.weightProgressCard, { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, marginBottom: 20, ...colors.cardShadow }]}>
             <View style={styles.weightHeaderRow}>
               <View>
                 <Text style={[styles.weightHeaderLabel, { color: colors.textMuted }]}>Tổng bài học</Text>
@@ -703,8 +703,8 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: 22,
+    paddingBottom: 90,
   },
   sectionTitle: {
     fontSize: 24,
@@ -769,8 +769,8 @@ const styles = StyleSheet.create({
   },
   historyCard: {
     borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 22,
+    padding: 24,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -839,8 +839,8 @@ const styles = StyleSheet.create({
   },
   weightProgressCard: {
     borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 22,
+    padding: 24,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -1050,9 +1050,9 @@ const styles = StyleSheet.create({
   },
   levelCard: {
     borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 22,
+    padding: 24,
+    marginBottom: 20,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,

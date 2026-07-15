@@ -448,16 +448,7 @@ export default function LoginScreen() {
         >
           {/* Header */}
           <View style={styles.headerRow}>
-            <Text style={[styles.brand, { color: colors.primaryAccent }]}>MINISERIES</Text>
-            <TouchableOpacity
-              onPress={() => {
-                setCustomBaseUrl(apiClient.defaults.baseURL || '');
-                setShowDiagnostics(true);
-              }}
-              style={styles.settingsBtn}
-            >
-              <Ionicons name="construct-outline" size={18} color={colors.textMuted} />
-            </TouchableOpacity>
+            <Text style={[styles.brand, { color: colors.primaryAccent, textAlign: 'center', width: '100%' }]}>MINISERIES</Text>
           </View>
 
           <Text style={[styles.title, { color: colors.text }]}>
@@ -729,89 +720,6 @@ export default function LoginScreen() {
             </View>
           )}
         </View>
-
-        {/* ───── DIAGNOSTICS MODAL ───── */}
-        <Modal animationType="slide" transparent visible={showDiagnostics} onRequestClose={() => setShowDiagnostics(false)}>
-          <View style={styles.modalContainer}>
-            <View style={[styles.modalContent, { backgroundColor: colors.bg, borderColor: colors.border }]}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>🛠️ THIẾT LẬP DEVELOPER</Text>
-
-              <ScrollView style={{ width: '100%', marginBottom: 16 }} showsVerticalScrollIndicator={false}>
-                <Text style={[styles.label, { color: colors.textMuted, marginTop: 8 }]}>ĐƯỜNG DẪN API HIỆN TẠI</Text>
-                <TextInput
-                  value={customBaseUrl}
-                  onChangeText={setCustomBaseUrl}
-                  placeholder="Nhập API URL..."
-                  placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
-                  style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text, marginBottom: 8 }]}
-                />
-
-                <TouchableOpacity
-                  onPress={applyCustomBaseUrl}
-                  style={[styles.button, { backgroundColor: colors.primaryAccent, padding: 10, borderRadius: 8, marginBottom: 16 }]}
-                >
-                  <Text style={[styles.buttonText, { fontSize: 12 }]}>ÁP DỤNG ĐƯỜNG DẪN MỚI</Text>
-                </TouchableOpacity>
-
-                <Text style={[styles.label, { color: colors.textMuted }]}>TEST KẾT NỐI HỆ THỐNG</Text>
-
-                {diagnosticLogs.map((log, index) => {
-                  let statusColor = '#94a3b8';
-                  let statusText = '⏳ ';
-                  if (log.status === 'testing') {
-                    statusColor = '#eab308';
-                    statusText = '🔄 ';
-                  } else if (log.status === 'success') {
-                    statusColor = '#22c55e';
-                    statusText = '✅ ';
-                  } else if (log.status === 'failed') {
-                    statusColor = '#ef4444';
-                    statusText = '❌ ';
-                  }
-
-                  return (
-                    <View
-                      key={index}
-                      style={[
-                        styles.logItem,
-                        {
-                          borderColor: statusColor,
-                          backgroundColor: isDark ? 'rgba(30, 41, 59, 0.4)' : 'rgba(241, 245, 249, 0.6)',
-                        },
-                      ]}
-                    >
-                      <Text style={[styles.logName, { color: colors.text }]}>
-                        {statusText}
-                        {log.name}
-                      </Text>
-                      <Text style={[styles.logDetail, { color: log.status === 'failed' ? '#ef4444' : colors.textMuted }]}>{log.detail}</Text>
-                    </View>
-                  );
-                })}
-
-                <TouchableOpacity
-                  disabled={testing}
-                  onPress={runDiagnosticTests}
-                  style={[
-                    styles.button,
-                    {
-                      backgroundColor: testing ? '#475569' : colors.plasmaAccent,
-                      padding: 10,
-                      borderRadius: 8,
-                      marginTop: 8,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.buttonText, { fontSize: 12 }]}>{testing ? 'ĐANG CHẠY KIỂM TRA...' : '⚡ CHẠY TEST CHẨN ĐOÁN LỖI'}</Text>
-                </TouchableOpacity>
-              </ScrollView>
-
-              <TouchableOpacity onPress={() => setShowDiagnostics(false)} style={[styles.backButton, { width: '100%', borderColor: colors.border }]}>
-                <Text style={[styles.backButtonText, { color: colors.text }]}>ĐÓNG</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -831,8 +739,8 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     borderWidth: 1,
-    borderRadius: 20,
-    padding: 28,
+    borderRadius: 28,
+    padding: 32,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 20,
@@ -840,7 +748,7 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
     marginBottom: 8,
@@ -848,11 +756,7 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 24,
     fontWeight: '900',
-    letterSpacing: 1.5,
-  },
-  settingsBtn: {
-    padding: 8,
-    borderRadius: 8,
+    letterSpacing: 4,
   },
   title: {
     fontSize: 13,

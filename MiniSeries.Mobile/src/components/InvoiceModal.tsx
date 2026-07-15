@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, ActivityIndicator, Clipboard, Linking, AppState } from 'react-native';
 import { Image } from 'expo-image';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../hooks/use-theme';
 import { apiClient, BASE_URL } from '../services/apiClient';
 import * as signalR from '@microsoft/signalr';
+import { Ionicons } from '@expo/vector-icons';
 
 interface InvoiceModalProps {
   visible: boolean;
@@ -23,6 +24,27 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
   const [accountNumber, setAccountNumber] = useState<string>('0909090909');
   const [accountName, setAccountName] = useState<string>('MINISERIES STUDIO');
   const [qrImageLoading, setQrImageLoading] = useState<boolean>(true);
+
+  const copyToClipboard = (text: string, label: string) => {
+    Clipboard.setString(text);
+    triggerToast(`Đã sao chép ${label}!`);
+  };
+
+  const openPaymentApp = async (url: string, appName: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        triggerToast(`Không tìm thấy ứng dụng ${appName} trên thiết bị.`);
+      }
+    } catch (e) {
+      console.log('Error opening app:', e);
+      triggerToast(`Không thể mở ứng dụng ${appName}.`);
+    }
+  };
+
+
 
   const theme = useTheme();
   const isDark = theme.isDark;
@@ -87,44 +109,50 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
     return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
   };
 
-  // Listen to payment status via SignalR PaymentHub with 30s slow fallback
+  // Listen to payment status via SignalR PaymentHub with 30s slow fallback and AppState foreground trigger
   useEffect(() => {
     let connection: signalR.HubConnection | null = null;
     let fallbackInterval: any = null;
     let isMounted = true;
 
-    if (visible && paymentCode) {
+    const handlePaymentSuccess = () => {
+      if (!isMounted) return;
+      setActivePlan(planName);
+      if (planName === 'Basic') {
+        setMangaTokens((prev) => prev + 30);
+      } else if (planName === 'Premium') {
+        setMangaTokens(99999);
+        setVideoTokens((prev) => prev + 30);
+      }
+      triggerToast(`Nâng cấp thành công gói ${planName}! 🎉`);
+      onClose();
+    };
+
+    const checkPaymentStatus = async () => {
+      if (!paymentCode || !isMounted) return false;
+      try {
+        const res = await apiClient.get('/payment/check-status', {
+          params: { code: paymentCode }
+        });
+        if (res.data.isPaid && isMounted) {
+          handlePaymentSuccess();
+          return true;
+        }
+      } catch (e) {
+        console.log('Error checking payment status:', e);
+      }
+      return false;
+    };
+
+    const startConnection = async () => {
+      if (!visible || !paymentCode || !isMounted) return;
+      
       const hubUrl = BASE_URL.replace('/api', '/hubs/payments');
       connection = new signalR.HubConnectionBuilder()
         .withUrl(hubUrl)
+        .configureLogging(signalR.LogLevel.None)
         .withAutomaticReconnect()
         .build();
-
-      const startConnection = async () => {
-        try {
-          await connection!.start();
-          if (!isMounted) {
-            await connection!.stop();
-            return;
-          }
-          await connection!.invoke("JoinPaymentGroup", paymentCode);
-          console.log(`Subscribed to SignalR PaymentHub group: payment-${paymentCode}`);
-        } catch (err) {
-          console.log('Error starting SignalR connection for PaymentHub:', err);
-        }
-      };
-
-      const handlePaymentSuccess = () => {
-        setActivePlan(planName);
-        if (planName === 'Basic') {
-          setMangaTokens((prev) => prev + 30);
-        } else if (planName === 'Premium') {
-          setMangaTokens(99999);
-          setVideoTokens((prev) => prev + 30);
-        }
-        triggerToast(`Nâng cấp thành công gói ${planName}! 🎉`);
-        onClose();
-      };
 
       connection.on("PaymentReceived", (data: { isPaid: boolean }) => {
         if (data.isPaid && isMounted) {
@@ -132,6 +160,20 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
         }
       });
 
+      try {
+        await connection.start();
+        if (!isMounted) {
+          connection.stop().catch(() => {});
+          return;
+        }
+        await connection.invoke("JoinPaymentGroup", paymentCode);
+        console.log(`Subscribed to SignalR PaymentHub group: payment-${paymentCode}`);
+      } catch (err) {
+        console.log('Error starting SignalR connection for PaymentHub:', err);
+      }
+    };
+
+    if (visible && paymentCode) {
       startConnection();
 
       // Fallback polling just in case SignalR fails or disconnects (every 30 seconds)
@@ -139,29 +181,46 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
         if (connection && connection.state === signalR.HubConnectionState.Connected) {
           return; // Skip polling if SignalR is active and connected
         }
-        try {
-          const res = await apiClient.get('/payment/check-status', {
-            params: { code: paymentCode }
-          });
-          if (res.data.isPaid && isMounted) {
-            handlePaymentSuccess();
-          }
-        } catch (e) {
-          console.log('Fallback polling error:', e);
-        }
+        await checkPaymentStatus();
       }, 30000);
-    }
 
-    return () => {
-      isMounted = false;
-      if (fallbackInterval) clearInterval(fallbackInterval);
-      if (connection) {
-        if (connection.state === signalR.HubConnectionState.Connected) {
-          connection.invoke("LeavePaymentGroup", paymentCode).catch(err => console.log(err));
+      // AppState change listener (handle background/foreground transition)
+      const handleAppStateChange = async (nextAppState: string) => {
+        if (nextAppState === 'active' && isMounted) {
+          console.log('App returned to foreground. Checking payment status immediately...');
+          const isPaid = await checkPaymentStatus();
+          if (!isPaid && isMounted) {
+            // Reconnect SignalR if aborted/disconnected
+            if (!connection || connection.state === signalR.HubConnectionState.Disconnected) {
+              console.log('SignalR disconnected during background. Reconnecting...');
+              startConnection();
+            }
+          }
         }
-        connection.stop().catch(err => console.log(err));
-      }
-    };
+      };
+
+      const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
+      return () => {
+        isMounted = false;
+        if (fallbackInterval) clearInterval(fallbackInterval);
+        appStateSubscription.remove();
+        if (connection) {
+          const conn = connection;
+          const performCleanStop = async () => {
+            try {
+              if (conn.state === signalR.HubConnectionState.Connected) {
+                await conn.invoke("LeavePaymentGroup", paymentCode);
+              }
+              await conn.stop();
+            } catch (err) {
+              console.log('Clean stop SignalR hub error:', err);
+            }
+          };
+          performCleanStop();
+        }
+      };
+    }
   }, [visible, paymentCode, planName]);
 
   return (
@@ -194,26 +253,75 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
               {/* Billing Details */}
               <View style={styles.detailsContainer}>
                 <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                  <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NGÂN HÀNG THỤ HƯỞNG</Text>
-                  <Text style={[styles.detailValue, { color: colors.text }]}>
-                    {bankBin === '970418' ? 'BIDV (Ngân hàng Đầu tư & Phát triển VN)' : 'MB Bank (Ngân hàng Quân Đội)'}
-                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NGÂN HÀNG THỤ HƯỞNG</Text>
+                    <Text style={[styles.detailValue, { color: colors.text }]}>
+                      {bankBin === '970418' ? 'BIDV' : 'MB Bank'}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => copyToClipboard(bankBin === '970418' ? 'BIDV' : 'MB Bank', 'tên ngân hàng')}
+                    style={styles.copyBtn}
+                  >
+                    <Ionicons name="copy-outline" size={16} color={colors.primaryAccent} />
+                  </TouchableOpacity>
                 </View>
+
                 <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                  <Text style={[styles.detailLabel, { color: colors.textMuted }]}>SỐ TÀI KHOẢN</Text>
-                  <Text style={[styles.detailValue, { color: colors.text }]}>{accountNumber}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: colors.textMuted }]}>SỐ TÀI KHOẢN</Text>
+                    <Text style={[styles.detailValue, { color: colors.text }]}>{accountNumber}</Text>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => copyToClipboard(accountNumber, 'số tài khoản')}
+                    style={styles.copyBtn}
+                  >
+                    <Ionicons name="copy-outline" size={16} color={colors.primaryAccent} />
+                  </TouchableOpacity>
                 </View>
+
                 <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                  <Text style={[styles.detailLabel, { color: colors.textMuted }]}>TÊN THỤ HƯỞNG</Text>
-                  <Text style={[styles.detailValue, { color: colors.text }]}>{accountName}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: colors.textMuted }]}>TÊN THỤ HƯỞNG</Text>
+                    <Text style={[styles.detailValue, { color: colors.text }]}>{accountName}</Text>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => copyToClipboard(accountName, 'tên thụ hưởng')}
+                    style={styles.copyBtn}
+                  >
+                    <Ionicons name="copy-outline" size={16} color={colors.primaryAccent} />
+                  </TouchableOpacity>
                 </View>
+
                 <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                  <Text style={[styles.detailLabel, { color: colors.textMuted }]}>SỐ TIỀN</Text>
-                  <Text style={[styles.detailValue, { color: colors.primaryAccent }]}>{amount}đ</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: colors.textMuted }]}>SỐ TIỀN THANH TOÁN</Text>
+                    <Text style={[styles.detailValue, { color: colors.primaryAccent }]}>{amount}đ</Text>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => copyToClipboard(String(amount).replace(/[^0-9]/g, ''), 'số tiền')}
+                    style={styles.copyBtn}
+                  >
+                    <Ionicons name="copy-outline" size={16} color={colors.primaryAccent} />
+                  </TouchableOpacity>
                 </View>
+
                 <View style={[styles.detailRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                  <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NỘI DUNG CHUYỂN KHOẢN</Text>
-                  <Text style={[styles.detailValue, { color: colors.text }]}>{paymentCode}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: colors.textMuted }]}>NỘI DUNG CHUYỂN KHOẢN (BẮT BUỘC CHÍNH XÁC)</Text>
+                    <Text style={[styles.detailValue, { color: colors.text, fontWeight: '900' }]}>{paymentCode}</Text>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => copyToClipboard(paymentCode, 'nội dung chuyển khoản')}
+                    style={styles.copyBtn}
+                  >
+                    <Ionicons name="copy-outline" size={16} color={colors.primaryAccent} />
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -225,7 +333,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
                   )}
                   <Image
                     source={{
-                      uri: `https://vietqr.app/img?acc=${accountNumber}&bank=${bankBin}&amount=${String(amount).replace(/[^0-9]/g, '')}&des=${encodeURIComponent(paymentCode)}&template=compact`
+                      uri: `https://img.vietqr.io/image/${bankBin}-${accountNumber}-compact2.jpg?amount=${String(amount).replace(/[^0-9]/g, '')}&addInfo=${encodeURIComponent(paymentCode)}&accountName=${encodeURIComponent(accountName)}`
                     }}
                     style={styles.qrImage}
                     contentFit="contain"
@@ -238,8 +346,20 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, pl
                   />
                 </View>
                 <Text style={[styles.qrCaption, { color: colors.textMuted }]}>
-                  Quét mã QR bằng ứng dụng ngân hàng của bạn để thanh toán tự động
+                  Chụp màn hình mã QR hoặc dùng các lối tắt bên dưới để thanh toán nhanh
                 </Text>
+
+                {/* Quick App Shortcuts */}
+                <View style={styles.shortcutsContainer}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => openPaymentApp('momo://', 'MoMo')}
+                    style={[styles.shortcutBtn, { borderColor: '#d24d80', backgroundColor: 'rgba(210, 77, 128, 0.08)', alignSelf: 'center', width: '100%', maxWidth: 220 }]}
+                  >
+                    <Ionicons name="wallet-outline" size={14} color="#d24d80" />
+                    <Text style={[styles.shortcutBtnText, { color: '#d24d80' }]}>Mở ví MoMo</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </ScrollView>
           )}
@@ -315,8 +435,10 @@ const styles = StyleSheet.create({
   detailRow: {
     borderBottomWidth: 1,
     paddingVertical: 10,
-    flexDirection: 'column',
-    gap: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
   },
   detailLabel: {
     fontSize: 9,
@@ -327,6 +449,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
   },
+  copyBtn: {
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   qrContainer: {
     alignItems: 'center',
     marginBottom: 16,
@@ -335,15 +462,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     padding: 8,
-    width: 220,
-    height: 220,
+    width: 270,
+    height: 270,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   qrImage: {
-    width: 200,
-    height: 200,
+    width: 250,
+    height: 250,
   },
   qrCaption: {
     fontSize: 11,
@@ -351,6 +478,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
     paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  shortcutsContainer: {
+    width: '100%',
+    paddingHorizontal: 8,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  shortcutBtn: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  shortcutBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
   },
   actionsContainer: {
     padding: 16,

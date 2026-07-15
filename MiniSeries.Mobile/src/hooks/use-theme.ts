@@ -18,6 +18,13 @@ export function useTheme() {
     cardBg: isDark ? '#18181b' : '#ffffff',
     cardBorder: isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(99, 102, 241, 0.18)',
     inputBg: isDark ? 'rgba(24, 24, 27, 0.65)' : '#ffffff',
+    cardShadow: {
+      shadowColor: isDark ? '#000000' : '#475569',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: isDark ? 0.40 : 0.08,
+      shadowRadius: 12,
+      elevation: 4,
+    },
     
     // Accents & Buttons (Impeccable Theme Accents)
     primaryAccent: isDark ? '#38bdf8' : '#4f46e5', // Sky Blue in Dark, Indigo in Light

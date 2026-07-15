@@ -60,8 +60,15 @@ export default function ReviewScreen() {
           .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
         const isMediaReady = activeJob && (activeJob.status === 'Completed' || activeJob.status === 2);
 
-        if (isApproved && !isMediaReady) {
-          setStep('generating');
+        if (isApproved) {
+          if (isMediaReady) {
+            router.replace({
+              pathname: '/lesson/[id]',
+              params: { id: lessonId, type: isVideo ? 'video' : 'manga' }
+            });
+          } else {
+            setStep('generating');
+          }
         }
       }
     } catch (err) {

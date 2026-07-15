@@ -244,7 +244,7 @@ export default function Checkout() {
               }}>
                 <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', marginBottom: '16px' }}>
                   <img
-                    src={`https://vietqr.app/img?acc=${accountNumber}&bank=${bankBin}&amount=${price}&des=${paymentCode}&template=compact`}
+                    src={`https://img.vietqr.io/image/${bankBin}-${accountNumber}-compact2.jpg?amount=${price}&addInfo=${encodeURIComponent(paymentCode)}&accountName=${encodeURIComponent(accountName)}`}
                     alt="VietQR Code"
                     style={{ width: '220px', height: '220px', display: 'block' }}
                   />

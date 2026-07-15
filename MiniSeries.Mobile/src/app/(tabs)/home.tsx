@@ -12,8 +12,8 @@ import { LevelAvatar } from '../../components/LevelAvatar';
 import { StripWhitespace } from '../../components/StripWhitespace';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.82;
-const CARD_GAP = 12;
+const CARD_WIDTH = width * 0.88;
+const CARD_GAP = 16;
 const SNAP_INTERVAL = CARD_WIDTH + CARD_GAP;
 const HOME_LESSONS_CACHE_KEY = 'cached_home_lessons';
 const HOME_STALE_MS = 2 * 60 * 1000;
@@ -686,7 +686,7 @@ export default function HomeScreen() {
         <StripWhitespace>
 
         {/* Weekly Goal Calendar Card (Redesigned for Depth & Value) */}
-        <View style={[styles.weeklyGoalCard, { backgroundColor: colors.cardBg, borderColor: colors.border, position: 'relative' }]}>
+        <View style={[styles.weeklyGoalCard, { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, position: 'relative', ...colors.cardShadow }]}>
 
           {/* Logo wrapper at top-left corner */}
           <View style={styles.logoWrapper}>
@@ -920,7 +920,8 @@ export default function HomeScreen() {
                   styles.carouselCard,
                   {
                     backgroundColor: colors.cardBg,
-                    borderColor: colors.border,
+                    borderColor: colors.cardBorder,
+                    ...colors.cardShadow
                   }
                 ]}>
                   {carouselLoading ? (
@@ -1000,7 +1001,7 @@ export default function HomeScreen() {
             setAllLessonsFilter('Tất cả');
             setShowAllLessons(true);
           }}
-          style={[styles.exploreBannerCard, { backgroundColor: isDark ? '#18181b' : '#f1f5f9', borderColor: colors.border }]}
+          style={[styles.exploreBannerCard, { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, ...colors.cardShadow }]}
         >
           <View style={styles.exploreBannerContent}>
             <Text style={[styles.exploreBannerTitle, { color: colors.text }]}>Khám phá thêm bài giảng</Text>
@@ -1081,8 +1082,8 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   scrollContent: {
-    padding: 18,
-    paddingBottom: 40,
+    padding: 22,
+    paddingBottom: 90,
   },
   searchSection: {
     position: 'relative',
@@ -1104,10 +1105,10 @@ const styles = StyleSheet.create({
   },
   weeklyGoalCard: {
     borderWidth: 1,
-    borderRadius: 18,
-    padding: 20,
-    marginTop: 16,
-    marginBottom: 16,
+    borderRadius: 22,
+    padding: 24,
+    marginTop: 20,
+    marginBottom: 20,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -1237,9 +1238,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   challengeCard: {
-    borderRadius: 18,
-    padding: 24,
-    marginBottom: 20,
+    borderRadius: 22,
+    padding: 26,
+    marginBottom: 24,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -1447,14 +1448,14 @@ const styles = StyleSheet.create({
   },
   carouselCard: {
     borderWidth: 1,
-    borderRadius: 18,
-    padding: 20,
-    minHeight: 210,
+    borderRadius: 22,
+    padding: 24,
+    minHeight: 230,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   carouselEmptyContainer: {
     flex: 1,
@@ -1468,17 +1469,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   carouselCardList: {
-    gap: 12,
+    gap: 16,
   },
   carouselRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 14,
   },
   carouselRowImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
+    width: 60,
+    height: 60,
+    borderRadius: 12,
     resizeMode: 'cover',
   },
   carouselRowContent: {
