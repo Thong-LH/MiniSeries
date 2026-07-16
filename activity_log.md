@@ -1,3 +1,12 @@
+## [2026-07-17] - Khắc phục sự cố Server crash (Exit Status 139) trên Render
+
+### Đã hoàn thành:
+1. **Chuyển đổi sang Workstation GC và giới hạn Heap**:
+   - **Vấn đề:** Server WebAPI bị crash đột ngột với exit code 139 (SIGSEGV) trên Render. Nguyên nhân do mặc định .NET Core chạy chế độ Server GC sẽ tự động cấp phát GC Heap & Thread tương ứng số CPU cores của host máy chủ, dẫn đến vượt quá giới hạn 512MB RAM của container Render Free.
+   - **Khắc phục:** 
+     - Thêm biến môi trường `DOTNET_ServerGarbageCollection=0` (tắt Server GC) và `DOTNET_GCHeapHardLimit=0x18000000` (giới hạn cứng Heap GC ở mức 384MB) vào `Dockerfile`.
+     - Cấu hình `<ServerGarbageCollection>false</ServerGarbageCollection>` trong file dự án `MiniSeries.WebAPI.csproj` để tắt Server GC từ cấp độ compile.
+
 ## [2026-07-14] - Kiểm thử tích hợp toàn trình luồng sinh truyện Manga
 client secret:
 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

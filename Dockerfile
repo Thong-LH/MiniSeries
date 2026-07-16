@@ -21,6 +21,8 @@ COPY --from=build-env /app/out .
 # Cấu hình cổng chạy mặc định. Render sẽ tự động chuyển hướng traffic.
 # Mặc định .NET 8.0 chạy cổng 8080. ta cấu hình ASPNETCORE_HTTP_PORTS=8080.
 ENV ASPNETCORE_HTTP_PORTS=8080
+ENV DOTNET_ServerGarbageCollection=0
+ENV DOTNET_GCHeapHardLimit=0x18000000
 EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "MiniSeries.WebAPI.dll"]
