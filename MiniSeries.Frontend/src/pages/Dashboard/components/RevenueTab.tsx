@@ -570,7 +570,6 @@ export default function RevenueTab({ showToast, activeSubTab }: RevenueTabProps)
                             {renderSortableHeader("Email khách", "userEmail")}
                             {renderSortableHeader("Gói cước", "planName")}
                             {renderSortableHeader("Số tiền", "amount")}
-                            <th>Ngân hàng nhận</th>
                             <th>Nội dung chuyển khoản</th>
                             <th>Trạng thái</th>
                             {renderSortableHeader("Ngày nạp", "createdAt")}
@@ -588,12 +587,6 @@ export default function RevenueTab({ showToast, activeSubTab }: RevenueTabProps)
                                 </div>
                               </td>
                               <td className="font-bold text-emerald-400">{formatVnd(p.amount)}</td>
-                              <td>
-                                <div className="flex flex-col">
-                                  <span className="font-semibold text-zinc-300">MB Bank</span>
-                                  <span className="text-[10px] text-zinc-500">0909090909</span>
-                                </div>
-                              </td>
                               <td className="text-zinc-300 text-xs max-w-[200px]">
                                 {(() => {
                                   const content = p.content || '—';

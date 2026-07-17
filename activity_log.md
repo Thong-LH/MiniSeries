@@ -1,4 +1,4 @@
-## [2026-07-17] - Khắc phục sự cố Server crash (Exit Status 139) trên Render
+## [2026-07-17] - Khắc phục sự cố Server crash (Exit Status 139) trên Render & Dọn dẹp Dashboard
 
 ### Đã hoàn thành:
 1. **Chuyển đổi sang Workstation GC và giới hạn Heap**:
@@ -6,6 +6,8 @@
    - **Khắc phục:** 
      - Thêm biến môi trường `DOTNET_ServerGarbageCollection=0` (tắt Server GC) và `DOTNET_GCHeapHardLimit=0x18000000` (giới hạn cứng Heap GC ở mức 384MB) vào `Dockerfile`.
      - Cấu hình `<ServerGarbageCollection>false</ServerGarbageCollection>` trong file dự án `MiniSeries.WebAPI.csproj` để tắt Server GC từ cấp độ compile.
+2. **Dọn dẹp cột dữ liệu Mock trong lịch sử giao dịch Dashboard**:
+   - **Thay đổi:** Loại bỏ hoàn toàn cột "Ngân hàng nhận" (vốn đang hiển thị thông tin mock cứng `MB Bank / 0909090909` cho mọi giao dịch) khỏi bảng lịch sử giao dịch nạp tiền tại tab Doanh thu (`RevenueTab.tsx`) trên trang quản trị Dashboard, giúp dữ liệu hiển thị gọn gàng và trung thực hơn.
 
 ## [2026-07-14] - Kiểm thử tích hợp toàn trình luồng sinh truyện Manga
 client secret:
