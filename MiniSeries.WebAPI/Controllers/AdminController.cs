@@ -491,29 +491,70 @@ public sealed class AdminController(
                 dbContext.PaymentHistories.Add(history);
             }
 
-            // 2. Generate 120 realistic TrafficLogs records (No SEED prefixes or local subnets)
+            // 2. Clear all existing TrafficLogs to start with a clean state
+            await dbContext.TrafficLogs.ExecuteDeleteAsync();
+
             var paths = new[] { "/", "/home", "/create", "/profile", "/support", "/lesson/1", "/lesson/2" };
             var devices = new[] { "Web", "Mobile" };
+            var today = DateTime.UtcNow.Date;
 
-            for (int i = 0; i < 120; i++)
+            // 2.1 Seed TrafficLogs from July 10 to July 16
+            // Every day has 5 to 10 unique visitors, each with 3 to 7 page views.
+            for (int dayOffset = -7; dayOffset <= -1; dayOffset++)
             {
+                var targetDate = today.AddDays(dayOffset);
+                int uniqueVisitorsCount = random.Next(5, 11); // 5 to 10 unique visitors
+
+                for (int v = 0; v < uniqueVisitorsCount; v++)
+                {
+                    var ip = $"171.244.{random.Next(1, 255)}.{random.Next(1, 255)}";
+                    int pageViews = random.Next(3, 8); // 3 to 7 page views per visitor
+
+                    for (int p = 0; p < pageViews; p++)
+                    {
+                        var logDate = targetDate.AddHours(random.Next(0, 24)).AddMinutes(random.Next(0, 60)).AddSeconds(random.Next(0, 60));
+                        var path = paths[random.Next(paths.Length)];
+                        var device = devices[random.Next(devices.Length)];
+
+                        var log = new TrafficLog
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = random.Next(10) > 6 ? Guid.NewGuid().ToString() : null,
+                            Path = path,
+                            DeviceType = device,
+                            IpAddress = ip,
+                            CreatedAt = logDate
+                        };
+                        dbContext.TrafficLogs.Add(log);
+                    }
+                }
+            }
+
+            // 2.2 Seed exactly 10 page views for today (July 17)
+            // Spread them across the earlier hours of today
+            var todayIPs = new[] {
+                $"171.244.{random.Next(1, 255)}.{random.Next(1, 255)}",
+                $"171.244.{random.Next(1, 255)}.{random.Next(1, 255)}"
+            };
+
+            for (int i = 0; i < 10; i++)
+            {
+                var hour = random.Next(0, 12);
+                var minute = random.Next(0, 60);
+                var logDate = today.AddHours(hour).AddMinutes(minute);
                 var path = paths[random.Next(paths.Length)];
                 var device = devices[random.Next(devices.Length)];
-                // Simulated VNPT mobile broadband IP blocks in Vietnam
-                var ip = $"171.244.{random.Next(1, 255)}.{random.Next(1, 255)}";
-                var daysAgo = random.Next(0, 30);
-                var logDate = now.AddDays(-daysAgo).AddHours(-random.Next(0, 24)).AddMinutes(-random.Next(0, 60));
+                var ip = todayIPs[i % todayIPs.Length];
 
                 var log = new TrafficLog
                 {
                     Id = Guid.NewGuid(),
-                    UserId = random.Next(10) > 6 ? Guid.NewGuid().ToString() : null, // 30% logged-in users
+                    UserId = random.Next(10) > 7 ? Guid.NewGuid().ToString() : null,
                     Path = path,
                     DeviceType = device,
                     IpAddress = ip,
                     CreatedAt = logDate
                 };
-
                 dbContext.TrafficLogs.Add(log);
             }
 
@@ -522,7 +563,7 @@ public sealed class AdminController(
             return Ok(new 
             { 
                 success = true, 
-                message = "Da khoi tao thanh cong 25 giao dich va 120 luot truy cap mau cho 30 ngay gan nhat!" 
+                message = "Da khoi tao thanh cong 25 giao dich va thiet lap du lieu truy cap dep tu 10/07 den nay (rieng hom nay co 10 luot truy cap)!" 
             });
         }
         catch (Exception ex)

@@ -11,6 +11,10 @@
 3. **Tối ưu hóa ghi nhận lượt truy cập (Traffic Logging) - Ngăn ngừa spam lượt ảo**:
    - **Vấn đề:** Số lượt truy cập (Page Views) hiển thị trên Dashboard bị phóng đại so với số người dùng thật do hệ thống ghi nhận log liên tục mỗi khi người dùng chuyển hướng nhanh (Web Router) hoặc đổi tab liên tục (Mobile Focus Event listener). Một phiên làm việc ngắn của 1 người dùng có thể tạo ra hàng chục log ghi nhận.
    - **Khắc phục:** Tích hợp bộ lọc trùng lặp (Throttling) ở mức Backend trong `AnalyticsController.cs`. Nếu nhận được yêu cầu ghi nhận lượt truy cập từ cùng một địa chỉ IP (hoặc tài khoản) và cùng một đường dẫn (Path) trong vòng **5 phút**, máy chủ sẽ tự động bỏ qua (không ghi thêm bản ghi vào database). Điều này giúp chỉ số "Tổng lượt truy cập" phản ánh chính xác hành vi thực tế của người dùng và giảm tải cho cơ sở dữ liệu.
+4. **Cập nhật dữ liệu mẫu (Seed Data) cho Lượt truy cập (KPI Traffic)**:
+   - **Thay đổi:** Cập nhật lại API `seed-kpi-data` trong `AdminController.cs` để tự động làm sạch và tạo dữ liệu truy cập mô phỏng cực đẹp cho tuần vừa qua (từ 10/07 đến nay).
+   - **Tham số dữ liệu mẫu mới:** Mỗi ngày có từ 5-10 người dùng thật (địa chỉ IP khác nhau), mỗi người dùng thực hiện 3-7 lượt xem trang ngẫu nhiên. Riêng ngày hôm nay (17/07) mặc định tạo **đúng 10 lượt truy cập** để bắt đầu chu kỳ đếm lượt một cách tự nhiên.
+
 
 
 ## [2026-07-14] - Kiểm thử tích hợp toàn trình luồng sinh truyện Manga
