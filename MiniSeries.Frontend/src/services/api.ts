@@ -580,14 +580,6 @@ export const api = {
         }
     },
 
-    async adminSeedKpiData() {
-        const response = await fetch(`${API_BASE}/admin/seed-kpi-data?secret=miniseries-kpi-seeding`, {
-            method: "POST",
-            headers: getAuthHeaders()
-        });
-        return await readJsonResponse(response);
-    },
-
     async updateProgress(lessonId: string, lastReadChapterOrder: number, totalChapters: number) {
         const response = await fetch(`${API_BASE}/progress/update`, {
             method: "POST",
