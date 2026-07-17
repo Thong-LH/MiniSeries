@@ -25,11 +25,25 @@ public sealed class AnalyticsController(MiniSeriesDbContext dbContext) : Control
                 ipAddress = forwardedFor.ToString().Split(',')[0].Trim();
             }
 
+            var path = req.Path ?? "/";
+
+            // Throttling: Do not log duplicate page views from the same IP + Path within the last 5 minutes
+            var cutoff = DateTime.UtcNow.AddMinutes(-5);
+            var isDuplicate = await dbContext.TrafficLogs.AnyAsync(t =>
+                t.IpAddress == ipAddress &&
+                t.Path == path &&
+                t.CreatedAt >= cutoff);
+
+            if (isDuplicate)
+            {
+                return Ok(new { success = true, throttled = true });
+            }
+
             var log = new TrafficLog
             {
                 Id = Guid.NewGuid(),
                 UserId = currentUserId?.ToString(),
-                Path = req.Path ?? "/",
+                Path = path,
                 DeviceType = req.DeviceType ?? "Web",
                 IpAddress = ipAddress,
                 CreatedAt = DateTime.UtcNow

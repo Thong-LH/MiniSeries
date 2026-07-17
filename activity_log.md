@@ -8,6 +8,10 @@
      - Cấu hình `<ServerGarbageCollection>false</ServerGarbageCollection>` trong file dự án `MiniSeries.WebAPI.csproj` để tắt Server GC từ cấp độ compile.
 2. **Dọn dẹp cột dữ liệu Mock trong lịch sử giao dịch Dashboard**:
    - **Thay đổi:** Loại bỏ hoàn toàn cột "Ngân hàng nhận" (vốn đang hiển thị thông tin mock cứng `MB Bank / 0909090909` cho mọi giao dịch) khỏi bảng lịch sử giao dịch nạp tiền tại tab Doanh thu (`RevenueTab.tsx`) trên trang quản trị Dashboard, giúp dữ liệu hiển thị gọn gàng và trung thực hơn.
+3. **Tối ưu hóa ghi nhận lượt truy cập (Traffic Logging) - Ngăn ngừa spam lượt ảo**:
+   - **Vấn đề:** Số lượt truy cập (Page Views) hiển thị trên Dashboard bị phóng đại so với số người dùng thật do hệ thống ghi nhận log liên tục mỗi khi người dùng chuyển hướng nhanh (Web Router) hoặc đổi tab liên tục (Mobile Focus Event listener). Một phiên làm việc ngắn của 1 người dùng có thể tạo ra hàng chục log ghi nhận.
+   - **Khắc phục:** Tích hợp bộ lọc trùng lặp (Throttling) ở mức Backend trong `AnalyticsController.cs`. Nếu nhận được yêu cầu ghi nhận lượt truy cập từ cùng một địa chỉ IP (hoặc tài khoản) và cùng một đường dẫn (Path) trong vòng **5 phút**, máy chủ sẽ tự động bỏ qua (không ghi thêm bản ghi vào database). Điều này giúp chỉ số "Tổng lượt truy cập" phản ánh chính xác hành vi thực tế của người dùng và giảm tải cho cơ sở dữ liệu.
+
 
 ## [2026-07-14] - Kiểm thử tích hợp toàn trình luồng sinh truyện Manga
 client secret:
