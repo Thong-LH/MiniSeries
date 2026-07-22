@@ -1,3 +1,12 @@
+## [2026-07-22] - Sửa lỗi sập Server Render (Exit status 139) do vượt giới hạn inotify (System.IO.IOException)
+
+### Đã hoàn thành:
+1. **Chuyển sang Polling File Watcher cho .NET trên Render Linux Container**:
+   - **Vấn đề:** Tiến trình WebAPI bị crash bất ngờ với mã thoát `Exit status 139` khi khởi động hoặc chạy trên Render. Log ghi nhận lỗi `System.IO.IOException: The configured user limit (128) on the number of inotify instances has been reached` tại `Program.cs:line 8` do tính năng tự động theo dõi file cấu hình `reloadOnChange: true` làm vượt quá ngưỡng 128 `inotify` file watchers của hệ điều hành Linux trên Render container.
+   - **Khắc phục:** 
+     - Thêm biến môi trường `ENV DOTNET_USE_POLLING_FILE_WATCHER=1` vào `Dockerfile` để chuyển cơ chế theo dõi file từ system inotify sang polling.
+     - Cấu hình `reloadOnChange: false` cho `appsettings.local.json` trong `Program.cs` để ngăn ứng dụng tạo watcher thừa khi khởi chạy.
+
 ## [2026-07-17] - Khắc phục sự cố Server crash (Exit Status 139) trên Render & Dọn dẹp Dashboard
 
 ### Đã hoàn thành:

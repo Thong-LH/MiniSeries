@@ -23,6 +23,7 @@ COPY --from=build-env /app/out .
 ENV ASPNETCORE_HTTP_PORTS=8080
 ENV DOTNET_ServerGarbageCollection=0
 ENV DOTNET_GCHeapHardLimit=0x18000000
+ENV DOTNET_USE_POLLING_FILE_WATCHER=1
 EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "MiniSeries.WebAPI.dll"]

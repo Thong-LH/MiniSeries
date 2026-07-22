@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile(
     "appsettings.local.json",
     optional: true,
-    reloadOnChange: true);
+    reloadOnChange: false);
 
 builder.Services.AddMiniSeriesServices(builder.Configuration);
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
