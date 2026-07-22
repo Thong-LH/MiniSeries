@@ -336,6 +336,14 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
+    const ua = navigator.userAgent || navigator.vendor || '';
+    const isInAppBrowser = /FBAN|FBAV|Instagram|Line|CB|Zalo|TikTok|MicroMessenger|Webview/i.test(ua);
+
+    if (isInAppBrowser) {
+      setError("Google yêu cầu bảo mật: Vui lòng nhấn biểu tượng (...) ở góc trên màn hình và chọn 'Mở bằng Safari' (hoặc Chrome) để đăng nhập!");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setSuccess(null);

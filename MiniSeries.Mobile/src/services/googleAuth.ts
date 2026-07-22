@@ -30,7 +30,10 @@ export const signInWithGoogleBrowser = async (): Promise<any> => {
   const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUri)}`;
   console.log('[Google OAuth] Auth URL:', authUrl);
 
-  const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+  const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri, {
+    showInRecents: true,
+    preferEphemeralSession: false,
+  });
   console.log('[Google OAuth] Browser result:', result.type, result.type === 'success' ? result.url : '');
 
   if (result.type === 'cancel' || result.type === 'dismiss') {

@@ -5,7 +5,11 @@
    - **Vấn đề:** Tiến trình WebAPI bị crash bất ngờ với mã thoát `Exit status 139` khi khởi động hoặc chạy trên Render. Log ghi nhận lỗi `System.IO.IOException: The configured user limit (128) on the number of inotify instances has been reached` tại `Program.cs:line 8` do tính năng tự động theo dõi file cấu hình `reloadOnChange: true` làm vượt quá ngưỡng 128 `inotify` file watchers của hệ điều hành Linux trên Render container.
    - **Khắc phục:** 
      - Thêm biến môi trường `ENV DOTNET_USE_POLLING_FILE_WATCHER=1` vào `Dockerfile` để chuyển cơ chế theo dõi file từ system inotify sang polling.
-     - Cấu hình `reloadOnChange: false` cho `appsettings.local.json` trong `Program.cs` để ngăn ứng dụng tạo watcher thừa khi khởi chạy.
+2. **Khắc phục lỗi Đăng nhập Google trên iOS (Mobile & Website In-App Browser)**:
+   - **Vấn đề:** Khi mở trang đăng nhập Google OAuth từ ứng dụng di động hoặc khi người dùng nhấp vào link Website từ ứng dụng Zalo, Facebook, TikTok... trên iPhone (dùng In-App Browser nhúng), Google trả về lỗi `403: disallowed_useragent` do chính sách cấm OAuth trên WebView nhúng.
+   - **Khắc phục:** 
+     - **Mobile App:** Cập nhật hàm `signInWithGoogleBrowser` trong [googleAuth.ts](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/MiniSeries.Mobile/src/services/googleAuth.ts#L33) bổ sung tùy chọn `showInRecents: true` và `preferEphemeralSession: false` để buộc Expo WebBrowser mở trang OAuth bằng trình duyệt Safari (`SFSafariViewController`).
+     - **Web Frontend:** Bổ sung cơ chế tự động nhận diện trình duyệt nhúng `isInAppBrowser` trong [Login.tsx](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/MiniSeries.Frontend/src/pages/Login.tsx#L338). Nếu người dùng mở trang web từ Zalo/Facebook/TikTok trên iPhone, hệ thống sẽ đưa ra thông báo hướng dẫn người dùng nhấn biểu tượng (...) góc màn hình chọn **"Mở bằng Safari"** trước khi đăng nhập Google.
 
 ## [2026-07-17] - Khắc phục sự cố Server crash (Exit Status 139) trên Render & Dọn dẹp Dashboard
 
