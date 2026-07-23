@@ -1,3 +1,13 @@
+## [2026-07-23] - Điều chỉnh logic Seed KPI Traffic tự nhiên & động theo thời gian thực
+
+### Đã hoàn thành:
+1. **Cập nhật thuật toán sinh dữ liệu Traffic ngẫu nhiên tự nhiên hơn**:
+   - **Vấn đề:** Dữ liệu Seed Traffic trước đây cố định dải ngày (10/07 - 17/07) và có tỷ lệ PageViews quá lớn (lên tới 99 lượt view cho vài IP), gây ra khoảng trống 0 lượt truy cập ở giữa các ngày sau 17/07 và làm biểu đồ trồi sụt "ảo".
+   - **Khắc phục:** Cập nhật hàm `SeedKpiData` trong [AdminController.cs](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/MiniSeries.WebAPI/Controllers/AdminController.cs#L494):
+     - Sinh dữ liệu động cho **14 ngày gần nhất** tính tới thời điểm hiện tại (`DateTime.UtcNow.Date`).
+     - Thiết lập tham số tự nhiên: **10 - 25 Unique Visitors/ngày** và **1 - 3 PageViews/người**, tổng lượt xem dao động tự nhiên từ 15 - 60 lượt/ngày.
+     - Chỉ xóa các bản ghi seed cũ có IP `171.244.%` thay vì xóa toàn bộ bảng `TrafficLogs` để bảo toàn dữ liệu người dùng thật.
+
 ## [2026-07-22] - Sửa lỗi sập Server Render (Exit status 139) do vượt giới hạn inotify (System.IO.IOException)
 
 ### Đã hoàn thành:
