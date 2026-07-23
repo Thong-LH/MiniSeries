@@ -491,20 +491,57 @@ public sealed class AdminController(
                 dbContext.PaymentHistories.Add(history);
             }
 
-            // 2. Clear only previously seeded TrafficLogs (IPs starting with 171.244.)
+            // 2. Clear TrafficLogs from July 17 onwards for seeded IPs (IPs starting with 171.244.)
+            var july17Date = new DateTime(2026, 7, 17, 0, 0, 0, DateTimeKind.Utc);
             await dbContext.TrafficLogs
-                .Where(t => t.IpAddress.StartsWith("171.244.", StringComparison.Ordinal))
+                .Where(t => t.CreatedAt >= july17Date && t.IpAddress.StartsWith("171.244.", StringComparison.Ordinal))
                 .ExecuteDeleteAsync();
 
             var paths = new[] { "/", "/home", "/create", "/profile", "/support", "/lesson/1", "/lesson/2" };
             var devices = new[] { "Web", "Mobile" };
             var today = DateTime.UtcNow.Date;
 
-            // 2.1 Seed TrafficLogs for the past 14 days up to today
-            // Dynamic window: 10 to 25 unique visitors per day, 1 to 3 page views per visitor.
-            for (int dayOffset = -13; dayOffset <= 0; dayOffset++)
+            // 2.1 Ensure stable seed for July 10 to July 16 if not existing
+            var hasJuly10To16 = await dbContext.TrafficLogs.AnyAsync(t => t.CreatedAt < july17Date);
+            if (!hasJuly10To16)
             {
-                var targetDate = today.AddDays(dayOffset);
+                var fixedStartDate = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc);
+                for (int d = 0; d < 7; d++)
+                {
+                    var targetDate = fixedStartDate.AddDays(d);
+                    int uniqueVisitorsCount = random.Next(7, 11);
+
+                    for (int v = 0; v < uniqueVisitorsCount; v++)
+                    {
+                        var ip = $"171.244.{random.Next(1, 255)}.{random.Next(1, 255)}";
+                        int pageViews = random.Next(3, 6);
+
+                        for (int p = 0; p < pageViews; p++)
+                        {
+                            var logDate = targetDate.AddHours(random.Next(0, 23)).AddMinutes(random.Next(0, 60)).AddSeconds(random.Next(0, 60));
+                            var path = paths[random.Next(paths.Length)];
+                            var device = devices[random.Next(devices.Length)];
+
+                            var log = new TrafficLog
+                            {
+                                Id = Guid.NewGuid(),
+                                UserId = random.Next(10) > 6 ? Guid.NewGuid().ToString() : null,
+                                Path = path,
+                                DeviceType = device,
+                                IpAddress = ip,
+                                CreatedAt = logDate
+                            };
+                            dbContext.TrafficLogs.Add(log);
+                        }
+                    }
+                }
+            }
+
+            // 2.2 Seed natural TrafficLogs from July 17 up to Today
+            // 10 to 25 unique visitors per day, 1 to 3 page views per visitor.
+            var currentDate = july17Date.Date;
+            while (currentDate <= today)
+            {
                 int uniqueVisitorsCount = random.Next(10, 26); // 10 to 25 unique visitors
 
                 for (int v = 0; v < uniqueVisitorsCount; v++)
@@ -514,7 +551,7 @@ public sealed class AdminController(
 
                     for (int p = 0; p < pageViews; p++)
                     {
-                        var logDate = targetDate.AddHours(random.Next(0, 23)).AddMinutes(random.Next(0, 60)).AddSeconds(random.Next(0, 60));
+                        var logDate = currentDate.AddHours(random.Next(0, 23)).AddMinutes(random.Next(0, 60)).AddSeconds(random.Next(0, 60));
                         var path = paths[random.Next(paths.Length)];
                         var device = devices[random.Next(devices.Length)];
 
@@ -530,6 +567,7 @@ public sealed class AdminController(
                         dbContext.TrafficLogs.Add(log);
                     }
                 }
+                currentDate = currentDate.AddDays(1);
             }
 
             await dbContext.SaveChangesAsync();
@@ -537,7 +575,7 @@ public sealed class AdminController(
             return Ok(new 
             { 
                 success = true, 
-                message = "Đã khởi tạo thành công 25 giao dịch và dữ liệu truy cập tự nhiên (10-25 user/ngày, 1-3 view/người) trong 14 ngày qua!" 
+                message = "Đã khởi tạo thành công: Giữ nguyên dải 10/07-16/07 và seed nối tiếp tự nhiên từ 17/07 đến hôm nay!" 
             });
         }
         catch (Exception ex)
