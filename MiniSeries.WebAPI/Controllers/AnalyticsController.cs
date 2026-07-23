@@ -17,6 +17,13 @@ public sealed class AnalyticsController(MiniSeriesDbContext dbContext) : Control
         try
         {
             var currentUserId = AuthUser.GetCurrentUserId(User);
+
+            // Ignore traffic logs from Admin or Staff testing the platform
+            if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+            {
+                return Ok(new { success = true, ignored = true });
+            }
+
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
             // If forwarded by a proxy (like ngrok, Cloudflare, etc.)

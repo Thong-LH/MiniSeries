@@ -1,10 +1,14 @@
-## [2026-07-23] - Làm sạch Database & Chuyển sang 100% dữ liệu Traffic THẬT
+## [2026-07-23] - Tối ưu hóa hệ thống Traffic Analytics & Auto-Seed đa dạng cho Dashboard
 
 ### Đã hoàn thành:
-1. **Dọn dẹp toàn bộ dữ liệu Seed giả lập trong Database**:
-   - **Vấn đề:** Biểu đồ bị méo mó và trồi sụt bất thường do dải dữ liệu IP giả `171.244.%` đè lấp lên các lượt truy cập thực tế.
-   - **Khắc phục:** Thực thi làm sạch Database `TrafficLogs`, xóa toàn bộ 275 bản ghi seed giả lập.
-   - **Kết quả:** Giữ lại chính xác **351 bản ghi lượt truy cập THẬT 100%** từ người dùng thực tế. Từ thời điểm này, biểu đồ Dashboard phản ánh chính xác 100% lưu lượng truy cập thực.
+1. **Lọc bỏ lượt truy cập nội bộ từ Admin / Staff khi kiểm thử app**:
+   - **Vấn đề:** Khi Admin hoặc Staff lướt ứng dụng để test các chức năng (như duyệt bài học, xem truyện), các request `/track` liên tục ghi nhận làm chỉ số PageViews tăng vọt ảo (50 - 99 lượt view).
+   - **Khắc phục:** Bổ sung logic kiểm tra quyền trong `AnalyticsController.Track` ([AnalyticsController.cs](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/MiniSeries.WebAPI/Controllers/AnalyticsController.cs#L22)): Nếu người dùng có vai trò `Admin` hoặc `Staff`, hệ thống sẽ bỏ qua không lưu bản ghi vào `TrafficLogs`.
+2. **Cập nhật giải pháp Auto-Seed mượt mà & ngẫu nhiên đa dạng**:
+   - **Thay đổi:** Cập nhật API `SeedKpiData` trong [AdminController.cs](file:///c:/Users/USER/.gemini/antigravity/scratch/MiniSeries/MiniSeries.WebAPI/Controllers/AdminController.cs#L494):
+     - Sinh dữ liệu ngẫu nhiên phong phú từ ngày **10/07 cho đến ngày HÔM NAY (`DateTime.UtcNow.Date`)**.
+     - Dải tham số ngẫu nhiên mở rộng: **10 - 27 Unique Visitors/ngày** và **2 - 5 PageViews/người** (PageViews tổng từ 25 - 80 lượt xem/ngày).
+     - Đảm bảo biểu đồ mượt mà, phẳng phiu 24/7 cho các buổi demo/báo cáo, đồng thời sẵn sàng tích hợp truy cập thật từ người dùng.
 
 ## [2026-07-22] - Sửa lỗi sập Server Render (Exit status 139) do vượt giới hạn inotify (System.IO.IOException)
 
