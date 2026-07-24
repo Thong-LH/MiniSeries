@@ -33,6 +33,7 @@ taste-skill/
 
 # Local context files
 project_context.md
+activity_log.md
 
 # Web layout studio references (keep local, do not track in mobile repo)
 MiniSeries-Studio/
